@@ -1,7 +1,8 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../src/constants/theme';
+import { COLORS, RADIUS } from '../../src/constants/theme';
 import { useAlerts } from '../../src/context/AlertContext';
 
 export default function TabsLayout() {
@@ -11,15 +12,25 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.tealPrimary,
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: COLORS.darkCharcoal,
+        tabBarInactiveTintColor: '#8A8D93',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopColor: '#E2E8F0',
-          borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          borderRadius: RADIUS.full,
+          height: 54,
+          marginHorizontal: 12,
+          marginBottom: 10,
+          borderTopWidth: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.1,
+          shadowRadius: 16,
+          elevation: 6,
+          paddingHorizontal: 6,
+          paddingBottom: 6,
           paddingTop: 6,
+          borderWidth: 1,
+          borderColor: 'rgba(0, 0, 0, 0.05)',
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -30,9 +41,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="water" size={size} color={String(color)} />
+          title: 'Dynamics',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
+              <Ionicons
+                name={focused ? 'pulse' : 'pulse-outline'}
+                size={18}
+                color={focused ? '#FFFFFF' : String(color)}
+              />
+            </View>
           ),
         }}
       />
@@ -40,17 +57,29 @@ export default function TabsLayout() {
         name="scenarios"
         options={{
           title: 'Scenarios',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flask" size={size} color={String(color)} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
+              <Ionicons
+                name={focused ? 'flask' : 'flask-outline'}
+                size={18}
+                color={focused ? '#FFFFFF' : String(color)}
+              />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart" size={size} color={String(color)} />
+          title: 'Readings',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
+              <Ionicons
+                name={focused ? 'bar-chart' : 'bar-chart-outline'}
+                size={18}
+                color={focused ? '#FFFFFF' : String(color)}
+              />
+            </View>
           ),
         }}
       />
@@ -60,24 +89,50 @@ export default function TabsLayout() {
           title: 'Alerts',
           tabBarBadge: activeCount > 0 ? activeCount : undefined,
           tabBarBadgeStyle: {
-            backgroundColor: COLORS.danger,
+            backgroundColor: COLORS.accentLime,
+            color: COLORS.darkCharcoal,
             fontSize: 10,
-            fontWeight: '800',
+            fontWeight: '900',
           },
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="alert-circle" size={size} color={String(color)} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
+              <Ionicons
+                name={focused ? 'alert-circle' : 'alert-circle-outline'}
+                size={18}
+                color={focused ? '#FFFFFF' : String(color)}
+              />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
         name="admin"
         options={{
-          title: 'Admin',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="shield-checkmark" size={size} color={String(color)} />
+          title: 'Config',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
+              <Ionicons
+                name={focused ? 'options' : 'options-outline'}
+                size={18}
+                color={focused ? '#FFFFFF' : String(color)}
+              />
+            </View>
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabIconBoxActive: {
+    backgroundColor: COLORS.darkCharcoal,
+  },
+});
