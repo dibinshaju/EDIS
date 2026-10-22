@@ -19,24 +19,27 @@ export default function AlertsScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.titleRow}>
-            <Ionicons name="alert-circle" size={20} color={COLORS.danger} />
-            <Text style={styles.headerTitle}>Alert & Incident Center</Text>
+            <View style={styles.iconCircle}>
+              <Ionicons name="alert-circle-outline" size={16} color={COLORS.textPrimary} />
+            </View>
+            <Text style={styles.headerTitle}>Incident Log</Text>
           </View>
           <Text style={styles.headerSubtitle}>
-            {activeCount > 0 ? `${activeCount} active incident requiring attention` : 'All systems operating within safe limits'}
+            {activeCount > 0 ? `${activeCount} active incident requiring attention` : 'All telemetry operating within verified margins'}
           </Text>
         </View>
 
         <TouchableOpacity style={styles.demoBtn} onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}>
-          <Ionicons name="flash-outline" size={13} color="#FFFFFF" />
-          <Text style={styles.demoBtnText}>Test Alert</Text>
+          <Ionicons name="flash-outline" size={12} color="#FFFFFF" />
+          <Text style={styles.demoBtnText}>Test Event</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Filter Tabs */}
+      {/* Filter Pill Tabs */}
       <View style={styles.filterRow}>
         {(['ALL', 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'] as const).map((tab) => {
           const isActive = filter === tab;
@@ -57,12 +60,14 @@ export default function AlertsScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {filteredAlerts.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Ionicons name="checkmark-done-circle-outline" size={48} color={COLORS.success} />
-            <Text style={styles.emptyTitle}>No Alerts in this Category</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="checkmark-done" size={28} color={COLORS.darkCharcoal} />
+            </View>
+            <Text style={styles.emptyTitle}>No Recorded Incidents</Text>
             <Text style={styles.emptySubtitle}>
               {filter === 'ALL'
-                ? 'No water leakage, abnormal flow, or sensor issues recorded yet.'
-                : `No events matching filter: ${filter}`}
+                ? 'All sensors reporting steady balance. No anomalies detected.'
+                : `No events in ${filter} category.`}
             </Text>
             <TouchableOpacity
               style={styles.triggerTestBtn}
@@ -84,8 +89,8 @@ export default function AlertsScreen() {
 
         {alerts.length > 0 && (
           <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllAlerts}>
-            <Ionicons name="trash-outline" size={14} color={COLORS.textMuted} />
-            <Text style={styles.clearAllText}>Clear Alert Event History</Text>
+            <Ionicons name="trash-outline" size={13} color={COLORS.textSecondary} />
+            <Text style={styles.clearAllText}>Clear Event Archive</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -96,18 +101,16 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.canvasBg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingBottom: 8,
+    backgroundColor: COLORS.canvasBg,
   },
   headerLeft: {
     flex: 1,
@@ -115,52 +118,60 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  iconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   demoBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.danger,
+    backgroundColor: COLORS.darkCharcoal,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: RADIUS.sm,
+    borderRadius: 16,
   },
   demoBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   filterRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: SPACING.md,
-    paddingBottom: 8,
-    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    gap: 6,
   },
   filterTab: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 14,
-    backgroundColor: COLORS.bgLight,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
   },
   filterTabActive: {
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
   },
   filterTabText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   filterTabTextActive: {
     color: '#FFFFFF',
@@ -169,41 +180,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: SPACING.md,
+    padding: 14,
+    paddingBottom: 80,
   },
   emptyBox: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.xl,
+    borderRadius: RADIUS.xl,
+    padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    marginTop: 20,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  emptyIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.accentLime,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   emptyTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
-    color: COLORS.textDark,
-    marginTop: 10,
+    color: COLORS.textPrimary,
   },
   emptySubtitle: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 4,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   triggerTestBtn: {
-    backgroundColor: '#E0F2FE',
+    backgroundColor: COLORS.darkCharcoal,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    paddingVertical: 7,
+    borderRadius: 16,
   },
   triggerTestText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.tealDark,
+    color: '#FFFFFF',
   },
   clearAllBtn: {
     flexDirection: 'row',
@@ -211,12 +234,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 12,
-    marginTop: 8,
-    marginBottom: SPACING.xl,
   },
   clearAllText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+    fontSize: 11,
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
 });
