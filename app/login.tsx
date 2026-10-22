@@ -28,7 +28,6 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRealFirebaseMode, setIsRealFirebaseMode] = useState<boolean>(false);
 
-  // Countdown timer for OTP
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (step === 'OTP' && countdown > 0) {
@@ -47,12 +46,11 @@ export default function LoginScreen() {
     setErrorMsg(null);
     setIsLoading(true);
 
-    // Simulate OTP network dispatch
     setTimeout(() => {
       setIsLoading(false);
       setStep('OTP');
       setCountdown(30);
-    }, 600);
+    }, 500);
   };
 
   const handleVerifyOtp = async () => {
@@ -73,7 +71,6 @@ export default function LoginScreen() {
         setErrorMsg(res.error || 'Verification failed.');
       }
     } else {
-      // Demo Mode verification
       await loginDemo(fullPhone);
       setIsLoading(false);
       router.back();
@@ -93,32 +90,29 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        {/* Close Button */}
         <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-          <Ionicons name="close" size={20} color={COLORS.textMuted} />
+          <Ionicons name="close" size={18} color={COLORS.textPrimary} />
         </TouchableOpacity>
 
-        {/* Water-drop Logo */}
+        {/* Clean Logo Circle */}
         <View style={styles.logoBox}>
-          <Ionicons name="water" size={36} color={COLORS.tealPrimary} />
+          <Ionicons name="shield-checkmark" size={28} color={COLORS.darkCharcoal} />
         </View>
 
         <Text style={styles.title}>Smart Water Monitor</Text>
-        <Text style={styles.subtitle}>Secure Administrator Login</Text>
+        <Text style={styles.subtitle}>Administrator Authentication</Text>
 
-        {/* Demo Mode Notice Badge */}
         <View style={styles.demoBanner}>
-          <Ionicons name="flask" size={14} color={COLORS.demoBadgeText} />
           <Text style={styles.demoBannerText}>
             {isRealFirebaseMode
-              ? 'PRODUCTION MODE: Real Firebase Phone Auth'
-              : 'EXPO DEMO MODE: No real SMS sent'}
+              ? 'PRODUCTION MODE: Firebase Phone Auth'
+              : 'EXPO DEMO MODE: Academic Evaluation Session'}
           </Text>
         </View>
 
         {errorMsg && (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={14} color={COLORS.danger} />
+            <Ionicons name="alert-circle-outline" size={14} color={COLORS.danger} />
             <Text style={styles.errorText}>{errorMsg}</Text>
           </View>
         )}
@@ -151,31 +145,30 @@ export default function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryBtnText}>Continue to OTP Verification →</Text>
+                <Text style={styles.primaryBtnText}>Continue to OTP Verification</Text>
               )}
             </TouchableOpacity>
 
-            {/* Quick 1-Click Demo Login Button */}
             <TouchableOpacity
               style={styles.oneClickBtn}
               onPress={handleOneClickDemo}
               disabled={isLoading}
             >
-              <Ionicons name="flash" size={14} color={COLORS.navyDark} />
-              <Text style={styles.oneClickBtnText}>Instant Demo Admin Login (1-Click)</Text>
+              <Ionicons name="flash-outline" size={14} color={COLORS.darkCharcoal} />
+              <Text style={styles.oneClickBtnText}>Instant Demo Admin Login</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.form}>
             <Text style={styles.label}>Enter 6-Digit OTP</Text>
             <Text style={styles.otpSentTo}>
-              Sent to: <Text style={styles.bold}>{maskPhoneNumber(fullPhone)}</Text>
+              Target: <Text style={styles.bold}>{maskPhoneNumber(fullPhone)}</Text>
             </Text>
 
             {!isRealFirebaseMode && (
-              <View style={styles.demoOtpHint}>
-                <Text style={styles.demoOtpHintText}>
-                  Demo Mode Hint: Enter any 6-digit code (e.g. <Text style={styles.bold}>123456</Text>)
+              <View style={styles.demoOtpHalf}>
+                <Text style={styles.demoOtpHalfText}>
+                  Evaluation Code: Enter <Text style={styles.bold}>123456</Text>
                 </Text>
               </View>
             )}
@@ -201,16 +194,16 @@ export default function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryBtnText}>Verify & Authorize Admin</Text>
+                <Text style={styles.primaryBtnText}>Authorize Administrator</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.resendRow}>
               {countdown > 0 ? (
-                <Text style={styles.resendTimer}>Resend OTP in 0:{countdown < 10 ? `0${countdown}` : countdown}</Text>
+                <Text style={styles.resendTimer}>Resend in 0:{countdown < 10 ? `0${countdown}` : countdown}</Text>
               ) : (
                 <TouchableOpacity onPress={() => setCountdown(30)}>
-                  <Text style={styles.resendLink}>Resend OTP Code</Text>
+                  <Text style={styles.resendLink}>Resend Code</Text>
                 </TouchableOpacity>
               )}
 
@@ -221,7 +214,6 @@ export default function LoginScreen() {
           </View>
         )}
 
-        {/* Mode Switcher Toggle */}
         <TouchableOpacity
           style={styles.modeToggle}
           onPress={() => {
@@ -232,7 +224,7 @@ export default function LoginScreen() {
           <Text style={styles.modeToggleText}>
             {isRealFirebaseMode
               ? 'Switch to Offline Expo Demo Mode'
-              : 'Switch to Real Firebase Phone Auth Mode'}
+              : 'Switch to Firebase Auth Mode'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -243,22 +235,22 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(11, 31, 58, 0.7)',
+    backgroundColor: 'rgba(30, 33, 37, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.md,
   },
   card: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 350,
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
     elevation: 8,
     position: 'relative',
   },
@@ -269,43 +261,37 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   logoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#E0F2FE',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.cardSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
-    borderWidth: 2,
-    borderColor: COLORS.tealPrimary,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
   },
   subtitle: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+    fontSize: 11,
+    color: COLORS.textSecondary,
     marginTop: 2,
     marginBottom: 10,
   },
   demoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.demoBadgeBg,
+    backgroundColor: COLORS.cardSubtle,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.demoBadgeBorder,
+    borderRadius: 14,
     marginBottom: 12,
   },
   demoBannerText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.demoBadgeText,
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
   },
   errorBox: {
     flexDirection: 'row',
@@ -329,7 +315,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
     marginBottom: 6,
   },
   phoneInputRow: {
@@ -338,41 +324,37 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   countryCodeBox: {
-    backgroundColor: COLORS.bgLight,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.cardSubtle,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   countryCodeText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
   },
   phoneInput: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.cardSubtle,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
     letterSpacing: 1,
   },
   primaryBtn: {
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingVertical: 12,
-    borderRadius: RADIUS.md,
+    borderRadius: 18,
     alignItems: 'center',
     marginBottom: 10,
   },
   primaryBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   oneClickBtn: {
@@ -380,43 +362,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#E0F2FE',
-    borderWidth: 1,
-    borderColor: COLORS.tealPrimary,
+    backgroundColor: COLORS.cardSubtle,
     paddingVertical: 10,
-    borderRadius: RADIUS.md,
+    borderRadius: 18,
   },
   oneClickBtnText: {
-    color: COLORS.navyDark,
-    fontSize: 12,
+    color: COLORS.textPrimary,
+    fontSize: 11,
     fontWeight: '700',
   },
   otpSentTo: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginBottom: 6,
   },
-  demoOtpHint: {
-    backgroundColor: '#F0FDF4',
+  demoOtpHalf: {
+    backgroundColor: COLORS.cardSubtle,
     padding: 6,
-    borderRadius: 6,
+    borderRadius: 8,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
   },
-  demoOtpHintText: {
+  demoOtpHalfText: {
     fontSize: 10,
-    color: '#15803D',
+    color: COLORS.textSecondary,
   },
   otpInput: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: COLORS.tealPrimary,
+    backgroundColor: COLORS.cardSubtle,
     borderRadius: RADIUS.md,
     paddingVertical: 12,
     fontSize: 22,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
     textAlign: 'center',
     letterSpacing: 8,
     marginBottom: 14,
@@ -429,28 +405,28 @@ const styles = StyleSheet.create({
   },
   resendTimer: {
     fontSize: 10,
-    color: COLORS.textLight,
+    color: COLORS.textMuted,
   },
   resendLink: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.tealDark,
+    color: COLORS.textPrimary,
   },
   changePhoneLink: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   modeToggle: {
-    marginTop: 16,
+    marginTop: 14,
     paddingVertical: 4,
   },
   modeToggleText: {
     fontSize: 10,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textDecorationLine: 'underline',
   },
   bold: {
-    fontWeight: '700',
-    color: COLORS.navyDark,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
   },
 });
