@@ -40,9 +40,18 @@ export const COLORS = {
   dangerBg: '#FEE2E2',
   dangerText: '#991B1B',
   
+  warning: '#F59E0B',
+  warningBg: '#FEF3C7',
+  warningText: '#92400E',
+  
+  success: '#10B981',
+  successBg: '#D1FAE5',
+  successText: '#065F46',
+  
   // Graphic Tech Accent
   accentOrange: '#FF5500',    // Punchy tech orange
   accentOrangeLight: '#FFE8DF',
+
 
   // Desktop Outer Canvas Presentation Background (from photo)
   presentationBackdrop: '#DDE3EA', // Soft slate studio presentation background
