@@ -225,11 +225,14 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Title Row: Water flow Monitoring + Round Lime Action Button */}
+            {/* Title Row: Water (50px) on line 1, Flow (50px) below it */}
             <View style={styles.p1TitleRow}>
               <View style={styles.p1TitleGroup}>
-                <Text style={styles.p1TitleWhite}>Water flow</Text>
-                <Text style={styles.p1TitleSubGreen}>Telemetry</Text>
+                <Text style={styles.p1TitleWater}>Water</Text>
+                <View style={styles.p1TitleFlowRow}>
+                  <Text style={styles.p1TitleFlow}>Flow</Text>
+                  <Text style={styles.p1TitleSubGreen}>Telemetry</Text>
+                </View>
               </View>
               <TouchableOpacity
                 style={styles.roundActionLimeBtn}
@@ -238,7 +241,7 @@ export default function DashboardScreen() {
               >
                 <Ionicons
                   name="arrow-up"
-                  size={15}
+                  size={16}
                   color="#0F1A12"
                   style={{ transform: [{ rotate: '45deg' }] }}
                 />
