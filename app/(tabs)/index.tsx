@@ -113,60 +113,56 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image Typography & Hierarchy) */}
+      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image) */}
       <View style={styles.topHeroCard}>
-        {/* Top Header Bar: "AquaGuard" on left, "01 of 04" counter pill on right */}
+        {/* Top Header Bar: Logo on left, sub-navigation on right */}
         <View style={styles.heroTopBar}>
           <View style={styles.brandRow}>
             <View style={styles.logoCircle}>
               <Ionicons name="water" size={14} color="#0D0E11" />
             </View>
-            <Text style={styles.brandLogoText}>AquaGuard</Text>
+            <Text style={styles.brandLogoText}>AQUAGUARD</Text>
           </View>
 
-          <View style={styles.carouselCounterPill}>
-            <View style={styles.carouselCounterActiveBox}>
-              <Text style={styles.carouselCounterActiveText}>01</Text>
-            </View>
-            <Text style={styles.carouselCounterSub}>of 04</Text>
+          <View style={styles.heroNavRow}>
+            <Text style={styles.heroNavItem}>PIPELINE</Text>
+            <Text style={styles.heroNavItem}>NODES</Text>
+            <Text style={styles.heroNavItem}>TELEMETRY</Text>
           </View>
         </View>
 
-        {/* Resources / Context Tag (Matching "Resources" pill in image) */}
-        <View style={styles.categoryPill}>
-          <Text style={styles.categoryPillText}>Water Telemetry</Text>
-        </View>
-
-        {/* Massive Hero Heading exactly matching Reference Image Typography */}
-        <View style={styles.massiveHeadingWrap}>
-          <Text style={styles.massiveHeadingDark}>Smart Water</Text>
-          <View style={styles.massiveHeadingLine2}>
-            <Text style={styles.massiveHeadingDark}>monitor for </Text>
-            <Text style={styles.massiveHeadingAccent}>tech</Text>
+        {/* Hero Title and Purple Starburst Badge Row */}
+        <View style={styles.heroTitleRow}>
+          <View style={styles.heroTitleLeft}>
+            <Text style={styles.heroTitleBig}>AQUAGUARD</Text>
+            <Text style={styles.heroTitleBig}>MONITOR</Text>
+            <Text style={styles.heroSubtitle}>
+              Real-time municipal pipeline intake, distribution metering, and autonomous deficit detection.
+            </Text>
           </View>
-          <Text style={styles.massiveHeadingAccent}>pipelines</Text>
 
-          {/* Interactive Cursor Pointer & Badge Tag (Matching "Inayat Naqvi" badge in image) */}
-          <View style={styles.cursorBadgeWrap}>
-            <Svg width="18" height="18" viewBox="0 0 24 24" fill="#0D0E11" style={styles.cursorSvg}>
-              <Path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 5.428z" />
+          {/* Signature Purple Starburst Sticker (Matching "Q2" starburst in reference) */}
+          <View style={styles.starburstWrapper}>
+            <Svg width="88" height="88" viewBox="0 0 100 100">
+              <Path
+                d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
+                fill={COLORS.accentPurple}
+              />
             </Svg>
-            <View style={styles.cursorPill}>
-              <View style={styles.cursorAvatar}>
-                <Ionicons name="hardware-chip" size={11} color="#FFFFFF" />
-              </View>
-              <Text style={styles.cursorPillText}>ESP32 Virtual Node</Text>
+            <View style={styles.starburstTextWrap}>
+              <Text style={styles.starburstNumber}>IOT</Text>
+              <Text style={styles.starburstSub}>LIVE</Text>
             </View>
           </View>
         </View>
 
-        {/* Slanted Floating Tags Row (Matching "Inlet S1", "Outlet S2", "Delta") */}
+        {/* Slanted Floating Tags Row (Matching "Исследования", "Digital", "Кейсы") */}
         <View style={styles.slantedTagsWrap}>
           <View style={[styles.slantedTag, { transform: [{ rotate: '-3deg' }] }]}>
             <Text style={styles.slantedTagText}>Inlet S1: {formatFlow(inFlow)} L/m</Text>
           </View>
 
-          <View style={[styles.slantedTag, { transform: [{ rotate: '2deg' }], marginTop: 4 }]}>
+          <View style={[styles.slantedTag, { transform: [{ rotate: '2deg' }], marginTop: 6 }]}>
             <Text style={styles.slantedTagText}>Outlet S2: {formatFlow(outFlow)} L/m</Text>
           </View>
 
@@ -175,44 +171,41 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Pipeline Simulation Pills */}
-        <View style={styles.simControlRow}>
-          <Text style={styles.simControlLabel}>SIMULATE PIPELINE:</Text>
-          <View style={styles.miniDotRow}>
-            <TouchableOpacity
-              onPress={() => setScenario('normal')}
-              style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
-            >
-              <Ionicons name="checkmark" size={12} color={activeScenario === 'normal' ? '#FFFFFF' : '#0D0E11'} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setScenario('suspected_leak')}
-              style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
-            >
-              <Ionicons name="alert" size={12} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setScenario('abnormal_consumption')}
-              style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
-            >
-              <Ionicons name="speedometer" size={12} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Bottom Hero Row: Creator meta on left, button on right (Matching image footer) */}
+        {/* Bottom Hero Action Bar: Overlapping Lime-Yellow Pill & Wokwi Link */}
         <View style={styles.heroBottomRow}>
-          <View style={styles.creatorMetaWrap}>
-            <Text style={styles.creatorHandle}>@aquaguard.iot</Text>
-            <Text style={styles.creatorRole}>Autonomous Leak Detection</Text>
+          {/* Overhanging Lime-Yellow Pill */}
+          <View style={styles.overhangingPill}>
+            <Text style={styles.overhangingPillLabel}>Simulate State</Text>
+            <View style={styles.miniDotRow}>
+              <TouchableOpacity
+                onPress={() => setScenario('normal')}
+                style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
+              >
+                <Ionicons name="checkmark" size={11} color="#0D0E11" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setScenario('suspected_leak')}
+                style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
+              >
+                <Ionicons name="alert" size={11} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setScenario('abnormal_consumption')}
+                style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
+              >
+                <Ionicons name="speedometer" size={11} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
+              </TouchableOpacity>
+            </View>
           </View>
 
+          {/* Right Arrow Link */}
           <TouchableOpacity
-            style={styles.saveForLaterBtn}
+            style={styles.heroRightAction}
             onPress={() => router.push('/wokwi-guide')}
-            activeOpacity={0.85}
+            activeOpacity={0.8}
           >
-            <Text style={styles.saveForLaterBtnText}>Wokwi Bridge &rarr;</Text>
+            <Text style={styles.heroRightActionText}>Wokwi Bridge</Text>
+            <Ionicons name="arrow-forward" size={13} color="#0D0E11" />
           </TouchableOpacity>
         </View>
       </View>
@@ -221,7 +214,7 @@ export default function DashboardScreen() {
       <View style={styles.manifestoSection}>
         {/* Centered Small Starburst Icon */}
         <View style={styles.miniStarburstWrap}>
-          <Svg width="32" height="32" viewBox="0 0 100 100">
+          <Svg width="28" height="28" viewBox="0 0 100 100">
             <Path
               d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
               fill={COLORS.accentPurple}
@@ -230,8 +223,7 @@ export default function DashboardScreen() {
         </View>
 
         <Text style={styles.manifestoHeadline}>
-          PRECISION WATER TELEMETRY ENGINE.{'\n'}
-          <Text style={{ color: COLORS.accentVermilion }}>REAL-TIME PERSISTENCE FILTERING</Text> FOR PIPELINE INTEGRITY.
+          PRECISION WATER TELEMETRY ENGINE. REAL-TIME PERSISTENCE FILTERING FOR PIPELINE INTEGRITY.
         </Text>
       </View>
 
