@@ -761,14 +761,14 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   statusTimeLight: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
+    fontFamily: FONTS.number,
+    fontSize: 13,
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   statusTimeDark: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
+    fontFamily: FONTS.number,
+    fontSize: 13,
     color: '#1C1918',
     letterSpacing: 0.5,
   },
