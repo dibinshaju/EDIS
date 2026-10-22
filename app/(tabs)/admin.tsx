@@ -288,14 +288,14 @@ export default function AdminScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: COLORS.canvasBg,
   },
   scroll: {
     flex: 1,
   },
   content: {
     padding: 16,
-    paddingBottom: 90,
+    paddingBottom: 110,
   },
   header: {
     marginBottom: 16,
