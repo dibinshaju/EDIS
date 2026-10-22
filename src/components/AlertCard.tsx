@@ -17,20 +17,24 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   onResolve,
 }) => {
   const isCritical = alert.severity === 'CRITICAL';
-  const isWarning = alert.severity === 'WARNING';
   const isRecovered = alert.category === 'RECOVERED';
 
-  const getStatusColor = () => {
-    if (alert.status === 'RESOLVED' || isRecovered) return COLORS.success;
-    if (alert.status === 'ACKNOWLEDGED') return COLORS.info;
-    return isCritical ? COLORS.danger : COLORS.warning;
+  const getStatusBg = () => {
+    if (alert.status === 'RESOLVED' || isRecovered) return COLORS.cardSubtle;
+    if (alert.status === 'ACKNOWLEDGED') return '#E0F2FE';
+    return isCritical ? COLORS.dangerBg : COLORS.warningBg;
+  };
+
+  const getStatusTextCol = () => {
+    if (alert.status === 'RESOLVED' || isRecovered) return COLORS.successText;
+    if (alert.status === 'ACKNOWLEDGED') return '#0369A1';
+    return isCritical ? COLORS.dangerText : COLORS.warningText;
   };
 
   const getIcon = (): keyof typeof Ionicons.glyphMap => {
-    if (isRecovered) return 'checkmark-circle';
-    if (isCritical) return 'alert-circle';
-    if (isWarning) return 'warning';
-    return 'information-circle';
+    if (isRecovered) return 'checkmark-circle-outline';
+    if (isCritical) return 'alert-circle-outline';
+    return 'warning-outline';
   };
 
   return (
@@ -38,13 +42,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.iconAndTitle}>
-          <Ionicons name={getIcon()} size={18} color={getStatusColor()} />
+          <View style={styles.iconCircle}>
+            <Ionicons name={getIcon()} size={15} color={getStatusTextCol()} />
+          </View>
           <Text style={styles.title} numberOfLines={1}>
-            {alert.title}
+            {alert.title.replace(/^\[DEMO\]\s*/, '')}
           </Text>
         </View>
-        <View style={[styles.statusPill, { backgroundColor: `${getStatusColor()}20` }]}>
-          <Text style={[styles.statusPillText, { color: getStatusColor() }]}>
+
+        <View style={[styles.statusPill, { backgroundColor: getStatusBg() }]}>
+          <Text style={[styles.statusPillText, { color: getStatusTextCol() }]}>
             {alert.status}
           </Text>
         </View>
@@ -56,16 +63,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({
       {/* Sensor Metrics at incident time */}
       <View style={styles.metricGrid}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Inlet Flow</Text>
+          <Text style={styles.metricLabel}>Inlet Meter</Text>
           <Text style={styles.metricValue}>{formatFlow(alert.inletFlow)} L/min</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Outlet Flow</Text>
+          <Text style={styles.metricLabel}>Outlet Meter</Text>
           <Text style={styles.metricValue}>{formatFlow(alert.outletFlow)} L/min</Text>
         </View>
         <View style={styles.metricItem}>
           <Text style={styles.metricLabel}>Flow Deficit</Text>
-          <Text style={[styles.metricValue, { color: alert.flowDifference > 1 ? COLORS.danger : COLORS.textDark }]}>
+          <Text style={[styles.metricValue, { color: alert.flowDifference > 1 ? COLORS.danger : COLORS.textPrimary }]}>
             +{formatFlow(alert.flowDifference)} L/min
           </Text>
         </View>
@@ -74,7 +81,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
       {/* Footer Info */}
       <View style={styles.footer}>
         <View style={styles.timeInfo}>
-          <Ionicons name="time-outline" size={12} color={COLORS.textLight} />
+          <Ionicons name="time-outline" size={11} color={COLORS.textSecondary} />
           <Text style={styles.timeText}>
             {formatDate(alert.timestamp)} • {formatTime(alert.timestamp)}
           </Text>
@@ -86,7 +93,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
               style={styles.ackBtn}
               onPress={() => onAcknowledge(alert.id)}
             >
-              <Text style={styles.ackBtnText}>Acknowledge</Text>
+              <Text style={styles.ackBtnText}>Silence</Text>
             </TouchableOpacity>
           )}
 
@@ -106,17 +113,17 @@ export const AlertCard: React.FC<AlertCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -127,35 +134,43 @@ const styles = StyleSheet.create({
   iconAndTitle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flex: 1,
   },
+  iconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.cardSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
     flex: 1,
   },
   statusPill: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   statusPillText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   explanation: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    lineHeight: 16,
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    lineHeight: 15,
     marginBottom: 10,
   },
   metricGrid: {
     flexDirection: 'row',
-    backgroundColor: COLORS.bgLight,
-    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.cardSubtle,
+    borderRadius: RADIUS.md,
     padding: 8,
     justifyContent: 'space-between',
     marginBottom: 8,
@@ -164,14 +179,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricLabel: {
-    fontSize: 10,
-    color: COLORS.textLight,
+    fontSize: 9,
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
   metricValue: {
     fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
     marginTop: 2,
   },
   footer: {
@@ -179,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: 'rgba(0, 0, 0, 0.04)',
     paddingTop: 8,
   },
   timeInfo: {
@@ -189,34 +204,34 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 10,
-    color: COLORS.textLight,
+    color: COLORS.textSecondary,
   },
   actions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   ackBtn: {
-    backgroundColor: COLORS.navyDark,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    backgroundColor: COLORS.darkCharcoal,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   ackBtnText: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   resolveBtn: {
-    backgroundColor: COLORS.successBg,
-    borderColor: COLORS.success,
+    backgroundColor: COLORS.cardSubtle,
     borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    borderColor: '#CBC7BD',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   resolveBtnText: {
-    color: COLORS.successText,
+    color: COLORS.textPrimary,
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
