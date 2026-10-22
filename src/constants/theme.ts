@@ -10,7 +10,8 @@ export const COLORS = {
   // Signature Electric Canary / Neon Lime Accent
   accentYellow: '#F7FF00',    // Bright electric yellow from Card 01 & highlights
   accentYellowHover: '#E5EE00',
-  accentOrange: '#F7FF00',
+  accentOrange: '#E95325',    // Tech Vermilion Orange from typography reference
+  accentVermilion: '#E95325', // Vibrant Vermilion Orange for punchy heading highlights
   accentLime: '#F7FF00',
   accentLimeLight: '#FBFF80',
   accentLimeDark: '#0D0E11',
