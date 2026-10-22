@@ -300,6 +300,7 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setMismatchThreshold,
         setNeedIntervals,
         resetDemo,
+        resetSimulator: resetDemo,
         currentReading,
         totalVolumeLiters: inVol,
         dataSource,
