@@ -80,7 +80,7 @@ export default function HistoryScreen() {
                 height="120"
                 width="100%"
                 viewBox="0 0 260 120"
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
               >
                 <Path
                   d="M0,50 C80,20 160,90 260,40"

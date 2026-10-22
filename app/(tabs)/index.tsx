@@ -57,7 +57,7 @@ export default function DashboardScreen() {
           height="160"
           width="100%"
           viewBox="0 0 350 160"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         >
           <Path
             d="M0,40 C100,10 200,80 350,30 L350,160 L0,160 Z"
