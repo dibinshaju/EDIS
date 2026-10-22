@@ -221,19 +221,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  // Dark rounded bezel like tablet/phone in image
+  // iPhone 18 Pro Crimson Titanium / Deep Red metallic frame
   deviceBezel: {
-    width: 410,
-    height: 840,
-    backgroundColor: COLORS.deviceBezel,
-    borderRadius: 48,
+    width: 420,
+    height: 860,
+    backgroundColor: COLORS.deviceBezel, // #82101E Deep Crimson
+    borderRadius: 50,
     padding: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.28,
-    shadowRadius: 36,
-    borderWidth: 3,
-    borderColor: '#3F4248',
+    shadowColor: '#52060F',
+    shadowOffset: { width: 0, height: 26 },
+    shadowOpacity: 0.38,
+    shadowRadius: 40,
+    borderWidth: 3.5,
+    borderColor: '#B82234', // Metallic Crimson edge rim
   },
   screenContainer: {
     flex: 1,
