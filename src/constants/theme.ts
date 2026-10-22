@@ -66,9 +66,10 @@ export const COLORS = {
 };
 
 export const FONTS = {
-  display: '"Barlow Condensed", "Bebas Neue", "Impact", -apple-system, sans-serif',
-  condensed: '"Barlow Condensed", "Bebas Neue", sans-serif',
-  body: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  heading: 'Bungee, cursive, sans-serif',
+  body: '"Bebas Neue", sans-serif',
+  display: 'Bungee, cursive, sans-serif',
+  condensed: '"Bebas Neue", sans-serif',
   mono: '"SF Mono", "Courier New", monospace',
 };
 
