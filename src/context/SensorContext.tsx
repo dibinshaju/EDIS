@@ -3,63 +3,256 @@ import { TelemetryReading, ThresholdConfig, ScenarioType, DataSource } from '../
 import { DEFAULT_THRESHOLDS } from '../constants/thresholds';
 import { useMqtt } from './MqttContext';
 
+export interface PrototypeEvent {
+  id: string;
+  t: string;
+  message: string;
+}
+
+export type PrototypeStatusState = 'normal' | 'checking' | 'leak' | 'high' | 'datacheck';
+
 interface SensorContextType {
-  currentReading: TelemetryReading;
+  // HTML Prototype Core Variables
+  inFlow: number;
+  outFlow: number;
+  inVol: number;
+  outVol: number;
+  mismatch: number;
+  elapsed: number;
+  suspicious: number;
+  needIntervals: number;
+  mismatchThreshold: number;
+  statusState: PrototypeStatusState;
+  statusDetail: string;
+  events: PrototypeEvent[];
   history: TelemetryReading[];
+  
+  // Controls
+  setScenario: (s: ScenarioType) => void;
+  manualFlow: (inlet: number, outlet: number) => void;
+  setMismatchThreshold: (val: number) => void;
+  setNeedIntervals: (val: number) => void;
+  resetDemo: () => void;
+  
+  // App Infrastructure Compatibility
+  currentReading: TelemetryReading;
   totalVolumeLiters: number;
   dataSource: DataSource;
-  setDataSource: (source: DataSource) => void;
+  setDataSource: (s: DataSource) => void;
   activeScenario: ScenarioType;
-  setScenario: (scenario: ScenarioType) => void;
   thresholds: ThresholdConfig;
   updateThresholds: (partial: Partial<ThresholdConfig>) => void;
-  resetSimulator: () => void;
   isSimulated: boolean;
 }
 
-const INITIAL_READING: TelemetryReading = {
-  deviceId: 'SIMULATED_DEMO_ESP32',
-  timestamp: Date.now(),
-  inletFlow: 12.0,
-  outletFlow: 11.9,
-  flowDifference: 0.1,
-  isValid: true,
-  isSimulated: true,
-  status: 'online',
-  notes: 'Demo mode active',
-};
-
 const SensorContext = createContext<SensorContextType | undefined>(undefined);
+
+const INTERVAL_SECONDS = 10; // Each simulation interval represents 10 simulated seconds
 
 export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { status: mqttStatus, setOnTelemetryReceived, publishCommand } = useMqtt();
-  
+
   const [dataSource, setDataSource] = useState<DataSource>('demo');
   const [activeScenario, setActiveScenario] = useState<ScenarioType>('normal');
+  
+  // Core Prototype State
+  const [inFlow, setInFlow] = useState<number>(5.0);
+  const [outFlow, setOutFlow] = useState<number>(5.0);
+  const [inVol, setInVol] = useState<number>(0.0);
+  const [outVol, setOutVol] = useState<number>(0.0);
+  const [mismatch, setMismatch] = useState<number>(0.0);
+  const [elapsed, setElapsed] = useState<number>(0);
+  const [suspicious, setSuspicious] = useState<number>(0);
+  const [needIntervals, setNeedIntervals] = useState<number>(3);
+  const [mismatchThreshold, setMismatchThreshold] = useState<number>(1.0);
+  const [alarmed, setAlarmed] = useState<boolean>(false);
+  
+  const [statusState, setStatusState] = useState<PrototypeStatusState>('normal');
+  const [statusDetail, setStatusDetail] = useState<string>('The inlet and outlet readings are balanced.');
+  
+  const [events, setEvents] = useState<PrototypeEvent[]>([
+    { id: 'ev-0', t: 'T+0s', message: 'System ready. Choose a scenario or adjust flow rates manually.' },
+  ]);
+
+  const [history, setHistory] = useState<TelemetryReading[]>([
+    {
+      deviceId: 'ESP32_METER_01',
+      timestamp: Date.now(),
+      inletFlow: 5.0,
+      outletFlow: 5.0,
+      flowDifference: 0.0,
+      isValid: true,
+      isSimulated: true,
+      status: 'online',
+    },
+  ]);
+
   const [thresholds, setThresholds] = useState<ThresholdConfig>(DEFAULT_THRESHOLDS);
-  const [currentReading, setCurrentReading] = useState<TelemetryReading>(INITIAL_READING);
-  const [history, setHistory] = useState<TelemetryReading[]>([INITIAL_READING]);
-  const [totalVolumeLiters, setTotalVolumeLiters] = useState<number>(142.5);
 
-  const scenarioTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const simulationStepRef = useRef<number>(0);
-
-  const updateThresholds = useCallback((partial: Partial<ThresholdConfig>) => {
-    setThresholds((prev) => ({ ...prev, ...partial }));
+  const addEvent = useCallback((message: string, currentElapsed: number) => {
+    const t = `T+${currentElapsed}s`;
+    const newEv: PrototypeEvent = {
+      id: `ev-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      t,
+      message,
+    };
+    setEvents((prev) => [newEv, ...prev.slice(0, 19)]);
   }, []);
 
-  // When live telemetry arrives via MQTT
+  // Set scenario function matching the HTML prototype
+  const setScenario = useCallback((s: ScenarioType) => {
+    setActiveScenario(s);
+    let newIn = 5.0;
+    let newOut = 5.0;
+
+    if (s === 'normal' || s === 'recovery') {
+      newIn = 5.0;
+      newOut = 5.0;
+      addEvent('Scenario selected: balanced normal flow.', elapsed);
+    } else if (s === 'suspected_leak') {
+      newIn = 5.0;
+      newOut = 3.0;
+      addEvent('Scenario selected: inlet exceeds outlet; mismatch should accumulate.', elapsed);
+    } else if (s === 'abnormal_consumption') {
+      newIn = 12.0;
+      newOut = 12.0;
+      addEvent('Scenario selected: high flow with balanced inlet/outlet; high consumption, not a leak.', elapsed);
+    } else if (s === 'sensor_anomaly') {
+      newIn = 3.0;
+      newOut = 5.0;
+      addEvent('Scenario selected: diagnostic check; outlet exceeds inlet.', elapsed);
+    }
+
+    setInFlow(newIn);
+    setOutFlow(newOut);
+
+    if (mqttStatus === 'connected') {
+      publishCommand({
+        command: 'set_scenario',
+        scenario: s,
+        timestamp: Date.now(),
+      });
+    }
+  }, [elapsed, mqttStatus, publishCommand, addEvent]);
+
+  const manualFlow = useCallback((inlet: number, outlet: number) => {
+    setInFlow(inlet);
+    setOutFlow(outlet);
+    setActiveScenario('idle');
+  }, []);
+
+  const resetDemo = useCallback(() => {
+    setInFlow(5.0);
+    setOutFlow(5.0);
+    setInVol(0.0);
+    setOutVol(0.0);
+    setMismatch(0.0);
+    setElapsed(0);
+    setSuspicious(0);
+    setAlarmed(false);
+    setStatusState('normal');
+    setStatusDetail('The inlet and outlet readings are balanced.');
+    setHistory([]);
+    setEvents([
+      { id: 'ev-reset', t: 'T+0s', message: 'Demo reset. Ready for a new scenario.' },
+    ]);
+    setActiveScenario('normal');
+
+    if (mqttStatus === 'connected') {
+      publishCommand({ command: 'reset', timestamp: Date.now() });
+    }
+  }, [mqttStatus, publishCommand]);
+
+  // Simulation Step execution (ticks every 3 real seconds = 10 simulated seconds)
+  useEffect(() => {
+    if (dataSource !== 'demo') return;
+
+    const timer = setInterval(() => {
+      setElapsed((prevElapsed) => {
+        const nextElapsed = prevElapsed + INTERVAL_SECONDS;
+
+        setInVol((prevInVol) => {
+          return setOutVol((prevOutVol) => {
+            const inDelta = (inFlow * INTERVAL_SECONDS) / 60;
+            const outDelta = (outFlow * INTERVAL_SECONDS) / 60;
+            const nextInVol = prevInVol + inDelta;
+            const nextOutVol = prevOutVol + outDelta;
+            const currentMismatch = nextInVol - nextOutVol;
+            const intervalMismatch = inDelta - outDelta;
+
+            setMismatch(Number(currentMismatch.toFixed(2)));
+
+            setSuspicious((prevSuspicious) => {
+              let nextSuspicious = prevSuspicious;
+
+              if (intervalMismatch > 0.0001 && currentMismatch > mismatchThreshold) {
+                nextSuspicious += 1;
+              } else if (currentMismatch <= mismatchThreshold) {
+                nextSuspicious = 0;
+              }
+
+              // Evaluate High Consumption
+              if (inFlow > 10 && Math.abs(inFlow - outFlow) < 0.25) {
+                addEvent('High consumption pattern detected; inlet/outlet remain balanced. No leak inferred.', nextElapsed);
+              }
+
+              // Evaluate Possible Leak
+              if (nextSuspicious >= needIntervals && !alarmed) {
+                setAlarmed(true);
+                addEvent('POSSIBLE LEAK: persistent inlet/outlet volume mismatch exceeded threshold.', nextElapsed);
+              }
+
+              // Determine Status State and Detail
+              if (nextInVol - nextOutVol < -mismatchThreshold) {
+                setStatusState('datacheck');
+                setStatusDetail('DATA CHECK: outlet exceeds inlet. Check sensor calibration or auxiliary feeds.');
+              } else if (alarmed || nextSuspicious >= needIntervals) {
+                setStatusState('leak');
+                setStatusDetail('POSSIBLE LEAK: simulated inlet volume exceeds outlet volume beyond threshold.');
+              } else if (inFlow > 10 && Math.abs(inFlow - outFlow) < 0.25) {
+                setStatusState('high');
+                setStatusDetail('HIGH CONSUMPTION: high flow is not treated as a leak when sensors remain balanced.');
+              } else if (currentMismatch > mismatchThreshold) {
+                setStatusState('checking');
+                setStatusDetail('CHECKING: mismatch detected; waiting for configured suspicious intervals.');
+              } else {
+                setStatusState('normal');
+                setStatusDetail('NORMAL: no persistent mismatch above configured threshold.');
+              }
+
+              return nextSuspicious;
+            });
+
+            return Number(nextOutVol.toFixed(2));
+          });
+        });
+
+        // Append to history buffer
+        const reading: TelemetryReading = {
+          deviceId: 'ESP32_METER_01',
+          timestamp: Date.now(),
+          inletFlow: inFlow,
+          outletFlow: outFlow,
+          flowDifference: Number((inFlow - outFlow).toFixed(2)),
+          isValid: true,
+          isSimulated: true,
+          status: 'online',
+        };
+        setHistory((prev) => [...prev.slice(-25), reading]);
+
+        return nextElapsed;
+      });
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [dataSource, inFlow, outFlow, mismatchThreshold, needIntervals, alarmed, addEvent]);
+
+  // Handle MQTT Telemetry when live hardware is active
   const handleLiveTelemetry = useCallback((reading: TelemetryReading) => {
-    // Only accept live telemetry if dataSource is wokwi or mqtt
-    if (dataSource !== 'demo') {
-      setCurrentReading(reading);
-      setHistory((prev) => [...prev.slice(-49), reading]);
-      
-      // Integrate flow over interval (assuming ~2s between readings: L/min * (2/60))
-      const deltaLiters = (reading.inletFlow / 60) * 2;
-      if (!isNaN(deltaLiters) && deltaLiters > 0) {
-        setTotalVolumeLiters((v) => Number((v + deltaLiters).toFixed(2)));
-      }
+    if (dataSource === 'wokwi') {
+      setInFlow(reading.inletFlow);
+      setOutFlow(reading.outletFlow);
+      setHistory((prev) => [...prev.slice(-25), reading]);
     }
   }, [dataSource]);
 
@@ -67,153 +260,51 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setOnTelemetryReceived(handleLiveTelemetry);
   }, [setOnTelemetryReceived, handleLiveTelemetry]);
 
-  // If MQTT connects and user hasn't explicitly locked to Demo mode, suggest Wokwi
-  useEffect(() => {
-    if (mqttStatus === 'connected' && dataSource === 'demo') {
-      // Keep demo as default but user can switch freely
-    }
-  }, [mqttStatus, dataSource]);
+  const currentReading: TelemetryReading = {
+    deviceId: 'ESP32_METER_01',
+    timestamp: Date.now(),
+    inletFlow: inFlow,
+    outletFlow: outFlow,
+    flowDifference: Number((inFlow - outFlow).toFixed(2)),
+    isValid: true,
+    isSimulated: dataSource === 'demo',
+    status: 'online',
+    notes: statusDetail,
+  };
 
-  // Deterministic Demo Simulation Loop
-  const tickDemoSimulation = useCallback(() => {
-    simulationStepRef.current += 1;
-    const step = simulationStepRef.current;
-    const now = Date.now();
-    
-    // Slight natural jitter
-    const noise = (Math.sin(step * 0.5) * 0.15);
-
-    let inlet = 12.0 + noise;
-    let outlet = 11.9 + noise * 0.9;
-    let notes = 'Normal flow';
-    let isValid = true;
-
-    switch (activeScenario) {
-      case 'idle':
-        inlet = 0.0;
-        outlet = 0.0;
-        notes = 'Idle: No water drawn';
-        break;
-
-      case 'normal':
-        inlet = 12.5 + noise;
-        outlet = 12.3 + noise * 0.9;
-        notes = 'Normal consistent water flow';
-        break;
-
-      case 'suspected_leak':
-        // Sustained positive flow difference (inlet > outlet by 5.2 L/min)
-        inlet = 16.0 + noise;
-        outlet = 10.8 + noise * 0.8;
-        notes = 'DEMO: Positive flow mismatch (Inlet > Outlet)';
-        break;
-
-      case 'abnormal_consumption':
-        // Flow exceeds 25.0 threshold (high draw, e.g. 31.5 L/min)
-        inlet = 31.0 + noise * 2;
-        outlet = 30.8 + noise * 2;
-        notes = 'DEMO: High flow exceeding 25 L/min threshold';
-        break;
-
-      case 'night_time_flow':
-        // Quiescent flow of 4.5 L/min
-        inlet = 4.5 + noise * 0.5;
-        outlet = 4.4 + noise * 0.5;
-        notes = 'DEMO: Flow active during simulated quiescent period';
-        break;
-
-      case 'sensor_anomaly':
-        // Outlet reads higher than Inlet (Reversed mismatch)
-        inlet = 9.0 + noise;
-        outlet = 15.2 + noise;
-        notes = 'DEMO: Diagnostic anomaly (Outlet > Inlet)';
-        break;
-
-      case 'recovery':
-        // Restored to balanced 11.5 L/min
-        inlet = 11.5 + noise;
-        outlet = 11.4 + noise;
-        notes = 'DEMO: Flow stabilized to normal';
-        break;
-    }
-
-    const reading: TelemetryReading = {
-      deviceId: 'SIMULATED_DEMO_ESP32',
-      timestamp: now,
-      inletFlow: Number(inlet.toFixed(2)),
-      outletFlow: Number(outlet.toFixed(2)),
-      flowDifference: Number((inlet - outlet).toFixed(2)),
-      isValid,
-      isSimulated: true,
-      status: 'online',
-      notes,
-    };
-
-    setCurrentReading(reading);
-    setHistory((prev) => [...prev.slice(-49), reading]);
-
-    // Integrate volume
-    const deltaLiters = (inlet / 60) * 1.5;
-    if (deltaLiters > 0) {
-      setTotalVolumeLiters((v) => Number((v + deltaLiters).toFixed(2)));
-    }
-  }, [activeScenario]);
-
-  // Run demo tick every 1.5 seconds when in demo mode
-  useEffect(() => {
-    if (dataSource === 'demo') {
-      scenarioTimerRef.current = setInterval(tickDemoSimulation, 1500);
-    } else {
-      if (scenarioTimerRef.current) {
-        clearInterval(scenarioTimerRef.current);
-        scenarioTimerRef.current = null;
-      }
-    }
-
-    return () => {
-      if (scenarioTimerRef.current) {
-        clearInterval(scenarioTimerRef.current);
-      }
-    };
-  }, [dataSource, tickDemoSimulation]);
-
-  const setScenario = useCallback((scenario: ScenarioType) => {
-    setActiveScenario(scenario);
-    simulationStepRef.current = 0;
-    
-    // Also broadcast scenario to Wokwi if connected via MQTT
-    if (mqttStatus === 'connected') {
-      publishCommand({
-        command: 'set_scenario',
-        scenario,
-        timestamp: Date.now(),
-      });
-    }
-  }, [mqttStatus, publishCommand]);
-
-  const resetSimulator = useCallback(() => {
-    setActiveScenario('normal');
-    simulationStepRef.current = 0;
-    setTotalVolumeLiters(142.5);
-    if (mqttStatus === 'connected') {
-      publishCommand({ command: 'reset', timestamp: Date.now() });
-    }
-  }, [mqttStatus, publishCommand]);
+  const updateThresholds = useCallback((partial: Partial<ThresholdConfig>) => {
+    setThresholds((prev) => ({ ...prev, ...partial }));
+  }, []);
 
   return (
     <SensorContext.Provider
       value={{
-        currentReading,
+        inFlow,
+        outFlow,
+        inVol,
+        outVol,
+        mismatch,
+        elapsed,
+        suspicious,
+        needIntervals,
+        mismatchThreshold,
+        statusState,
+        statusDetail,
+        events,
         history,
-        totalVolumeLiters,
+        setScenario,
+        manualFlow,
+        setMismatchThreshold,
+        setNeedIntervals,
+        resetDemo,
+        currentReading,
+        totalVolumeLiters: inVol,
         dataSource,
         setDataSource,
         activeScenario,
-        setScenario,
         thresholds,
         updateThresholds,
-        resetSimulator,
-        isSimulated: dataSource === 'demo' || currentReading.isSimulated,
+        isSimulated: dataSource === 'demo',
       }}
     >
       {children}
