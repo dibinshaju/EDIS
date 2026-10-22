@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.darkCharcoal,
+    backgroundColor: COLORS.accentOrange,
     marginTop: 4,
   },
   centerFab: {
