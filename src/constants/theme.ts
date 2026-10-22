@@ -1,9 +1,9 @@
 export const COLORS = {
   // Clean minimal studio palette matching latest uploaded design
-  canvasBg: '#F8F9FA',        // Clean light grey canvas
+  canvasBg: '#E9E7E1',        // Warm soft putty / oatmeal stone grey canvas
   cardBg: '#FFFFFF',          // Crisp white rounded cards
-  cardSubtle: '#F1F3F5',      // Soft tinted card secondary
-  cardBorder: '#E5E7EB',      // Subtle muted border
+  cardSubtle: '#DFDDD7',      // Soft tinted card secondary
+  cardBorder: '#D8D5CD',      // Subtle muted border
   
   // Signature Acid / Neon Lime Accent
   accentLime: '#D8FA1E',      // Neon yellow-green accent circles & badges
@@ -53,9 +53,9 @@ export const COLORS = {
   accentOrangeLight: '#FFE8DF',
 
 
-  // Desktop Outer Canvas Presentation Background (from photo)
-  presentationBackdrop: '#DDE3EA', // Soft slate studio presentation background
-  deviceBezel: '#212429',          // Clean device bezel
+  // Desktop Outer Canvas Presentation Background (Exact Image 3 neon acid backdrop)
+  presentationBackdrop: '#D4FB0A', // Vibrant electric neon yellow-lime presentation background
+  deviceBezel: '#181A1D',          // Clean device bezel
 };
 
 export const FONTS = {
