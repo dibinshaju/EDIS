@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "author": "Smart Water Monitor Academic Project",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_inlet",
+      "top": -120,
+      "left": -120,
+      "attrs": { "label": "Sensor 1: Inlet Flow (0-35 L/min)" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_outlet",
+      "top": -120,
+      "left": 140,
+      "attrs": { "label": "Sensor 2: Outlet Flow (0-35 L/min)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_alert",
+      "top": 150,
+      "left": -60,
+      "attrs": { "color": "red", "label": "Leak Alarm LED" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 150,
+      "left": 80,
+      "attrs": { "label": "Hardware Buzzer" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "pot_inlet:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_inlet:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_inlet:SIG", "esp:34", "blue", [ "v0" ] ],
+    [ "pot_outlet:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_outlet:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_outlet:SIG", "esp:35", "green", [ "v0" ] ],
+    [ "led_alert:A", "esp:2", "red", [ "v0" ] ],
+    [ "led_alert:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "buzzer:1", "esp:25", "purple", [ "v0" ] ],
+    [ "buzzer:2", "esp:GND.2", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
