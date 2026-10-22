@@ -161,9 +161,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   floatingPillText: {
-    color: '#FFFFFF',
+    color: COLORS.accentYellow,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
   footer: {
