@@ -39,15 +39,15 @@ export const WaveformChart: React.FC<WaveformChartProps> = ({
       <View style={styles.waveformContainer}>
         <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
           <Defs>
-            {/* Yellow-Lime Gradient Fill */}
-            <LinearGradient id="limeWaveGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor={COLORS.accentLime} stopOpacity="0.75" />
-              <Stop offset="100%" stopColor={COLORS.accentLime} stopOpacity="0.08" />
+            {/* Tech Orange Gradient Fill */}
+            <LinearGradient id="orangeWaveGrad" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor={COLORS.accentOrange} stopOpacity="0.65" />
+              <Stop offset="100%" stopColor={COLORS.accentOrange} stopOpacity="0.05" />
             </LinearGradient>
             {/* Grey Wave Gradient Fill */}
             <LinearGradient id="greyWaveGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#C4C1B8" stopOpacity="0.65" />
-              <Stop offset="100%" stopColor="#E2E0D8" stopOpacity="0.1" />
+              <Stop offset="0%" stopColor="#DDD9D0" stopOpacity="0.6" />
+              <Stop offset="100%" stopColor="#EFECE6" stopOpacity="0.1" />
             </LinearGradient>
           </Defs>
 
@@ -57,18 +57,18 @@ export const WaveformChart: React.FC<WaveformChartProps> = ({
             fill="url(#greyWaveGrad)"
           />
 
-          {/* Foreground Lime-Yellow Layer Wave */}
+          {/* Foreground Tech Orange Layer Wave */}
           <Path
             d="M 0 44 C 40 28, 80 52, 120 36 C 160 20, 190 44, 240 32 L 240 75 L 0 75 Z"
-            fill="url(#limeWaveGrad)"
+            fill="url(#orangeWaveGrad)"
           />
 
           {/* Wave Accent Stroke Line */}
           <Path
             d="M 0 44 C 40 28, 80 52, 120 36 C 160 20, 190 44, 240 32"
             fill="none"
-            stroke={isAlert ? COLORS.danger : COLORS.accentLimeDark}
-            strokeWidth="2"
+            stroke={isAlert ? COLORS.danger : COLORS.accentOrange}
+            strokeWidth="2.5"
           />
         </Svg>
 
