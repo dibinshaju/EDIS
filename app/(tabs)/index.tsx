@@ -27,7 +27,7 @@ export default function DashboardScreen() {
     height: 750,
   });
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<any>(null);
 
   const {
     inFlow,
@@ -602,10 +602,10 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={[
                   styles.scenarioBtn,
-                  activeScenario === 'leak' && styles.scenarioBtnDanger,
+                  activeScenario === 'suspected_leak' && styles.scenarioBtnDanger,
                 ]}
                 onPress={() => {
-                  setScenario('leak');
+                  setScenario('suspected_leak');
                   setShowScenarioModal(false);
                 }}
               >
@@ -622,10 +622,10 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={[
                   styles.scenarioBtn,
-                  activeScenario === 'high' && styles.scenarioBtnActive,
+                  activeScenario === 'abnormal_consumption' && styles.scenarioBtnActive,
                 ]}
                 onPress={() => {
-                  setScenario('high');
+                  setScenario('abnormal_consumption');
                   setShowScenarioModal(false);
                 }}
               >
@@ -642,10 +642,10 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={[
                   styles.scenarioBtn,
-                  activeScenario === 'datacheck' && styles.scenarioBtnActive,
+                  activeScenario === 'sensor_anomaly' && styles.scenarioBtnActive,
                 ]}
                 onPress={() => {
-                  setScenario('datacheck');
+                  setScenario('sensor_anomaly');
                   setShowScenarioModal(false);
                 }}
               >
