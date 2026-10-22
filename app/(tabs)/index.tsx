@@ -1,36 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
-import { PillSlider } from '../../src/components/PillSlider';
-import { WaveformChart } from '../../src/components/WaveformChart';
+import { useMqtt } from '../../src/context/MqttContext';
 import { formatFlow } from '../../src/utils/format';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 
 export default function DashboardScreen() {
   const {
     inFlow,
     outFlow,
-    inVol,
-    outVol,
     mismatch,
     elapsed,
     suspicious,
     needIntervals,
-    mismatchThreshold,
     statusState,
-    events,
     setScenario,
     manualFlow,
     resetDemo,
     activeScenario,
   } = useSensor();
+
+  const { status: mqttStatus } = useMqtt();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getStatusColor = () => {
     switch (statusState) {
@@ -46,242 +46,323 @@ export default function DashboardScreen() {
     }
   };
 
-  const getStatusTitle = () => {
-    switch (statusState) {
-      case 'leak':
-        return 'POSSIBLE LEAK';
-      case 'datacheck':
-        return 'DATA CHECK';
-      case 'high':
-        return 'HIGH DRAW';
-      case 'checking':
-        return 'CHECKING';
-      case 'normal':
-      default:
-        return 'NORMAL';
-    }
-  };
-
-  const progressPct = Math.min(
-    100,
-    Math.round((Math.min(suspicious, needIntervals) / needIntervals) * 100)
-  );
+  const isLeak = activeScenario === 'suspected_leak' || statusState === 'leak';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
-      {/* 1. Top Editorial Header (Matching uploaded graphic) */}
-      <View style={styles.header}>
-        <View style={styles.metaRow}>
-          <Text style={styles.metaLabel}>Telemetry Monitor</Text>
-          <View style={styles.indexPill}>
-            <Text style={styles.indexPillText}>01 of 04</Text>
+      {/* 1. TOP CURVED DARK HEADER (Exact structure from reference image) */}
+      <View style={styles.darkHeader}>
+        {/* Subtle SVG Wave Background */}
+        <Svg
+          height="160"
+          width="100%"
+          viewBox="0 0 350 160"
+          style={StyleSheet.absoluteFillObject}
+        >
+          <Path
+            d="M0,40 C100,10 200,80 350,30 L350,160 L0,160 Z"
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="1.5"
+          />
+          <Path
+            d="M0,80 C120,40 220,110 350,70 L350,160 L0,160 Z"
+            fill="none"
+            stroke="rgba(255,255,255,0.04)"
+            strokeWidth="1.5"
+          />
+        </Svg>
+
+        <View style={styles.darkHeaderContent}>
+          <View style={styles.darkHeaderTop}>
+            <View>
+              <Text style={styles.greetingText}>Hey Inspector !</Text>
+              <Text style={styles.heroHeadline}>
+                Let's monitor your{'\n'}water pipeline!
+              </Text>
+            </View>
+
+            {/* Profile / Connection Avatar */}
+            <View style={styles.avatarCircle}>
+              <Ionicons
+                name="water"
+                size={22}
+                color={mqttStatus === 'connected' ? '#10B981' : '#FFFFFF'}
+              />
+              <View
+                style={[
+                  styles.onlineDot,
+                  {
+                    backgroundColor:
+                      mqttStatus === 'connected' ? '#10B981' : '#F59E0B',
+                  },
+                ]}
+              />
+            </View>
           </View>
-        </View>
-
-        {/* Category Capsule Tag */}
-        <View style={styles.tagPill}>
-          <Text style={styles.tagPillText}>Resources</Text>
-        </View>
-
-        {/* Hero Title with Graphic Orange Accent */}
-        <View style={styles.heroTitleWrap}>
-          <Text style={styles.heroTitlePrimary}>Smart Water</Text>
-          <Text style={styles.heroTitlePrimary}>
-            Flow & <Text style={styles.heroTitleAccent}>Leak Alert</Text>
-          </Text>
         </View>
       </View>
 
-      {/* 2. Top 4 Essential KPI Cards */}
-      <View style={styles.kpiGrid}>
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Inlet S1</Text>
-          <Text style={styles.kpiValue}>
-            {formatFlow(inFlow)} <Text style={styles.kpiUnit}>L/m</Text>
+      {/* 2. OVERLAPPING WHITE SEARCH & FILTER BAR */}
+      <View style={styles.searchBarWrapper}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color="#94979E" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search flow, sensors, leaks..."
+            placeholderTextColor="#94979E"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <TouchableOpacity style={styles.filterBtn} onPress={resetDemo}>
+            <Ionicons name="options-outline" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 3. FEATURED SENSORS CARDS (Matching "Project" section in image) */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Flow Sensors</Text>
+        <TouchableOpacity onPress={resetDemo}>
+          <Text style={styles.sectionLink}>Reset All</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}
+      >
+        {/* Main Dark Card (Matching the black "Game Design" card) */}
+        <View style={styles.mainDarkCard}>
+          {/* Top Circular Icon Badge */}
+          <View style={styles.cardIconBadge}>
+            <Ionicons name="speedometer-outline" size={20} color="#1A1C20" />
+          </View>
+
+          <Text style={styles.mainCardCategory}>Dual Monitoring Node</Text>
+          <Text style={styles.mainCardTitle}>Inlet Flow S1</Text>
+
+          <Text style={styles.mainCardMetric}>
+            {formatFlow(inFlow)}{' '}
+            <Text style={styles.mainCardUnit}>L/min</Text>
           </Text>
-          <Text style={styles.kpiSub}>Municipal intake</Text>
+
+          <Text style={styles.mainCardSub}>
+            Outlet: {formatFlow(outFlow)} L/min • Mismatch: {mismatch.toFixed(2)} L
+          </Text>
+
+          {/* Micro Step Control & Trigger Arrow Button */}
+          <View style={styles.mainCardBottomRow}>
+            <View style={styles.stepperWrap}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => manualFlow(Math.max(0, inFlow - 1), outFlow)}
+              >
+                <Text style={styles.stepBtnText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.stepValue}>{inFlow.toFixed(1)}</Text>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => manualFlow(inFlow + 1, outFlow)}
+              >
+                <Text style={styles.stepBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.arrowCircleBtn}
+              onPress={() =>
+                setScenario(isLeak ? 'normal' : 'suspected_leak')
+              }
+            >
+              <Ionicons
+                name={isLeak ? 'checkmark' : 'arrow-forward'}
+                size={18}
+                color="#1A1C20"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Outlet S2</Text>
-          <Text style={styles.kpiValue}>
-            {formatFlow(outFlow)} <Text style={styles.kpiUnit}>L/m</Text>
-          </Text>
-          <Text style={styles.kpiSub}>Distribution line</Text>
-        </View>
+        {/* Secondary Light Card (Matching the "Decision" side card) */}
+        <View style={styles.sideLightCard}>
+          <View style={styles.sideCardIconBadge}>
+            <Ionicons
+              name={isLeak ? 'alert-circle' : 'shield-checkmark'}
+              size={18}
+              color={getStatusColor()}
+            />
+          </View>
 
-        <View style={[styles.kpiCard, mismatch > mismatchThreshold && styles.kpiCardAlert]}>
-          <Text style={styles.kpiLabel}>Mismatch</Text>
+          <Text style={styles.sideCardCategory}>Pipeline State</Text>
           <Text
             style={[
-              styles.kpiValue,
-              mismatch > mismatchThreshold && { color: COLORS.danger },
+              styles.sideCardTitle,
+              { color: isLeak ? COLORS.danger : '#1A1C20' },
             ]}
           >
-            {mismatch >= 0 ? '+' : ''}{mismatch.toFixed(2)} <Text style={styles.kpiUnit}>L</Text>
+            {isLeak ? 'LEAK' : 'NORMAL'}
           </Text>
-          <Text style={styles.kpiSub}>Deficit loss</Text>
-        </View>
 
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Runtime</Text>
-          <Text style={styles.kpiValue}>
-            {elapsed} <Text style={styles.kpiUnit}>s</Text>
+          <Text style={styles.sideCardSub}>
+            {suspicious} / {needIntervals} checks
           </Text>
-          <Text style={styles.kpiSub}>Active session</Text>
+
+          <View style={styles.sideCardBottom}>
+            <Text style={styles.runtimeTag}>T+{elapsed}s active</Text>
+          </View>
         </View>
+      </ScrollView>
+
+      {/* 4. SCENARIOS TASK LIST (Matching "Tasks" list in image) */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Evaluation Tasks</Text>
+        <Text style={styles.sectionSubtitle}>Select scenario to test</Text>
       </View>
 
-      {/* 3. Essential Scenario Triggers */}
-      <View style={styles.cardPanel}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.sectionTitle}>Simulate Scenarios</Text>
-          <TouchableOpacity style={styles.resetBtn} onPress={resetDemo}>
-            <Ionicons name="refresh" size={12} color={COLORS.textSecondary} />
-            <Text style={styles.resetBtnText}>Reset</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.scenarioPillsRow}>
-          <TouchableOpacity
-            style={[styles.scenarioPill, activeScenario === 'normal' && styles.scenarioPillActive]}
-            onPress={() => setScenario('normal')}
-          >
-            <Text
-              style={[
-                styles.scenarioPillText,
-                activeScenario === 'normal' && styles.scenarioPillTextActive,
-              ]}
-            >
-              Normal
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.scenarioPill,
-              activeScenario === 'suspected_leak' && styles.scenarioPillActiveAlert,
-            ]}
-            onPress={() => setScenario('suspected_leak')}
-          >
-            <Text
-              style={[
-                styles.scenarioPillText,
-                activeScenario === 'suspected_leak' && styles.scenarioPillTextActive,
-              ]}
-            >
-              Simulate Leak
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.scenarioPill,
-              activeScenario === 'abnormal_consumption' && styles.scenarioPillActive,
-            ]}
-            onPress={() => setScenario('abnormal_consumption')}
-          >
-            <Text
-              style={[
-                styles.scenarioPillText,
-                activeScenario === 'abnormal_consumption' && styles.scenarioPillTextActive,
-              ]}
-            >
-              High Draw
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Sliders: Essential Controls Only */}
-        <PillSlider
-          label="Inlet Flow S1"
-          value={inFlow}
-          min={0}
-          max={15}
-          step={0.5}
-          unit="L/min"
-          onChange={(val) => manualFlow(val, outFlow)}
-          color={COLORS.darkCharcoal}
-        />
-
-        <PillSlider
-          label="Outlet Flow S2"
-          value={outFlow}
-          min={0}
-          max={15}
-          step={0.5}
-          unit="L/min"
-          onChange={(val) => manualFlow(inFlow, val)}
-          color={COLORS.textSecondary}
-        />
-
-        {/* Cumulative Volume Meter */}
-        <View style={styles.volRow}>
-          <View style={styles.volBox}>
-            <Text style={styles.volLabel}>Inlet Volume</Text>
-            <Text style={styles.volValue}>{inVol.toFixed(2)} L</Text>
-          </View>
-          <View style={styles.volBox}>
-            <Text style={styles.volLabel}>Outlet Volume</Text>
-            <Text style={styles.volValue}>{outVol.toFixed(2)} L</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* 4. Status & Diagnostic Verification */}
-      <View style={styles.cardPanel}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.sectionTitle}>System Status</Text>
-          <View style={styles.statusPill}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
-            <Text style={[styles.statusPillText, { color: getStatusColor() }]}>
-              {getStatusTitle()}
-            </Text>
-          </View>
-        </View>
-
-        {/* Suspicious Intervals Progress */}
-        <View style={styles.barLabelRow}>
-          <Text style={styles.barLabel}>Persistence Intervals</Text>
-          <Text style={styles.barCount}>
-            {Math.min(suspicious, needIntervals)} / {needIntervals}
-          </Text>
-        </View>
-        <View style={styles.barTrack}>
+      <View style={styles.taskList}>
+        {/* Task 1: Normal Balanced Flow */}
+        <TouchableOpacity
+          style={styles.taskCard}
+          onPress={() => setScenario('normal')}
+          activeOpacity={0.8}
+        >
           <View
             style={[
-              styles.barFill,
+              styles.checkboxCircle,
+              activeScenario === 'normal' && styles.checkboxActive,
+            ]}
+          >
+            {activeScenario === 'normal' && (
+              <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+            )}
+          </View>
+
+          <View style={styles.taskTextCol}>
+            <Text style={styles.taskTitle}>Normal Balanced Baseline</Text>
+            <Text style={styles.taskDesc}>
+              Inlet (5.0 L/m) matches Outlet (5.0 L/m)
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.taskDot,
               {
-                width: `${progressPct}%`,
-                backgroundColor: progressPct >= 100 ? COLORS.danger : COLORS.accentOrange,
+                backgroundColor:
+                  activeScenario === 'normal' ? '#10B981' : '#D1D5DB',
               },
             ]}
           />
-        </View>
+        </TouchableOpacity>
 
-        {/* Waveform Chart */}
-        <View style={styles.chartContainer}>
-          <WaveformChart
-            title="Flow Telemetry Stream"
-            currentValue={inFlow}
-            averageValue={outFlow}
-            deltaValue={inFlow - outFlow}
-            isAlert={statusState === 'leak'}
+        {/* Task 2: Simulate Leak */}
+        <TouchableOpacity
+          style={styles.taskCard}
+          onPress={() => setScenario('suspected_leak')}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[
+              styles.checkboxCircle,
+              activeScenario === 'suspected_leak' && styles.checkboxActiveDanger,
+            ]}
+          >
+            {activeScenario === 'suspected_leak' && (
+              <Ionicons name="alert" size={13} color="#FFFFFF" />
+            )}
+          </View>
+
+          <View style={styles.taskTextCol}>
+            <Text style={styles.taskTitle}>Simulate Pipe Breach</Text>
+            <Text style={styles.taskDesc}>
+              Inlet exceeds Outlet by +2.0 L/m deficit
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.taskDot,
+              {
+                backgroundColor:
+                  activeScenario === 'suspected_leak' ? COLORS.danger : '#D1D5DB',
+              },
+            ]}
           />
-        </View>
+        </TouchableOpacity>
 
-        {/* Live Event Feed (Latest 3 events only, crisp and short) */}
-        <Text style={styles.feedTitle}>Recent Log</Text>
-        <View style={styles.feedBox}>
-          {events.slice(0, 3).map((ev) => (
-            <View key={ev.id} style={styles.feedRow}>
-              <Text style={styles.feedTime}>{ev.t}</Text>
-              <Text style={styles.feedMsg} numberOfLines={1}>
-                {ev.message}
-              </Text>
-            </View>
-          ))}
-        </View>
+        {/* Task 3: High Consumption */}
+        <TouchableOpacity
+          style={styles.taskCard}
+          onPress={() => setScenario('abnormal_consumption')}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[
+              styles.checkboxCircle,
+              activeScenario === 'abnormal_consumption' && styles.checkboxActiveWarning,
+            ]}
+          >
+            {activeScenario === 'abnormal_consumption' && (
+              <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+            )}
+          </View>
+
+          <View style={styles.taskTextCol}>
+            <Text style={styles.taskTitle}>High Consumption Draw</Text>
+            <Text style={styles.taskDesc}>
+              Balanced heavy draw exceeding 25.0 L/m
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.taskDot,
+              {
+                backgroundColor:
+                  activeScenario === 'abnormal_consumption'
+                    ? COLORS.warning
+                    : '#D1D5DB',
+              },
+            ]}
+          />
+        </TouchableOpacity>
+
+        {/* Task 4: Reversed Anomaly */}
+        <TouchableOpacity
+          style={styles.taskCard}
+          onPress={() => setScenario('sensor_anomaly')}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[
+              styles.checkboxCircle,
+              activeScenario === 'sensor_anomaly' && styles.checkboxActive,
+            ]}
+          >
+            {activeScenario === 'sensor_anomaly' && (
+              <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+            )}
+          </View>
+
+          <View style={styles.taskTextCol}>
+            <Text style={styles.taskTitle}>Diagnostic: Reversed Flow</Text>
+            <Text style={styles.taskDesc}>
+              Outlet &gt; Inlet check (sensor calibration)
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.taskDot,
+              {
+                backgroundColor:
+                  activeScenario === 'sensor_anomaly' ? '#0D9488' : '#D1D5DB',
+              },
+            ]}
+          />
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -290,278 +371,317 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.canvasBg,
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
-    padding: 16,
     paddingBottom: 90,
   },
-  header: {
-    marginBottom: 16,
+  /* 1. TOP CURVED DARK HEADER */
+  darkHeader: {
+    backgroundColor: '#16181B',
+    paddingTop: 44,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
-  metaRow: {
+  darkHeaderContent: {
+    zIndex: 2,
+  },
+  darkHeaderTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
   },
-  metaLabel: {
+  greetingText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textSecondary,
-    letterSpacing: 0.2,
-  },
-  indexPill: {
-    backgroundColor: '#E2DFD8',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.sm,
-  },
-  indexPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  tagPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E2DFD8',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: RADIUS.sm,
-    marginBottom: 10,
-  },
-  tagPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: 0.3,
-  },
-  heroTitleWrap: {
-    marginTop: 2,
+    color: '#9CA3AF',
     marginBottom: 4,
   },
-  heroTitlePrimary: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#111215',
-    lineHeight: 36,
-    letterSpacing: -1.2,
-  },
-  heroTitleAccent: {
-    color: COLORS.accentOrange,
-  },
-  kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  kpiCard: {
-    flex: 1,
-    minWidth: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  kpiCardAlert: {
-    backgroundColor: '#FFF5F5',
-    borderColor: '#FECACA',
-    borderWidth: 1,
-  },
-  kpiLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  kpiValue: {
+  heroHeadline: {
     fontSize: 22,
-    fontWeight: '900',
-    color: '#111215',
-    letterSpacing: -0.8,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
-  kpiUnit: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#26292E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  kpiSub: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+  onlineDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#16181B',
+  },
+
+  /* 2. OVERLAPPING SEARCH BAR */
+  searchBarWrapper: {
+    marginTop: -22,
+    paddingHorizontal: 16,
+    zIndex: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    height: 48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1A1C20',
     fontWeight: '500',
   },
-  cardPanel: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+  filterBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#16181B',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cardHeaderRow: {
+
+  /* 3. SECTION HEADERS */
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '800',
-    color: '#111215',
+    color: '#1A1C20',
     letterSpacing: -0.3,
   },
-  resetBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F3F2EC',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: RADIUS.sm,
-  },
-  resetBtnText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  scenarioPillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  scenarioPill: {
-    flex: 1,
-    backgroundColor: '#F3F2EC',
-    paddingVertical: 9,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-  },
-  scenarioPillActive: {
-    backgroundColor: COLORS.darkCharcoal,
-  },
-  scenarioPillActiveAlert: {
-    backgroundColor: COLORS.danger,
-  },
-  scenarioPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  scenarioPillTextActive: {
-    color: '#FFFFFF',
-  },
-  volRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  volBox: {
-    flex: 1,
-    backgroundColor: '#F8F7F4',
-    padding: 10,
-    borderRadius: RADIUS.md,
-  },
-  volLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  volValue: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#111215',
-    marginTop: 2,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F5F4EE',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
-  },
-  statusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  statusPillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  barLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  barLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  barCount: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#111215',
-  },
-  barTrack: {
-    height: 6,
-    backgroundColor: '#ECEAE4',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 14,
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  chartContainer: {
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  feedTitle: {
+  sectionLink: {
     fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    marginBottom: 6,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  sectionSubtitle: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
+
+  /* 4. FEATURED CARDS (Exact match to image) */
+  cardsRow: {
+    paddingHorizontal: 18,
+    gap: 12,
+  },
+  mainDarkCard: {
+    width: 220,
+    backgroundColor: '#16181B',
+    borderRadius: 26,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  cardIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  mainCardCategory: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  feedBox: {
-    backgroundColor: '#F8F7F4',
-    borderRadius: RADIUS.md,
-    padding: 8,
+  mainCardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 2,
+    letterSpacing: -0.2,
   },
-  feedRow: {
+  mainCardMetric: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginTop: 8,
+    letterSpacing: -0.5,
+  },
+  mainCardUnit: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  mainCardSub: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 4,
+    lineHeight: 14,
+  },
+  mainCardBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  stepperWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EDEBE4',
+    backgroundColor: '#26292E',
+    borderRadius: 14,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    gap: 6,
   },
-  feedTime: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.accentOrange,
-    minWidth: 42,
+  stepBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  feedMsg: {
-    flex: 1,
+  stepBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  stepValue: {
+    color: '#FFFFFF',
     fontSize: 11,
-    color: COLORS.textPrimary,
-    fontWeight: '500',
+    fontWeight: '700',
+  },
+  arrowCircleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  sideLightCard: {
+    width: 130,
+    backgroundColor: '#EDF1F5',
+    borderRadius: 26,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  sideCardIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  sideCardCategory: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
+  sideCardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  sideCardSub: {
+    fontSize: 10,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  sideCardBottom: {
+    marginTop: 12,
+  },
+  runtimeTag: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+
+  /* 5. TASKS LIST */
+  taskList: {
+    paddingHorizontal: 18,
+    gap: 10,
+  },
+  taskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    gap: 12,
+  },
+  checkboxCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: '#16181B',
+    borderColor: '#16181B',
+  },
+  checkboxActiveDanger: {
+    backgroundColor: COLORS.danger,
+    borderColor: COLORS.danger,
+  },
+  checkboxActiveWarning: {
+    backgroundColor: COLORS.warning,
+    borderColor: COLORS.warning,
+  },
+  taskTextCol: {
+    flex: 1,
+  },
+  taskTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1A1C20',
+  },
+  taskDesc: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  taskDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
 });
