@@ -59,10 +59,10 @@ export const COLORS = {
   successBg: '#D1FAE5',
   successText: '#065F46',
 
-  // Desktop Outer Canvas Presentation Background (Warm technical desk)
-  presentationBackdrop: '#E0DFD8', // Technical studio presentation background
-  deviceBezel: '#82101E',          // iPhone 18 Pro Crimson Titanium / Deep Red
-  deviceBezelBorder: '#B82234',    // Metallic crimson titanium edge
+  // Desktop Outer Canvas Presentation Background (Matching uploaded studio photo)
+  presentationBackdrop: '#D6CFD8', // Soft muted lilac-taupe studio presentation background
+  deviceBezel: '#1C1B22',          // Dark titanium graphite phone frame from photo
+  deviceBezelBorder: '#3A3844',    // Metallic titanium rim
 };
 
 export const FONTS = {
