@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandLogoText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.5,
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   heroNavItem: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#66655E',
     letterSpacing: 0.5,
@@ -659,18 +659,18 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   heroTitleBig: {
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -1,
-    lineHeight: 36,
+    lineHeight: 40,
   },
   heroSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
     color: '#66655E',
     marginTop: 8,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   starburstWrapper: {
     width: 88,
@@ -685,13 +685,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   starburstNumber: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   starburstSub: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.5,
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   slantedTagText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
     color: '#0D0E11',
     letterSpacing: 0.2,
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2EA00',
   },
   overhangingPillLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.2,
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8D6CE',
   },
   heroRightActionText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
     color: '#0D0E11',
   },
@@ -792,12 +792,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   manifestoHeadline: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: 0.5,
-    lineHeight: 22,
+    lineHeight: 24,
   },
 
   /* Body Content */
@@ -836,35 +836,35 @@ const styles = StyleSheet.create({
 
   /* Dark text styles for Card 01 */
   gridNumberDark: {
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -1,
   },
   gridTitleDark: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.3,
     marginTop: 2,
   },
   gridValueDark: {
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.5,
     marginTop: 4,
   },
   gridUnitDark: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '800',
     color: '#333333',
   },
   gridSubDark: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333333',
-    lineHeight: 14,
+    lineHeight: 16,
     marginTop: 4,
   },
   gridActionPillDark: {
@@ -877,42 +877,42 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   gridActionTextDark: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#0D0E11',
   },
 
   /* Light text styles for Cards 02, 03, 04 */
   gridNumberLight: {
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -1,
   },
   gridTitleLight: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.3,
     marginTop: 2,
   },
   gridValueLight: {
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.5,
     marginTop: 4,
   },
   gridUnitLight: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '800',
     color: '#66655E',
   },
   gridSubLight: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     color: '#66655E',
-    lineHeight: 14,
+    lineHeight: 16,
     marginTop: 4,
   },
   gridActionPillLight: {
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   gridActionTextLight: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#0D0E11',
   },
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusBadgeText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
@@ -968,10 +968,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statusExplanationText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#0D0E11',
-    lineHeight: 18,
+    lineHeight: 20,
   },
 
   /* 5. Flow Comparison & Waveform */
@@ -987,13 +987,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitleDark: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   comparisonSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
     color: '#9E9FA5',
     marginTop: 4,
@@ -1008,8 +1008,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   barLabel: {
-    width: 62,
-    fontSize: 11,
+    width: 66,
+    fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
     textTransform: 'uppercase',
@@ -1026,8 +1026,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   barValue: {
-    width: 34,
-    fontSize: 12,
+    width: 38,
+    fontSize: 14,
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'right',
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   resetBtnText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.3,
@@ -1087,18 +1087,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   taskIndexText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
     color: '#0D0E11',
   },
   taskTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.3,
   },
   taskSubtitle: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     color: '#66655E',
     marginTop: 1,
@@ -1143,7 +1143,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   sourcePillTextDark: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '900',
     color: COLORS.accentYellow,
     letterSpacing: 0.5,
@@ -1157,13 +1157,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hwInfoLabel: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#9E9FA5',
     marginBottom: 2,
   },
   hwInfoVal: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '900',
     color: '#FFFFFF',
   },
@@ -1175,7 +1175,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   yellowBannerBtnText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.8,
