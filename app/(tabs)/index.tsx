@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
+  ScrollView,
   Modal,
+  Animated,
+  Easing,
+  LayoutChangeEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS } from '../../src/constants/theme';
@@ -18,6 +21,13 @@ import { Ionicons } from '@expo/vector-icons';
 export default function DashboardScreen() {
   const router = useRouter();
   const [showScenarioModal, setShowScenarioModal] = useState<boolean>(false);
+  const [activePage, setActivePage] = useState<number>(0);
+  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
+    width: 396,
+    height: 750,
+  });
+
+  const scrollRef = useRef<ScrollView>(null);
 
   const {
     inFlow,
@@ -38,436 +48,617 @@ export default function DashboardScreen() {
     statusState === 'leak' || (dataSource === 'wokwi' && mqttStatus === 'disconnected');
 
   const getStatusText = () => {
-    if (dataSource === 'wokwi' && mqttStatus === 'disconnected') return 'DISCONNECTED';
-    if (statusState === 'leak') return 'LEAK ALERT';
-    if (statusState === 'datacheck') return 'SENSOR FAULT';
-    if (statusState === 'high') return 'HIGH DEMAND';
+    if (dataSource === 'wokwi' && mqttStatus === 'disconnected') return 'OFFLINE';
+    if (statusState === 'leak') return 'LEAK';
+    if (statusState === 'datacheck') return 'FAULT';
+    if (statusState === 'high') return 'HIGH';
     return 'NORMAL';
   };
 
+  // =========================================================================
+  // ANIMATIONS FOR THE "BELOWED SECTION" (Requested by user)
+  // =========================================================================
+  // 1. Traveling water pulse along Steps 1 -> 2 -> 3
+  const stepPulseAnim = useRef(new Animated.Value(0)).current;
+  // 2. Giant 'g' watermark subtle breathing
+  const watermarkScale = useRef(new Animated.Value(1)).current;
+  // 3. Status beacon pulsation
+  const beaconAnim = useRef(new Animated.Value(0.4)).current;
+  // 4. Page 3 concentric ring breathing
+  const ringScaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // 1. Continuous wave down the 3 steps (2.6s cycle)
+    const stepLoop = Animated.loop(
+      Animated.timing(stepPulseAnim, {
+        toValue: 1,
+        duration: 2600,
+        easing: Easing.bezier(0.4, 0, 0.2, 1),
+        useNativeDriver: true,
+      })
+    );
+    stepLoop.start();
+
+    // 2. Watermark gentle breathing (4.4s cycle)
+    const watermarkLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(watermarkScale, {
+          toValue: 1.05,
+          duration: 2200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(watermarkScale, {
+          toValue: 1.0,
+          duration: 2200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    watermarkLoop.start();
+
+    // 3. Live Beacon rapid pulse
+    const beaconLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(beaconAnim, {
+          toValue: 1.0,
+          duration: 800,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(beaconAnim, {
+          toValue: 0.35,
+          duration: 800,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    beaconLoop.start();
+
+    // 4. Page 3 ring breathing
+    const ringLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ringScaleAnim, {
+          toValue: 1.08,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ringScaleAnim, {
+          toValue: 0.96,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    ringLoop.start();
+
+    return () => {
+      stepLoop.stop();
+      watermarkLoop.stop();
+      beaconLoop.stop();
+      ringLoop.stop();
+    };
+  }, []);
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width > 0 && height > 0) {
+      setContainerSize({ width, height });
+    }
+  };
+
+  const goToPage = (pageIndex: number) => {
+    setActivePage(pageIndex);
+    scrollRef.current?.scrollTo({
+      x: pageIndex * containerSize.width,
+      animated: true,
+    });
+  };
+
+  const handleScrollEnd = (e: any) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const page = Math.round(x / containerSize.width);
+    if (page !== activePage && page >= 0 && page <= 2) {
+      setActivePage(page);
+    }
+  };
+
+  // Interpolated animation offsets for step flow line
+  const waveTranslateY = stepPulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-10, 150],
+  });
+
+  const waveOpacity = stepPulseAnim.interpolate({
+    inputRange: [0, 0.15, 0.85, 1],
+    outputRange: [0, 0.75, 0.75, 0],
+  });
+
   return (
-    <View style={styles.screen}>
+    <View style={styles.screen} onLayout={handleLayout}>
+      {/* ==============================================================
+          TOP PAGINATION BAR (01 • 02 • 03 Switcher)
+         ============================================================== */}
+      <View style={styles.topPaginationPill}>
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 0 && styles.pageTabActive]}
+          onPress={() => goToPage(0)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 0 && styles.pageTabTextActive]}>
+            01 Flow
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 1 && styles.pageTabActive]}
+          onPress={() => goToPage(1)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 1 && styles.pageTabTextActive]}>
+            02 Overview
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 2 && styles.pageTabActive]}
+          onPress={() => goToPage(2)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 2 && styles.pageTabTextActive]}>
+            03 Defense
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ==============================================================
+          PAGED HORIZONTAL VIEW (CLONING 3 PHONES FROM media_1792698296443)
+         ============================================================== */}
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScrollEnd}
+        style={styles.pagerScrollView}
+        contentContainerStyle={{ width: containerSize.width * 3 }}
       >
-        {/* ========================================================
-            1. TOP HERO CARD (Exact typography & layout from reference)
-           ======================================================== */}
-        <View style={styles.topCard}>
-          {/* Header Row: Brand left, "01 of 04" pill + MENU right */}
-          <View style={styles.headerRow}>
-            <View style={styles.brandGroup}>
-              <View style={styles.brandIconCircle}>
-                <Ionicons name="water" size={14} color="#0D0E11" />
-              </View>
-              <Text style={styles.brandText}>AquaGuard</Text>
-            </View>
-
-            <View style={styles.headerRightRow}>
-              <View style={styles.pageIndexPill}>
-                <Text style={styles.pageIndexBold}>01</Text>
-                <Text style={styles.pageIndexLight}> of 04</Text>
-              </View>
-
+        {/* ############################################################
+            PHONE 1: DARK TOP + LIME BOTTOM (STEPS 1, 2, 3 ANIMATED)
+           ############################################################ */}
+        <View style={[styles.pageWrapper, { width: containerSize.width }]}>
+          {/* Top Section: Deep Forest Charcoal */}
+          <View style={styles.phone1Top}>
+            {/* Header: AquaGuard® + MENU */}
+            <View style={styles.p1HeaderRow}>
+              <Text style={styles.brandTitleWhite}>AquaGuard®</Text>
               <TouchableOpacity
-                style={styles.menuBtn}
+                style={styles.menuBtnLight}
                 onPress={() => setShowScenarioModal(true)}
                 activeOpacity={0.8}
               >
-                <View style={styles.menuLinesWrap}>
-                  <View style={styles.menuLine} />
-                  <View style={styles.menuLine} />
+                <View style={styles.menuLinesLight}>
+                  <View style={styles.menuLineWhite} />
+                  <View style={styles.menuLineWhite} />
                 </View>
-                <Text style={styles.menuText}>MENU</Text>
+                <Text style={styles.menuTextWhite}>MENU</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Title Row: Water flow Monitoring + Round Action Button */}
+            <View style={styles.p1TitleRow}>
+              <View style={styles.p1TitleGroup}>
+                <Text style={styles.p1TitleWhite}>Water flow</Text>
+                <Text style={styles.p1TitleSubGreen}>Telemetry</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.roundActionLimeBtn}
+                onPress={() => setShowScenarioModal(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="arrow-up" size={17} color="#0D140D" style={{ transform: [{ rotate: '45deg' }] }} />
+              </TouchableOpacity>
+            </View>
+
+            {/* 3-Column Stats Row with Vertical Dividers */}
+            <View style={styles.p1StatsRow}>
+              <View style={styles.p1StatCol}>
+                <Text style={styles.p1StatLabel}>Inlet Flow</Text>
+                <Text style={styles.p1StatValue}>{formatFlow(inFlow)}</Text>
+                <Text style={styles.p1StatUnit}>L/min</Text>
+              </View>
+
+              <View style={styles.p1StatDivider} />
+
+              <View style={styles.p1StatCol}>
+                <Text style={styles.p1StatLabel}>Outlet Flow</Text>
+                <Text style={styles.p1StatValue}>{formatFlow(outFlow)}</Text>
+                <Text style={styles.p1StatUnit}>L/min</Text>
+              </View>
+
+              <View style={styles.p1StatDivider} />
+
+              <View style={styles.p1StatCol}>
+                <Text style={styles.p1StatLabel}>Flow Delta</Text>
+                <Text
+                  style={[
+                    styles.p1StatValue,
+                    flowDifference > 1.5 && { color: COLORS.danger },
+                  ]}
+                >
+                  {flowDifference >= 0 ? '+' : ''}
+                  {formatFlow(flowDifference)}
+                </Text>
+                <Text style={styles.p1StatUnit}>L/min</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Below Section: Vibrant Lime Green with Step 1, 2, 3 & ANIMATIONS */}
+          <View style={styles.phone1BottomLime}>
+            {/* Giant Background 'g' Watermark with Breathing Animation */}
+            <Animated.View
+              style={[
+                styles.giantWatermarkWrap,
+                {
+                  transform: [{ scale: watermarkScale }],
+                },
+              ]}
+              pointerEvents="none"
+            >
+              <Text style={styles.giantWatermarkG}>g</Text>
+            </Animated.View>
+
+            {/* Live Traveling Animation Beam across Steps */}
+            <Animated.View
+              style={[
+                styles.stepScanBeam,
+                {
+                  transform: [{ translateY: waveTranslateY }],
+                  opacity: waveOpacity,
+                },
+              ]}
+              pointerEvents="none"
+            />
+
+            {/* Stacked Step 1, Step 2, Step 3 */}
+            <View style={styles.stepsContainer}>
+              {/* Step 1 */}
+              <View style={styles.p1StepRow}>
+                <View style={styles.stepLeftGroup}>
+                  <Text style={styles.stepNumText}>Step 1</Text>
+                  <Text style={styles.stepDescText}>Intake Calibration</Text>
+                </View>
+                <View style={styles.stepRightGroup}>
+                  <Text style={styles.stepMetricText}>{formatFlow(inFlow)} L/m</Text>
+                  <View style={styles.stepLiveDot} />
+                </View>
+              </View>
+
+              <View style={styles.stepHairlineDivider} />
+
+              {/* Step 2 */}
+              <View style={styles.p1StepRow}>
+                <View style={styles.stepLeftGroup}>
+                  <Text style={styles.stepNumText}>Step 2</Text>
+                  <Text style={styles.stepDescText}>Node Balance Check</Text>
+                </View>
+                <View style={styles.stepRightGroup}>
+                  <Text style={styles.stepMetricText}>{formatFlow(outFlow)} L/m</Text>
+                  <View style={styles.stepLiveDot} />
+                </View>
+              </View>
+
+              <View style={styles.stepHairlineDivider} />
+
+              {/* Step 3 */}
+              <View style={styles.p1StepRow}>
+                <View style={styles.stepLeftGroup}>
+                  <Text style={styles.stepNumText}>Step 3</Text>
+                  <Text style={styles.stepDescText}>Persistence Filter</Text>
+                </View>
+                <View style={styles.stepRightGroup}>
+                  <View
+                    style={[
+                      styles.stepBadgePill,
+                      isAlert && { backgroundColor: COLORS.danger },
+                    ]}
+                  >
+                    <Animated.View
+                      style={[
+                        styles.badgePulseBeacon,
+                        { opacity: beaconAnim },
+                        isAlert && { backgroundColor: '#FFFFFF' },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.stepBadgeText,
+                        isAlert && { color: '#FFFFFF' },
+                      ]}
+                    >
+                      {isAlert ? 'DEFICIT ALERT' : 'CERTIFIED'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Subtle Bottom Status Bar */}
+            <View style={styles.p1FooterBar}>
+              <Text style={styles.p1FooterText}>Realtime Telemetry Active</Text>
+              <View style={styles.p1FooterDot} />
+            </View>
+          </View>
+        </View>
+
+        {/* ############################################################
+            PHONE 2: TAUPE TOP (HEADLINE) + 2 COLOR BLOCKS + FOOTER
+           ############################################################ */}
+        <View style={[styles.pageWrapper, { width: containerSize.width }]}>
+          {/* Top Section: Taupe Neutral with Large Headline */}
+          <View style={styles.phone2TopTaupe}>
+            {/* Header: AquaGuard® + MENU */}
+            <View style={styles.p2HeaderRow}>
+              <Text style={styles.brandTitleDark}>AquaGuard®</Text>
+              <TouchableOpacity
+                style={styles.menuBtnDark}
+                onPress={() => setShowScenarioModal(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.menuLinesDark}>
+                  <View style={styles.menuLineDark} />
+                  <View style={styles.menuLineDark} />
+                </View>
+                <Text style={styles.menuTextDark}>MENU</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Massive Display Headline */}
+            <View style={styles.p2HeadlineWrap}>
+              <Text style={styles.p2GiantHeadline}>Easily monitor</Text>
+              <Text style={styles.p2GiantHeadline}>your water pipeline</Text>
+              <Text style={styles.p2GiantHeadline}>telemetry</Text>
+            </View>
+
+            {/* Subtitle */}
+            <Text style={styles.p2Subtitle}>
+              Streamline your dual-flow verification workflow
+            </Text>
+
+            {/* Floating text bottom-right */}
+            <View style={styles.p2RightFloatText}>
+              <Text style={styles.p2FloatLine}>Water audit</Text>
+              <Text style={styles.p2FloatLine}>made</Text>
+              <Text style={styles.p2FloatLineBold}>simple</Text>
+            </View>
+          </View>
+
+          {/* Bottom Section: 2 Side-by-Side Blocks + Dark Footer Bar */}
+          <View style={styles.phone2BottomContainer}>
+            <View style={styles.p2TwoBlocksRow}>
+              {/* Left Block: Electric Lime (Daily Volume) */}
+              <View style={styles.p2BlockLime}>
+                <Text style={styles.p2BlockLabelDark}>Daily Volume</Text>
+                <Text style={styles.p2BlockValueDark}>
+                  {totalVolumeLiters.toFixed(1)}
+                  <Text style={styles.p2BlockUnitDark}> L</Text>
+                </Text>
+              </View>
+
+              {/* Right Block: Dark Charcoal (System Health) */}
+              <View style={styles.p2BlockDark}>
+                <Text style={styles.p2BlockLabelLight}>System Health</Text>
+                <Text
+                  style={[
+                    styles.p2BlockValueLight,
+                    isAlert && { color: COLORS.danger },
+                  ]}
+                >
+                  {isAlert ? 'LEAK' : '99.4%'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Dark Footer Bar (Details + ▶) */}
+            <View style={styles.p2FooterBar}>
+              <TouchableOpacity
+                onPress={() => router.push('/history')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.p2DetailsText}>Details</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.p2PlayBtn}
+                onPress={() => setShowScenarioModal(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="play" size={15} color="#D4FF32" />
               </TouchableOpacity>
             </View>
           </View>
+        </View>
 
-          {/* Category Pill Tag (matching "Resources" tag in image) */}
-          <View style={styles.categoryPill}>
-            <Text style={styles.categoryPillText}>Telemetry Engine</Text>
-          </View>
-
-          {/* Massive Display Headline (matching "Best Google fonts for tech websites") */}
-          <View style={styles.headlineBlock}>
-            <Text style={styles.giantHeadline}>Smart Water</Text>
-            <Text style={styles.giantHeadline}>monitor for</Text>
-            <Text style={styles.giantHeadline}>pipelines</Text>
-          </View>
-
-          {/* Subtitle */}
-          <Text style={styles.headlineSubtitle}>
-            Autonomous dual-flow balance & deficit persistence protection
-          </Text>
-
-          {/* Floating Cursor Badge (matching "Inayat Naqvi" badge in image) */}
-          <View style={styles.cursorBadge}>
-            <View style={styles.cursorAvatar}>
-              <Ionicons name="hardware-chip" size={13} color="#FFFFFF" />
+        {/* ############################################################
+            PHONE 3: LIME TOP (GIANT 'O') + TAUPE PLAN BLOCK + FOOTER
+           ############################################################ */}
+        <View style={[styles.pageWrapper, { width: containerSize.width }]}>
+          {/* Top Section: Lime Green with Giant 'O' Graphic */}
+          <View style={styles.phone3TopLime}>
+            {/* Header: AquaGuard® + MENU */}
+            <View style={styles.p3HeaderRow}>
+              <Text style={styles.brandTitleDark}>AquaGuard®</Text>
+              <TouchableOpacity
+                style={styles.menuBtnDark}
+                onPress={() => setShowScenarioModal(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.menuLinesDark}>
+                  <View style={styles.menuLineDark} />
+                  <View style={styles.menuLineDark} />
+                </View>
+                <Text style={styles.menuTextDark}>MENU</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.cursorBadgeText}>Virtual ESP32 Bridge</Text>
-            <Ionicons
-              name="navigate"
-              size={12}
-              color="#FFFFFF"
-              style={styles.cursorArrow}
-            />
-          </View>
 
-          {/* Card Telemetry Strip showcasing 01 values */}
-          <View style={styles.cardTelemetryRow}>
-            <View style={styles.cardTelemetryItem}>
-              <Text style={styles.cardTelemetryLabel}>Inlet S1</Text>
-              <Text style={styles.cardTelemetryValue}>
-                {formatFlow(inFlow)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
-              </Text>
-            </View>
-            <View style={styles.cardTelemetryDivider} />
-            <View style={styles.cardTelemetryItem}>
-              <Text style={styles.cardTelemetryLabel}>Outlet S2</Text>
-              <Text style={styles.cardTelemetryValue}>
-                {formatFlow(outFlow)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
-              </Text>
-            </View>
-            <View style={styles.cardTelemetryDivider} />
-            <View style={styles.cardTelemetryItem}>
-              <Text style={styles.cardTelemetryLabel}>Variance</Text>
-              <Text
+            {/* Giant Graphic 'O' with Concentric Dual-Flow Pulse */}
+            <View style={styles.p3GraphicContainer}>
+              <Animated.View
                 style={[
-                  styles.cardTelemetryValue,
-                  flowDifference > 1.5 && { color: COLORS.danger },
+                  styles.p3ConcentricRing,
+                  {
+                    transform: [{ scale: ringScaleAnim }],
+                  },
                 ]}
               >
-                {flowDifference >= 0 ? '+' : ''}
-                {formatFlow(flowDifference)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
+                <Text style={styles.giantLetterO}>O</Text>
+              </Animated.View>
+            </View>
+          </View>
+
+          {/* Bottom Section: Taupe Body with Plan Level + Footer */}
+          <View style={styles.phone3BottomTaupe}>
+            <View style={styles.p3ContentWrap}>
+              <Text style={styles.p3SubLabel}>PIPELINE SECURITY LEVEL</Text>
+              <Text style={styles.p3PlanTitle}>Guardian Pro</Text>
+
+              <View style={styles.p3FeatureBox}>
+                <Ionicons name="shield-checkmark" size={18} color="#0D140D" />
+                <Text style={styles.p3FeatureText}>Autonomous dual-flow balance engine</Text>
+              </View>
+
+              <Text style={styles.p3BottomNote}>
+                Maximize your water system efficiency and prevent municipal loss
               </Text>
             </View>
-          </View>
 
-          {/* Card Footer (matching "@ui.inayat" and "Save for later" in image) */}
-          <View style={styles.cardFooterRow}>
-            <View>
-              <Text style={styles.footerHandle}>@aquaguard.iot</Text>
-              <Text style={styles.footerSub}>Municipal Telemetry</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.actionBtnPill}
-              onPress={() => setShowScenarioModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.actionBtnText}>Simulate State &rarr;</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ========================================================
-            2. SPLIT 3-COLUMN METRIC MATRIX (Matching Screen 1)
-           ======================================================== */}
-        <View style={styles.metricMatrixCard}>
-          {/* Col 1: Inlet */}
-          <View style={styles.matrixCol}>
-            <Text style={styles.matrixLabel}>Inlet Flow</Text>
-            <Text style={styles.matrixValue}>
-              {formatFlow(inFlow)}
-              <Text style={styles.matrixUnit}> L/m</Text>
-            </Text>
-          </View>
-
-          <View style={styles.matrixDivider} />
-
-          {/* Col 2: Outlet */}
-          <View style={styles.matrixCol}>
-            <Text style={styles.matrixLabel}>Outlet Flow</Text>
-            <Text style={styles.matrixValue}>
-              {formatFlow(outFlow)}
-              <Text style={styles.matrixUnit}> L/m</Text>
-            </Text>
-          </View>
-
-          <View style={styles.matrixDivider} />
-
-          {/* Col 3: Delta */}
-          <View style={styles.matrixCol}>
-            <Text style={styles.matrixLabel}>Flow Delta</Text>
-            <Text
-              style={[
-                styles.matrixValue,
-                flowDifference > 1.5 && { color: COLORS.danger },
-              ]}
-            >
-              {flowDifference >= 0 ? '+' : ''}
-              {formatFlow(flowDifference)}
-              <Text style={styles.matrixUnit}> L/m</Text>
-            </Text>
-          </View>
-        </View>
-
-        {/* ========================================================
-            3. SPLIT 2-BOX METRIC SHOWCASE (Matching Screen 2)
-           ======================================================== */}
-        <View style={styles.splitBoxRow}>
-          {/* Box 1: Electric Canary Yellow */}
-          <View style={styles.splitBoxYellow}>
-            <Text style={styles.splitBoxLabelDark}>Daily Volume</Text>
-            <Text style={styles.splitBoxValueDark}>
-              {totalVolumeLiters.toFixed(1)}
-              <Text style={styles.splitBoxUnitDark}> L</Text>
-            </Text>
-            <Text style={styles.splitBoxFooterDark}>Metered today</Text>
-          </View>
-
-          {/* Box 2: Deep Dark Charcoal Card */}
-          <View style={styles.splitBoxDark}>
-            <Text style={styles.splitBoxLabelLight}>System Status</Text>
-            <Text
-              style={[
-                styles.splitBoxValueLight,
-                isAlert && { color: COLORS.danger },
-              ]}
-            >
-              {getStatusText()}
-            </Text>
-            <Text style={styles.splitBoxFooterLight}>
-              {isAlert ? 'Deficit detected' : 'Zero leak deficit'}
-            </Text>
-          </View>
-        </View>
-
-        {/* ========================================================
-            4. PIPELINE AUDIT STEPS (Matching Screen 1 Steps)
-           ======================================================== */}
-        <View style={styles.stepsCard}>
-          {/* Step 1 */}
-          <View style={styles.stepItemRow}>
-            <Text style={styles.stepIndex}>Step 1</Text>
-            <Text style={styles.stepTitle}>Intake Baseline</Text>
-            <Text style={styles.stepValue}>{formatFlow(inFlow)} L/m</Text>
-          </View>
-
-          <View style={styles.stepItemDivider} />
-
-          {/* Step 2 */}
-          <View style={styles.stepItemRow}>
-            <Text style={styles.stepIndex}>Step 2</Text>
-            <Text style={styles.stepTitle}>Distribution Node</Text>
-            <Text style={styles.stepValue}>{formatFlow(outFlow)} L/m</Text>
-          </View>
-
-          <View style={styles.stepItemDivider} />
-
-          {/* Step 3 */}
-          <View style={styles.stepItemRow}>
-            <Text style={styles.stepIndex}>Step 3</Text>
-            <Text style={styles.stepTitle}>Persistence Filter</Text>
-            <View
-              style={[
-                styles.stepStatusPill,
-                isAlert && { backgroundColor: COLORS.danger },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.stepStatusPillText,
-                  isAlert && { color: '#FFFFFF' },
-                ]}
+            {/* Dark Footer Bar */}
+            <View style={styles.p3FooterBar}>
+              <TouchableOpacity
+                onPress={() => router.push('/history')}
+                activeOpacity={0.7}
               >
-                {isAlert ? 'ALERT' : 'CERTIFIED'}
-              </Text>
+                <Text style={styles.p3DetailsText}>Details</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
-
-        {/* ========================================================
-            5. BOTTOM FOOTER BAR (Matching Screen 2 Bottom Bar)
-           ======================================================== */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            onPress={() => router.push('/history')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.detailsBtnText}>Details</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.playArrowBtn}
-            onPress={() => setShowScenarioModal(true)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="play" size={16} color={COLORS.accentYellow} />
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* ========================================================
-          SIMULATION SCENARIOS MODAL
-         ======================================================== */}
+      {/* ==============================================================
+          SIMULATION & DEMO CONTROLS MODAL (Interactive ESP32 Bridge)
+         ============================================================== */}
       <Modal
         visible={showScenarioModal}
         transparent={true}
         animationType="fade"
         onRequestClose={() => setShowScenarioModal(false)}
       >
-        <View style={styles.modalBackdrop}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Pipeline Scenarios</Text>
+              <View style={styles.modalHeaderTitleGroup}>
+                <Ionicons name="hardware-chip-outline" size={20} color={COLORS.darkCharcoal} />
+                <Text style={styles.modalTitle}>Wokwi ESP32 Bridge</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setShowScenarioModal(false)}
                 style={styles.modalCloseBtn}
               >
-                <Ionicons name="close" size={20} color="#0D0E11" />
+                <Ionicons name="close" size={20} color={COLORS.darkCharcoal} />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalSubtitle}>
-              Test autonomous anomaly & leak persistence detection
+              Simulate dual-flow pipeline conditions in real time:
             </Text>
 
-            {/* Scenario 1: Normal Flow */}
-            <TouchableOpacity
-              style={[
-                styles.scenarioOption,
-                activeScenario === 'normal' && styles.scenarioOptionActive,
-              ]}
-              onPress={() => {
-                setScenario('normal');
-                setShowScenarioModal(false);
-              }}
-            >
-              <View style={styles.scenarioOptionLeft}>
-                <View
-                  style={[
-                    styles.scenarioNum,
-                    { backgroundColor: COLORS.accentYellow },
-                  ]}
-                >
-                  <Text style={styles.scenarioNumText}>01</Text>
+            <View style={styles.scenarioList}>
+              <TouchableOpacity
+                style={[
+                  styles.scenarioBtn,
+                  activeScenario === 'normal' && styles.scenarioBtnActive,
+                ]}
+                onPress={() => {
+                  setScenario('normal');
+                  setShowScenarioModal(false);
+                }}
+              >
+                <View style={styles.scenarioBtnContent}>
+                  <Text style={styles.scenarioNumber}>01</Text>
+                  <View>
+                    <Text style={styles.scenarioName}>Normal Balanced Flow</Text>
+                    <Text style={styles.scenarioDesc}>Inlet 12.0 L/m • Outlet 12.0 L/m (Zero Deficit)</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.scenarioOptionTitle}>
-                    Normal Balanced Flow
-                  </Text>
-                  <Text style={styles.scenarioOptionSub}>
-                    Inlet matches outlet (&lt; 0.2 L/min delta)
-                  </Text>
-                </View>
-              </View>
-              {activeScenario === 'normal' && (
-                <Ionicons name="checkmark-circle" size={20} color="#0D0E11" />
-              )}
-            </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+              </TouchableOpacity>
 
-            {/* Scenario 2: Suspected Leak */}
-            <TouchableOpacity
-              style={[
-                styles.scenarioOption,
-                activeScenario === 'suspected_leak' && styles.scenarioOptionActive,
-              ]}
-              onPress={() => {
-                setScenario('suspected_leak');
-                setShowScenarioModal(false);
-              }}
-            >
-              <View style={styles.scenarioOptionLeft}>
-                <View
-                  style={[
-                    styles.scenarioNum,
-                    { backgroundColor: COLORS.danger },
-                  ]}
-                >
-                  <Text style={[styles.scenarioNumText, { color: '#FFFFFF' }]}>
-                    02
-                  </Text>
+              <TouchableOpacity
+                style={[
+                  styles.scenarioBtn,
+                  activeScenario === 'leak' && styles.scenarioBtnDanger,
+                ]}
+                onPress={() => {
+                  setScenario('leak');
+                  setShowScenarioModal(false);
+                }}
+              >
+                <View style={styles.scenarioBtnContent}>
+                  <Text style={[styles.scenarioNumber, { color: COLORS.danger }]}>02</Text>
+                  <View>
+                    <Text style={[styles.scenarioName, { color: COLORS.danger }]}>Pipe Rupture / Leak</Text>
+                    <Text style={styles.scenarioDesc}>Inlet 14.0 L/m • Outlet 7.0 L/m (+7.0 L/m Deficit)</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.scenarioOptionTitle}>
-                    Pipe Rupture / Leak
-                  </Text>
-                  <Text style={styles.scenarioOptionSub}>
-                    Inlet exceeds outlet (&gt; 1.5 L/min sustained)
-                  </Text>
-                </View>
-              </View>
-              {activeScenario === 'suspected_leak' && (
-                <Ionicons name="checkmark-circle" size={20} color={COLORS.danger} />
-              )}
-            </TouchableOpacity>
+                <Ionicons name="warning" size={18} color={COLORS.danger} />
+              </TouchableOpacity>
 
-            {/* Scenario 3: High Demand Consumption */}
-            <TouchableOpacity
-              style={[
-                styles.scenarioOption,
-                activeScenario === 'abnormal_consumption' &&
-                  styles.scenarioOptionActive,
-              ]}
-              onPress={() => {
-                setScenario('abnormal_consumption');
-                setShowScenarioModal(false);
-              }}
-            >
-              <View style={styles.scenarioOptionLeft}>
-                <View
-                  style={[
-                    styles.scenarioNum,
-                    { backgroundColor: '#F59E0B' },
-                  ]}
-                >
-                  <Text style={[styles.scenarioNumText, { color: '#FFFFFF' }]}>
-                    03
-                  </Text>
+              <TouchableOpacity
+                style={[
+                  styles.scenarioBtn,
+                  activeScenario === 'high' && styles.scenarioBtnActive,
+                ]}
+                onPress={() => {
+                  setScenario('high');
+                  setShowScenarioModal(false);
+                }}
+              >
+                <View style={styles.scenarioBtnContent}>
+                  <Text style={styles.scenarioNumber}>03</Text>
+                  <View>
+                    <Text style={styles.scenarioName}>High Demand Consumption</Text>
+                    <Text style={styles.scenarioDesc}>Both sensors rise to 26.0 L/m symmetrically</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.scenarioOptionTitle}>
-                    High Demand Consumption
-                  </Text>
-                  <Text style={styles.scenarioOptionSub}>
-                    Heavy balanced draw (&gt; 25.0 L/min)
-                  </Text>
-                </View>
-              </View>
-              {activeScenario === 'abnormal_consumption' && (
-                <Ionicons name="checkmark-circle" size={20} color="#F59E0B" />
-              )}
-            </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+              </TouchableOpacity>
 
-            {/* Scenario 4: Sensor Anomaly */}
-            <TouchableOpacity
-              style={[
-                styles.scenarioOption,
-                activeScenario === 'sensor_anomaly' && styles.scenarioOptionActive,
-              ]}
-              onPress={() => {
-                setScenario('sensor_anomaly');
-                setShowScenarioModal(false);
-              }}
-            >
-              <View style={styles.scenarioOptionLeft}>
-                <View
-                  style={[
-                    styles.scenarioNum,
-                    { backgroundColor: '#0D9488' },
-                  ]}
-                >
-                  <Text style={[styles.scenarioNumText, { color: '#FFFFFF' }]}>
-                    04
-                  </Text>
+              <TouchableOpacity
+                style={[
+                  styles.scenarioBtn,
+                  activeScenario === 'datacheck' && styles.scenarioBtnActive,
+                ]}
+                onPress={() => {
+                  setScenario('datacheck');
+                  setShowScenarioModal(false);
+                }}
+              >
+                <View style={styles.scenarioBtnContent}>
+                  <Text style={styles.scenarioNumber}>04</Text>
+                  <View>
+                    <Text style={styles.scenarioName}>Sensor Calibration Fault</Text>
+                    <Text style={styles.scenarioDesc}>Reversed mismatch / sensor defect flag</Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={styles.scenarioOptionTitle}>
-                    Sensor Calibration Fault
-                  </Text>
-                  <Text style={styles.scenarioOptionSub}>
-                    Negative deficit (Outlet &gt; Inlet)
-                  </Text>
-                </View>
-              </View>
-              {activeScenario === 'sensor_anomaly' && (
-                <Ionicons name="checkmark-circle" size={20} color="#0D9488" />
-              )}
-            </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={styles.modalResetBtn}
@@ -476,7 +667,7 @@ export default function DashboardScreen() {
                 setShowScenarioModal(false);
               }}
             >
-              <Text style={styles.modalResetText}>Reset Simulation Baseline</Text>
+              <Text style={styles.modalResetText}>Reset to Live Sensor Baseline</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -488,541 +679,616 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#0D0E11', // Deep dark ink black canvas
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 95, // Clearance for tab dock
+    backgroundColor: '#0D140D',
+    position: 'relative',
+    overflow: 'hidden',
   },
 
-  /* ========================================================
-     1. TOP HERO CARD (Exact typography & layout from reference)
-     ======================================================== */
-  topCard: {
-    backgroundColor: '#F3F2EB', // Off-white card surface
-    borderRadius: 36,
-    marginHorizontal: 12,
-    marginTop: 10,
-    marginBottom: 14,
-    paddingHorizontal: 22,
-    paddingTop: 22,
-    paddingBottom: 24,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
+  // -------------------------------------------------------------
+  // Top Floating Pager Switcher Pill (01 • 02 • 03)
+  // -------------------------------------------------------------
+  topPaginationPill: {
+    position: 'absolute',
+    top: 6,
+    alignSelf: 'center',
+    zIndex: 100,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderRadius: 24,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
-  headerRow: {
+  pageTab: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 18,
+  },
+  pageTabActive: {
+    backgroundColor: '#D4FF32',
+  },
+  pageTabText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#A0A4AB',
+    letterSpacing: 0.3,
+  },
+  pageTabTextActive: {
+    color: '#0D140D',
+    fontWeight: '900',
+  },
+
+  pagerScrollView: {
+    flex: 1,
+  },
+  pageWrapper: {
+    flex: 1,
+    height: '100%',
+    paddingBottom: 86, // Space for floating bottom tab bar
+  },
+
+  // =============================================================
+  // PHONE 1 STYLES: Dark Top + Lime Bottom with Steps
+  // =============================================================
+  phone1Top: {
+    flex: 0.95,
+    backgroundColor: '#0F1A12',
+    paddingHorizontal: 20,
+    paddingTop: 44, // below pagination bar
+    paddingBottom: 16,
+    justifyContent: 'space-between',
+  },
+  p1HeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  brandIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.accentYellow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0D0E11',
-    letterSpacing: -0.2,
-  },
-  headerRightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  pageIndexPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  pageIndexBold: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#0D0E11',
-  },
-  pageIndexLight: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#66655E',
-  },
-  menuBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  menuLinesWrap: {
-    gap: 3,
-  },
-  menuLine: {
-    width: 14,
-    height: 2,
-    backgroundColor: '#0D0E11',
-    borderRadius: 1,
-  },
-  menuText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: 0.8,
-  },
-
-  /* Category Tag Pill (matching "Resources" tag in image) */
-  categoryPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 8,
-    marginBottom: 14,
-  },
-  categoryPillText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: 0.3,
-  },
-
-  /* Massive Display Headline (matching "Best Google fonts for tech websites") */
-  headlineBlock: {
-    marginBottom: 10,
-  },
-  giantHeadline: {
-    fontSize: 54,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -2.5,
-    lineHeight: 52,
-  },
-  headlineSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#66655E',
-    marginTop: 4,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-
-  /* Floating Cursor Badge (matching "Inayat Naqvi" badge in image) */
-  cursorBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#0D0E11',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    gap: 6,
-    marginBottom: 18,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cursorAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#282A30',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cursorBadgeText: {
-    fontSize: 13,
+  brandTitleWhite: {
+    fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
-  cursorArrow: {
-    transform: [{ rotate: '-45deg' }],
-  },
-
-  /* Card Telemetry Row */
-  cardTelemetryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E2E1DA',
-    marginBottom: 18,
-  },
-  cardTelemetryItem: {
-    flex: 1,
-  },
-  cardTelemetryLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8F959E',
-    marginBottom: 2,
-  },
-  cardTelemetryValue: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#0D0E11',
     letterSpacing: -0.5,
   },
-  cardTelemetryUnit: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8F959E',
-  },
-  cardTelemetryDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: '#E2E1DA',
-    marginHorizontal: 8,
-  },
-
-  /* Card Footer (matching "@ui.inayat" and "Save for later" in image) */
-  cardFooterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(13, 14, 17, 0.08)',
-  },
-  footerHandle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -0.2,
-  },
-  footerSub: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#66655E',
-    marginTop: 2,
-  },
-  actionBtnPill: {
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  actionBtnText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0D0E11',
-  },
-
-  /* ========================================================
-     2. SPLIT 3-COLUMN METRIC MATRIX (Matching Screen 1)
-     ======================================================== */
-  metricMatrixCard: {
-    backgroundColor: '#1C1D22',
-    marginHorizontal: 16,
-    marginTop: 14,
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
+  menuBtnLight: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#282A30',
+    gap: 7,
   },
-  matrixCol: {
-    flex: 1,
+  menuLinesLight: {
+    gap: 3.5,
   },
-  matrixLabel: {
-    fontSize: 11,
+  menuLineWhite: {
+    width: 17,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+  },
+  menuTextWhite: {
+    fontSize: 12,
     fontWeight: '800',
-    color: '#9E9FA5',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  matrixValue: {
-    fontSize: 26,
-    fontWeight: '900',
+
+  p1TitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  p1TitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
+  p1TitleWhite: {
+    fontSize: 27,
+    fontWeight: '500',
     color: '#FFFFFF',
     letterSpacing: -0.8,
   },
-  matrixUnit: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.accentYellow,
+  p1TitleSubGreen: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A0B898',
   },
-  matrixDivider: {
-    width: 1,
-    height: 38,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginHorizontal: 10,
+  roundActionLimeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#D4FF32',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  /* ========================================================
-     3. SPLIT 2-BOX METRIC SHOWCASE (Matching Screen 2)
-     ======================================================== */
-  splitBoxRow: {
+  // 3-Column Stats Row
+  p1StatsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginHorizontal: 16,
-    marginTop: 12,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingTop: 12,
+    marginTop: 4,
   },
-  splitBoxYellow: {
+  p1StatCol: {
     flex: 1,
-    backgroundColor: COLORS.accentYellow,
-    padding: 16,
-    borderRadius: 18,
-    minHeight: 120,
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#E2EA00',
+    alignItems: 'flex-start',
   },
-  splitBoxLabelDark: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0D0E11',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  splitBoxValueDark: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -1.2,
-  },
-  splitBoxUnitDark: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#333333',
-  },
-  splitBoxFooterDark: {
+  p1StatLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#333333',
+    color: '#8A9B85',
+    marginBottom: 4,
   },
-  splitBoxDark: {
-    flex: 1,
-    backgroundColor: '#1C1D22',
-    padding: 16,
-    borderRadius: 18,
-    minHeight: 120,
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#282A30',
-  },
-  splitBoxLabelLight: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#9E9FA5',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  splitBoxValueLight: {
-    fontSize: 30,
+  p1StatValue: {
+    fontSize: 26,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -1,
   },
-  splitBoxFooterLight: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8F959E',
+  p1StatUnit: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8A9B85',
+    marginTop: 1,
+  },
+  p1StatDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    marginHorizontal: 10,
   },
 
-  /* ========================================================
-     4. PIPELINE AUDIT STEPS (Matching Screen 1 Steps)
-     ======================================================== */
-  stepsCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
+  // Phone 1 Bottom: Lime Green with Steps
+  phone1BottomLime: {
+    flex: 1.05,
+    backgroundColor: '#D4FF32',
+    position: 'relative',
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 14,
+    justifyContent: 'space-between',
   },
-  stepItemRow: {
+  giantWatermarkWrap: {
+    position: 'absolute',
+    bottom: -35,
+    right: 5,
+    opacity: 0.22,
+  },
+  giantWatermarkG: {
+    fontSize: 220,
+    fontWeight: '900',
+    color: '#0F1A12',
+    lineHeight: 220,
+  },
+  stepScanBeam: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 20,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    borderRadius: 14,
+  },
+  stepsContainer: {
+    zIndex: 10,
+  },
+  p1StepRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
-  stepIndex: {
-    width: 50,
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#0D0E11',
+  stepLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  stepTitle: {
-    flex: 1,
+  stepNumText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#0D0E11',
-    paddingHorizontal: 8,
+    color: '#0D140D',
   },
-  stepValue: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0D0E11',
+  stepDescText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2A3626',
   },
-  stepItemDivider: {
+  stepRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepMetricText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0D140D',
+  },
+  stepLiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0D140D',
+  },
+  stepHairlineDivider: {
     height: 1,
-    backgroundColor: '#EAE8DE',
+    backgroundColor: 'rgba(13, 20, 13, 0.12)',
   },
-  stepStatusPill: {
-    backgroundColor: '#0D0E11',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  stepBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0D140D',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
   },
-  stepStatusPillText: {
-    fontSize: 10,
+  badgePulseBeacon: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D4FF32',
+  },
+  stepBadgeText: {
+    fontSize: 11,
     fontWeight: '900',
-    color: COLORS.accentYellow,
+    color: '#D4FF32',
     letterSpacing: 0.5,
   },
 
-  /* ========================================================
-     5. BOTTOM FOOTER BAR (Matching Screen 2 Bottom Bar)
-     ======================================================== */
-  bottomBar: {
+  p1FooterBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 10,
+    paddingTop: 6,
+  },
+  p1FooterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2A3626',
+    letterSpacing: 0.3,
+  },
+  p1FooterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0D140D',
+  },
+
+  // =============================================================
+  // PHONE 2 STYLES: Taupe Top + 2 Split Blocks + Footer
+  // =============================================================
+  phone2TopTaupe: {
+    flex: 1.15,
+    backgroundColor: '#E5E2DE',
+    paddingHorizontal: 20,
+    paddingTop: 44,
+    paddingBottom: 16,
+    justifyContent: 'space-between',
+  },
+  p2HeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  detailsBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.3,
+  brandTitleDark: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0D0E11',
+    letterSpacing: -0.5,
   },
-  playArrowBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  menuBtnDark: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 7,
+  },
+  menuLinesDark: {
+    gap: 3.5,
+  },
+  menuLineDark: {
+    width: 17,
+    height: 2,
+    backgroundColor: '#0D0E11',
+    borderRadius: 1,
+  },
+  menuTextDark: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D0E11',
+    letterSpacing: 0.5,
   },
 
-  /* Modal Styling */
-  modalBackdrop: {
+  p2HeadlineWrap: {
+    marginTop: 8,
+  },
+  p2GiantHeadline: {
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#554E4B',
+    lineHeight: 35,
+    letterSpacing: -1.6,
+  },
+  p2Subtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7E7873',
+    marginTop: 6,
+  },
+
+  p2RightFloatText: {
+    alignSelf: 'flex-end',
+    alignItems: 'flex-end',
+    marginTop: 8,
+  },
+  p2FloatLine: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#554E4B',
+    lineHeight: 16,
+  },
+  p2FloatLineBold: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0D0E11',
+    lineHeight: 17,
+  },
+
+  // Phone 2 Bottom Section
+  phone2BottomContainer: {
+    flex: 0.85,
+    backgroundColor: '#0F1A12',
+    justifyContent: 'space-between',
+  },
+  p2TwoBlocksRow: {
+    flexDirection: 'row',
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'flex-end',
+  },
+  p2BlockLime: {
+    flex: 1,
+    backgroundColor: '#D4FF32',
+    padding: 16,
+    justifyContent: 'center',
+  },
+  p2BlockLabelDark: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0D140D',
+    marginBottom: 4,
+  },
+  p2BlockValueDark: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#0D140D',
+    letterSpacing: -1,
+  },
+  p2BlockUnitDark: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  p2BlockDark: {
+    flex: 1,
+    backgroundColor: '#35302E',
+    padding: 16,
+    justifyContent: 'center',
+  },
+  p2BlockLabelLight: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A8A19D',
+    marginBottom: 4,
+  },
+  p2BlockValueLight: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+  },
+
+  p2FooterBar: {
+    height: 48,
+    backgroundColor: '#0F1A12',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  p2DetailsText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D4FF32',
+  },
+  p2PlayBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // =============================================================
+  // PHONE 3 STYLES: Lime Top (Giant 'O') + Taupe Plan + Footer
+  // =============================================================
+  phone3TopLime: {
+    flex: 1.1,
+    backgroundColor: '#D4FF32',
+    paddingHorizontal: 20,
+    paddingTop: 44,
+    paddingBottom: 16,
+    justifyContent: 'space-between',
+  },
+  p3HeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  p3GraphicContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  p3ConcentricRing: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  giantLetterO: {
+    fontSize: 180,
+    fontWeight: '900',
+    color: '#0F1A12',
+    lineHeight: 180,
+    letterSpacing: -6,
+  },
+
+  phone3BottomTaupe: {
+    flex: 0.9,
+    backgroundColor: '#E5E2DE',
+    justifyContent: 'space-between',
+  },
+  p3ContentWrap: {
+    padding: 20,
+  },
+  p3SubLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#706B66',
+    letterSpacing: 1.2,
+    marginBottom: 6,
+  },
+  p3PlanTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -1.5,
+    marginBottom: 12,
+  },
+  p3FeatureBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  p3FeatureText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0D0E11',
+  },
+  p3BottomNote: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#706B66',
+  },
+
+  p3FooterBar: {
+    height: 48,
+    backgroundColor: '#0F1A12',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  p3DetailsText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D4FF32',
+  },
+
+  // =============================================================
+  // MODAL STYLES (ESP32 Simulation Controls)
+  // =============================================================
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   modalCard: {
+    width: '100%',
+    maxWidth: 380,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 24,
-    paddingBottom: 36,
+    borderRadius: 28,
+    padding: 22,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 20,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  modalHeaderTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#0D0E11',
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.darkCharcoal,
   },
   modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F3F2EB',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 4,
   },
   modalSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#66655E',
+    fontSize: 13,
+    color: COLORS.textSecondary,
     marginBottom: 16,
   },
-  scenarioOption: {
+  scenarioList: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  scenarioBtn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F5F4F0',
+    borderRadius: 16,
     padding: 12,
-    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E2E1DA',
-    marginBottom: 10,
-    backgroundColor: '#FAFAF8',
+    borderColor: '#EAE8DE',
   },
-  scenarioOptionActive: {
-    borderColor: '#0D0E11',
-    borderWidth: 1.5,
-    backgroundColor: '#FFFFFF',
+  scenarioBtnActive: {
+    borderColor: '#D4FF32',
+    backgroundColor: '#FBFFDC',
   },
-  scenarioOptionLeft: {
+  scenarioBtnDanger: {
+    borderColor: COLORS.danger,
+    backgroundColor: '#FEF2F2',
+  },
+  scenarioBtnContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     flex: 1,
   },
-  scenarioNum: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scenarioNumText: {
-    fontSize: 12,
+  scenarioNumber: {
+    fontSize: 16,
     fontWeight: '900',
-    color: '#0D0E11',
+    color: COLORS.darkCharcoal,
   },
-  scenarioOptionTitle: {
+  scenarioName: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#0D0E11',
+    color: COLORS.darkCharcoal,
   },
-  scenarioOptionSub: {
+  scenarioDesc: {
     fontSize: 11,
-    fontWeight: '500',
-    color: '#66655E',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   modalResetBtn: {
-    backgroundColor: '#0D0E11',
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: COLORS.darkCharcoal,
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 10,
   },
   modalResetText: {
+    color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
-    color: COLORS.accentYellow,
-    letterSpacing: 0.5,
+    fontWeight: '800',
   },
 });
