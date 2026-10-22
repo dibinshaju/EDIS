@@ -637,9 +637,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: COLORS.accentYellow,
     alignItems: 'center',
     justifyContent: 'center',
@@ -648,48 +648,62 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
-  heroNavRow: {
+  heroPagePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
-  heroNavItem: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#66655E',
-    letterSpacing: 0.5,
-  },
-
-  /* Title & Starburst Row */
-  heroTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  heroTitleLeft: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  heroTitleBig: {
-    fontSize: 38,
+  heroPagePillBold: {
+    fontSize: 13,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -1,
-    lineHeight: 40,
   },
-  heroSubtitle: {
+  heroPagePillLight: {
     fontSize: 13,
     fontWeight: '600',
     color: '#66655E',
-    marginTop: 8,
-    lineHeight: 18,
   },
-  starburstWrapper: {
-    width: 88,
-    height: 88,
+
+  /* Category Tag Pill (matching "Resources" in reference) */
+  categoryPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  categoryPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
+  },
+
+  /* Massive Headline Block (matching "Best Google fonts for tech websites") */
+  heroTitleBlock: {
+    marginBottom: 12,
+  },
+  heroTitleGiant: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -2,
+    lineHeight: 48,
+  },
+  heroTitleLastRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  starburstInline: {
+    width: 54,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -700,16 +714,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   starburstNumber: {
-    fontSize: 22,
+    fontSize: 13,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   starburstSub: {
-    fontSize: 11,
+    fontSize: 8,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+
+  /* Floating Black Cursor Badge (matching "Inayat Naqvi" badge in reference) */
+  floatingCursorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#0D0E11',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    gap: 6,
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  cursorAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#282A30',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cursorBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  cursorArrow: {
+    transform: [{ rotate: '-45deg' }],
   },
 
   /* Slanted Tags */
@@ -717,8 +766,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 18,
-    paddingVertical: 4,
+    marginBottom: 16,
+    paddingVertical: 2,
   },
   slantedTag: {
     backgroundColor: '#FFFFFF',
@@ -740,12 +789,44 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  /* Bottom Hero Row */
+  /* Bottom Hero Meta Row (matching "@ui.inayat" and "Save for later" in reference) */
+  heroFooterMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  heroAuthorHandle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.2,
+  },
+  heroAuthorSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#66655E',
+    marginTop: 2,
+  },
+  saveForLaterPill: {
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  saveForLaterText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D0E11',
+  },
+
+  /* Bottom Hero Row (Simulation pills) */
   heroBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
   },
   overhangingPill: {
     flexDirection: 'row',
@@ -780,22 +861,6 @@ const styles = StyleSheet.create({
   scenarioDotBtnActive: {
     backgroundColor: '#0D0E11',
   },
-  heroRightAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-  },
-  heroRightActionText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0D0E11',
-  },
 
   /* 2. MANIFESTO HEADLINE SECTION */
   manifestoSection: {
@@ -807,12 +872,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   manifestoHeadline: {
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
     textAlign: 'center',
-    letterSpacing: 0.5,
-    lineHeight: 24,
+    letterSpacing: -0.5,
+    lineHeight: 28,
   },
 
   /* Body Content */
@@ -851,23 +916,23 @@ const styles = StyleSheet.create({
 
   /* Dark text styles for Card 01 */
   gridNumberDark: {
-    fontSize: 38,
+    fontSize: 48,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -1,
+    letterSpacing: -2,
   },
   gridTitleDark: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     marginTop: 2,
   },
   gridValueDark: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
     marginTop: 4,
   },
   gridUnitDark: {
@@ -899,23 +964,23 @@ const styles = StyleSheet.create({
 
   /* Light text styles for Cards 02, 03, 04 */
   gridNumberLight: {
-    fontSize: 38,
+    fontSize: 48,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -1,
+    letterSpacing: -2,
   },
   gridTitleLight: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     marginTop: 2,
   },
   gridValueLight: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
     marginTop: 4,
   },
   gridUnitLight: {
