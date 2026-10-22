@@ -68,6 +68,7 @@ export const COLORS = {
 export const FONTS = {
   heading: 'Bungee, cursive, sans-serif',
   body: '"Bebas Neue", sans-serif',
+  number: '"Gravitas One", serif',
   display: 'Bungee, cursive, sans-serif',
   condensed: '"Bebas Neue", sans-serif',
   mono: '"SF Mono", "Courier New", monospace',

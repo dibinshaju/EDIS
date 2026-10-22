@@ -18,7 +18,7 @@ export default function RootLayout() {
         link.id = fontId;
         link.rel = 'stylesheet';
         link.href =
-          'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap';
+          'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Gravitas+One&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap';
         document.head.appendChild(link);
 
         const style = document.createElement('style');
@@ -32,6 +32,9 @@ export default function RootLayout() {
           }
           .font-content {
             font-family: 'Bebas Neue', sans-serif !important;
+          }
+          .font-number {
+            font-family: 'Gravitas One', serif !important;
           }
         `;
         document.head.appendChild(style);
