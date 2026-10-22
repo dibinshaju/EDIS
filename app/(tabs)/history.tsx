@@ -3,197 +3,240 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
 import { useAlerts } from '../../src/context/AlertContext';
+import { WaveformChart } from '../../src/components/WaveformChart';
+import { formatFlow, formatTime } from '../../src/utils/format';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path } from 'react-native-svg';
 
-const DAYS = [
-  { day: '10', name: 'Mon' },
-  { day: '11', name: 'Tue' },
-  { day: '12', name: 'Wed' },
-  { day: '13', name: 'Thu', active: true },
-  { day: '14', name: 'Fri' },
-  { day: '15', name: 'Sat' },
-  { day: '16', name: 'Sun' },
-];
+type TimeRange = '1H' | '24H' | '7D';
 
-export default function HistoryScreen() {
-  const { history, currentReading, activeScenario } = useSensor();
-  const { alerts, acknowledgeAlert } = useAlerts();
-  const [selectedDay, setSelectedDay] = useState('13');
+export default function AnalyticsScreen() {
+  const { history, totalVolumeLiters, currentReading, dataSource } = useSensor();
+  const { alerts } = useAlerts();
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
 
-  const latestAlert = alerts.find((a) => a.status === 'ACTIVE') || alerts[0];
+  const isDemo = dataSource === 'demo';
+  const samplePoints = history.slice(-30);
+  const peakFlow = samplePoints.reduce((max, d) => Math.max(max, d.inletFlow), 0);
+  const avgFlow =
+    samplePoints.length > 0
+      ? samplePoints.reduce((sum, d) => sum + d.inletFlow, 0) / samplePoints.length
+      : 0;
+  const mismatchCount = samplePoints.filter((d) => Math.abs(d.flowDifference) > 1.5).length;
 
   return (
     <View style={styles.screen}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* 1. TOP HEADER (Exact match to Screen 2 in reference image) */}
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.dateLabel}>November 13, 2026</Text>
-            <Text style={styles.todayHeading}>Today</Text>
-          </View>
-          <View style={styles.avatarCircle}>
-            <Ionicons name="person" size={20} color="#6B7280" />
-          </View>
-        </View>
-
-        {/* 2. HORIZONTAL DAYS / INTERVALS SELECTOR */}
-        <View style={styles.daysRow}>
-          {DAYS.map((d) => {
-            const isActive = d.day === selectedDay;
-            return (
-              <TouchableOpacity
-                key={d.day}
-                style={[styles.dayItem, isActive && styles.dayItemActive]}
-                onPress={() => setSelectedDay(d.day)}
-              >
-                <Text style={[styles.dayNum, isActive && styles.dayNumActive]}>
-                  {d.day}
-                </Text>
-                <Text style={[styles.dayName, isActive && styles.dayNameActive]}>
-                  {d.name}
-                </Text>
-                {isActive && <View style={styles.activeDot} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* 3. VERTICAL TIMELINE WITH CIRCULAR NODES */}
-        <View style={styles.timelineContainer}>
-          {/* Continuous Vertical Wire Line */}
-          <View style={styles.verticalWire} />
-
-          {/* Node 1: Featured Dark Event Card (Meeting / Alert) */}
-          <View style={styles.timelineRow}>
-            {/* Top Node Indicator */}
-            <View style={styles.nodeCircleWrapper}>
-              <View style={styles.featuredNodeCircle}>
-                <View style={styles.featuredInnerDot} />
+        {/* 1. Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.brandRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="bar-chart-outline" size={18} color="#0284C7" />
+              </View>
+              <View>
+                <Text style={styles.headerTitle}>Flow Analytics</Text>
+                <Text style={styles.headerSubtitle}>Usage Trends & Telemetry History</Text>
               </View>
             </View>
 
-            {/* Featured Dark Card (Exact match to "Meeting" card in image) */}
-            <View style={styles.featuredCard}>
-              {/* Subtle SVG Wave lines */}
-              <Svg
-                height="120"
-                width="100%"
-                viewBox="0 0 260 120"
-                style={StyleSheet.absoluteFill}
-              >
-                <Path
-                  d="M0,50 C80,20 160,90 260,40"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="1.5"
-                />
-                <Path
-                  d="M0,80 C100,50 180,100 260,70"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.05)"
-                  strokeWidth="1.5"
-                />
-              </Svg>
-
-              <View style={styles.featuredCardTop}>
-                <Text style={styles.featuredTitle}>
-                  {activeScenario === 'suspected_leak'
-                    ? 'Leak Alert'
-                    : 'Monitoring Session'}
-                </Text>
-                <Text style={styles.featuredTime}>9.00 AM</Text>
-              </View>
-
-              <Text style={styles.featuredDesc}>
-                {activeScenario === 'suspected_leak'
-                  ? 'Inlet S1 (+2.0 L/m deficit) sustained beyond persistence window'
-                  : 'Sensors S1 and S2 reporting steady baseline flow'}
+            <View style={[styles.modePill, isDemo ? styles.modePillDemo : styles.modePillLive]}>
+              <Text style={[styles.modePillText, isDemo ? styles.modeTextDemo : styles.modeTextLive]}>
+                {isDemo ? 'SAMPLE DEMO' : 'LIVE ARCHIVE'}
               </Text>
+            </View>
+          </View>
 
-              {/* Bottom Avatar / Checkmark Row */}
-              <View style={styles.featuredBottomRow}>
-                <View style={styles.avatarPillsRow}>
-                  <View style={[styles.microAvatar, { backgroundColor: '#38BDF8' }]}>
-                    <Text style={styles.microAvatarText}>S1</Text>
-                  </View>
-                  <View
+          {/* Time Range Selector Tabs */}
+          <View style={styles.rangeSelector}>
+            {(['1H', '24H', '7D'] as const).map((range) => {
+              const isActive = timeRange === range;
+              return (
+                <TouchableOpacity
+                  key={range}
+                  style={[styles.rangeTab, isActive && styles.rangeTabActive]}
+                  onPress={() => setTimeRange(range)}
+                >
+                  <Text style={[styles.rangeTabText, isActive && styles.rangeTabTextActive]}>
+                    {range === '1H' ? 'Last Hour' : range === '24H' ? 'Past 24 Hours' : '7 Days Trend'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* 2. Daily Usage Summaries */}
+        <View style={styles.summaryGrid}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Total Metered</Text>
+            <Text style={styles.summaryVal}>
+              {totalVolumeLiters.toFixed(1)} <Text style={styles.unit}>L</Text>
+            </Text>
+            <Text style={styles.summaryFooter}>Estimated cumulative</Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Average Inflow</Text>
+            <Text style={styles.summaryVal}>
+              {formatFlow(avgFlow)} <Text style={styles.unit}>L/m</Text>
+            </Text>
+            <Text style={styles.summaryFooter}>Steady baseline</Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Peak Demand</Text>
+            <Text style={styles.summaryVal}>
+              {formatFlow(peakFlow)} <Text style={styles.unit}>L/m</Text>
+            </Text>
+            <Text style={styles.summaryFooter}>Highest recorded</Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Discrepancies</Text>
+            <Text style={[styles.summaryVal, mismatchCount > 0 && { color: COLORS.danger }]}>
+              {mismatchCount}
+            </Text>
+            <Text style={styles.summaryFooter}>Deficit intervals</Text>
+          </View>
+        </View>
+
+        {/* 3. Inlet vs Outlet Flow History Chart */}
+        <View style={styles.chartPanel}>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={styles.panelTitle}>Inlet vs Outlet Flow Curve</Text>
+              <Text style={styles.chartSubtitle}>
+                {isDemo
+                  ? 'Sample data generated by simulation engine'
+                  : 'Validated historical telemetry packets from MQTT'}
+              </Text>
+            </View>
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: '#0284C7' }]} />
+                <Text style={styles.legendText}>Inlet S1</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
+                <Text style={styles.legendText}>Outlet S2</Text>
+              </View>
+            </View>
+          </View>
+
+          <WaveformChart
+            title="Intake vs Distribution Curve"
+            currentValue={currentReading.inletFlow}
+            averageValue={avgFlow}
+            deltaValue={currentReading.flowDifference}
+          />
+        </View>
+
+        {/* 4. Consumption Breakdown By Time Window */}
+        <View style={styles.breakdownCard}>
+          <Text style={styles.panelTitle}>Usage Window Distribution</Text>
+          <Text style={styles.panelSubtitle}>Estimated volume consumption by period</Text>
+
+          <View style={styles.windowRow}>
+            <View style={styles.windowBox}>
+              <Text style={styles.windowName}>Morning</Text>
+              <Text style={styles.windowHours}>06:00 - 12:00</Text>
+              <Text style={styles.windowVol}>42.8 L</Text>
+            </View>
+            <View style={styles.windowBox}>
+              <Text style={styles.windowName}>Afternoon</Text>
+              <Text style={styles.windowHours}>12:00 - 18:00</Text>
+              <Text style={styles.windowVol}>58.2 L</Text>
+            </View>
+            <View style={styles.windowBox}>
+              <Text style={styles.windowName}>Evening</Text>
+              <Text style={styles.windowHours}>18:00 - 23:00</Text>
+              <Text style={styles.windowVol}>36.4 L</Text>
+            </View>
+            <View style={[styles.windowBox, { borderColor: '#E0F2FE' }]}>
+              <Text style={[styles.windowName, { color: '#0284C7' }]}>Night</Text>
+              <Text style={styles.windowHours}>23:00 - 05:00</Text>
+              <Text style={[styles.windowVol, { color: '#0284C7' }]}>5.1 L</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 5. Historical Telemetry Table */}
+        <View style={styles.tableCard}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={styles.panelTitle}>Recorded Telemetry Packets</Text>
+            <Text style={styles.tableSubtitle}>{samplePoints.length} packets</Text>
+          </View>
+
+          <View style={styles.tableColHeader}>
+            <Text style={[styles.th, { flex: 1.2 }]}>Timestamp</Text>
+            <Text style={[styles.th, { flex: 1 }]}>Inlet</Text>
+            <Text style={[styles.th, { flex: 1 }]}>Outlet</Text>
+            <Text style={[styles.th, { flex: 1.2 }]}>Delta</Text>
+            <Text style={[styles.th, { flex: 0.9 }]}>Audit</Text>
+          </View>
+
+          {samplePoints
+            .slice()
+            .reverse()
+            .slice(0, 8)
+            .map((row, idx) => {
+              const hasDeficit = row.flowDifference > 1.5;
+              const hasReversed = row.flowDifference < -1.5;
+              return (
+                <View
+                  key={row.timestamp + '-' + idx}
+                  style={[styles.tableRow, idx % 2 === 0 && styles.tableRowAlt]}
+                >
+                  <Text style={[styles.td, { flex: 1.2, color: '#64748B' }]}>
+                    {formatTime(row.timestamp)}
+                  </Text>
+                  <Text style={[styles.td, { flex: 1, fontWeight: '700' }]}>
+                    {formatFlow(row.inletFlow)}
+                  </Text>
+                  <Text style={[styles.td, { flex: 1, fontWeight: '700', color: '#64748B' }]}>
+                    {formatFlow(row.outletFlow)}
+                  </Text>
+                  <Text
                     style={[
-                      styles.microAvatar,
-                      { backgroundColor: '#818CF8', marginLeft: -8 },
+                      styles.td,
+                      {
+                        flex: 1.2,
+                        fontWeight: '800',
+                        color: hasDeficit ? COLORS.danger : '#0F172A',
+                      },
                     ]}
                   >
-                    <Text style={styles.microAvatarText}>S2</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.microAvatar,
-                      { backgroundColor: '#F43F5E', marginLeft: -8 },
-                    ]}
-                  >
-                    <Text style={styles.microAvatarText}>IoT</Text>
+                    {row.flowDifference >= 0 ? '+' : ''}
+                    {formatFlow(row.flowDifference)}
+                  </Text>
+                  <View style={{ flex: 0.9 }}>
+                    <View
+                      style={[
+                        styles.statusTag,
+                        hasDeficit
+                          ? styles.statusTagLeak
+                          : hasReversed
+                          ? styles.statusTagDiag
+                          : styles.statusTagOk,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusTagText,
+                          hasDeficit
+                            ? styles.statusTagTextLeak
+                            : hasReversed
+                            ? styles.statusTagTextDiag
+                            : styles.statusTagTextOk,
+                        ]}
+                      >
+                        {hasDeficit ? 'DEFICIT' : hasReversed ? 'REVERSED' : 'BALANCED'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-
-                {latestAlert && (
-                  <TouchableOpacity
-                    style={styles.checkBtn}
-                    onPress={() => acknowledgeAlert(latestAlert.id)}
-                  >
-                    <Ionicons name="checkmark" size={16} color="#16181B" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          </View>
-
-          {/* Node 2: Icon Set / Flow Telemetry */}
-          <View style={styles.timelineRow}>
-            <View style={styles.nodeCircleWrapper}>
-              <View style={styles.regularNodeCircle} />
-            </View>
-            <View style={styles.plainEventCard}>
-              <View style={styles.plainEventTop}>
-                <Text style={styles.plainEventTitle}>Baseline Telemetry</Text>
-                <Text style={styles.plainEventTime}>9.15 AM</Text>
-              </View>
-              <Text style={styles.plainEventDesc}>
-                Municipal inflow balanced at 5.0 L/min across distribution section
-              </Text>
-            </View>
-          </View>
-
-          {/* Node 3: Prototype / Calibration Check */}
-          <View style={styles.timelineRow}>
-            <View style={styles.nodeCircleWrapper}>
-              <View style={styles.regularNodeCircle} />
-            </View>
-            <View style={styles.plainEventCard}>
-              <View style={styles.plainEventTop}>
-                <Text style={styles.plainEventTitle}>MQTT Telemetry Heartbeat</Text>
-                <Text style={styles.plainEventTime}>9.30 AM</Text>
-              </View>
-              <Text style={styles.plainEventDesc}>
-                Wokwi virtual bridge synchronized with broker.emqx.io
-              </Text>
-            </View>
-          </View>
-
-          {/* Node 4: Check Asset / Reset */}
-          <View style={styles.timelineRow}>
-            <View style={styles.nodeCircleWrapper}>
-              <View style={styles.regularNodeCircle} />
-            </View>
-            <View style={styles.plainEventCard}>
-              <View style={styles.plainEventTop}>
-                <Text style={styles.plainEventTitle}>System Calibration</Text>
-                <Text style={styles.plainEventTime}>9.45 AM</Text>
-              </View>
-              <Text style={styles.plainEventDesc}>
-                Threshold confirmed: Mismatch = 1.5 L/m, Persistence = 6 sec
-              </Text>
-            </View>
-          </View>
+              );
+            })}
         </View>
       </ScrollView>
     </View>
@@ -209,226 +252,301 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingTop: 44,
-    paddingHorizontal: 20,
+    padding: 16,
     paddingBottom: 90,
   },
-  /* Header */
-  headerRow: {
+  header: {
+    marginBottom: 16,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
-  dateLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9CA3AF',
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  todayHeading: {
-    fontSize: 26,
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: '900',
-    color: '#16181B',
-    letterSpacing: -0.5,
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  modePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+  },
+  modePillDemo: {
+    backgroundColor: '#F1F5F9',
+  },
+  modePillLive: {
+    backgroundColor: '#ECFDF5',
+  },
+  modePillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  modeTextDemo: {
+    color: '#475569',
+  },
+  modeTextLive: {
+    color: '#065F46',
+  },
+  rangeSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.md,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  rangeTab: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+  },
+  rangeTabActive: {
+    backgroundColor: '#0F172A',
+  },
+  rangeTabText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  rangeTabTextActive: {
+    color: '#FFFFFF',
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 14,
+  },
+  summaryCard: {
+    flex: 1,
+    minWidth: '47%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  summaryVal: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0F172A',
     marginTop: 2,
   },
-  avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
+  unit: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
   },
-
-  /* Horizontal Days Strip */
-  daysRow: {
+  summaryFooter: {
+    fontSize: 9,
+    color: '#94A3B8',
+    marginTop: 1,
+  },
+  chartPanel: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  dayItem: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: 16,
-    minWidth: 38,
-  },
-  dayItemActive: {
-    backgroundColor: '#16181B',
-    paddingBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  dayNum: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#9CA3AF',
-  },
-  dayNumActive: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  dayName: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    marginTop: 2,
-  },
-  dayNameActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#FFFFFF',
-    marginTop: 4,
-  },
-
-  /* Vertical Timeline */
-  timelineContainer: {
-    position: 'relative',
-    paddingLeft: 4,
-  },
-  verticalWire: {
-    position: 'absolute',
-    left: 10,
-    top: 14,
-    bottom: 20,
-    width: 2,
-    backgroundColor: '#E5E7EB',
-  },
-  timelineRow: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  nodeCircleWrapper: {
-    width: 22,
+  panelTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.2,
+  },
+  panelSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+    marginBottom: 10,
+  },
+  chartSubtitle: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 1,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 14,
-    paddingTop: 6,
+    gap: 4,
   },
-  featuredNodeCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#16181B',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featuredInnerDot: {
+  legendDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#16181B',
   },
-  regularNodeCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#9CA3AF',
+  legendText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  breakdownCard: {
     backgroundColor: '#FFFFFF',
-  },
-
-  /* Featured Dark Card */
-  featuredCard: {
-    flex: 1,
-    backgroundColor: '#16181B',
-    borderRadius: 22,
-    padding: 18,
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  featuredCardTop: {
+  windowRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    gap: 8,
   },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.2,
-  },
-  featuredTime: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '600',
-  },
-  featuredDesc: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    lineHeight: 16,
-    marginBottom: 16,
-  },
-  featuredBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  avatarPillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  microAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#16181B',
-  },
-  microAvatarText: {
-    fontSize: 8,
-    fontWeight: '900',
-    color: '#FFFFFF',
-  },
-  checkBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  /* Plain Event Card */
-  plainEventCard: {
+  windowBox: {
     flex: 1,
-    paddingVertical: 4,
+    backgroundColor: '#F8FAFC',
+    borderRadius: RADIUS.md,
+    padding: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  plainEventTop: {
+  windowName: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  windowHours: {
+    fontSize: 8,
+    color: '#94A3B8',
+    marginVertical: 2,
+  },
+  windowVol: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  tableCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  tableHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 10,
   },
-  plainEventTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#16181B',
-  },
-  plainEventTime: {
+  tableSubtitle: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: '#64748B',
     fontWeight: '600',
   },
-  plainEventDesc: {
+  tableColHeader: {
+    flexDirection: 'row',
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    marginBottom: 4,
+  },
+  th: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  tableRowAlt: {
+    backgroundColor: '#FAFAFA',
+  },
+  td: {
     fontSize: 11,
-    color: '#6B7280',
-    lineHeight: 15,
+    color: '#0F172A',
+  },
+  statusTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+    alignItems: 'center',
+  },
+  statusTagOk: {
+    backgroundColor: '#ECFDF5',
+  },
+  statusTagLeak: {
+    backgroundColor: '#FEF2F2',
+  },
+  statusTagDiag: {
+    backgroundColor: '#F0FDFA',
+  },
+  statusTagText: {
+    fontSize: 8,
+    fontWeight: '800',
+  },
+  statusTagTextOk: {
+    color: '#065F46',
+  },
+  statusTagTextLeak: {
+    color: '#991B1B',
+  },
+  statusTagTextDiag: {
+    color: '#0F766E',
   },
 });
