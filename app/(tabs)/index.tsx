@@ -23,8 +23,8 @@ export default function DashboardScreen() {
   const [showScenarioModal, setShowScenarioModal] = useState<boolean>(false);
   const [activePage, setActivePage] = useState<number>(0);
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
-    width: 396,
-    height: 750,
+    width: 392,
+    height: 832,
   });
 
   const scrollRef = useRef<any>(null);
@@ -83,7 +83,7 @@ export default function DashboardScreen() {
     const watermarkLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(watermarkScale, {
-          toValue: 1.05,
+          toValue: 1.04,
           duration: 2200,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -121,14 +121,14 @@ export default function DashboardScreen() {
     const ringLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(ringScaleAnim, {
-          toValue: 1.08,
-          duration: 1800,
+          toValue: 1.06,
+          duration: 1900,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(ringScaleAnim, {
           toValue: 0.96,
-          duration: 1800,
+          duration: 1900,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -170,7 +170,7 @@ export default function DashboardScreen() {
   // Interpolated animation offsets for step flow line
   const waveTranslateY = stepPulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-10, 150],
+    outputRange: [-10, 180],
   });
 
   const waveOpacity = stepPulseAnim.interpolate({
@@ -180,41 +180,6 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.screen} onLayout={handleLayout}>
-      {/* ==============================================================
-          TOP PAGINATION BAR (01 • 02 • 03 Switcher)
-         ============================================================== */}
-      <View style={styles.topPaginationPill}>
-        <TouchableOpacity
-          style={[styles.pageTab, activePage === 0 && styles.pageTabActive]}
-          onPress={() => goToPage(0)}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.pageTabText, activePage === 0 && styles.pageTabTextActive]}>
-            01 Flow
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.pageTab, activePage === 1 && styles.pageTabActive]}
-          onPress={() => goToPage(1)}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.pageTabText, activePage === 1 && styles.pageTabTextActive]}>
-            02 Overview
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.pageTab, activePage === 2 && styles.pageTabActive]}
-          onPress={() => goToPage(2)}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.pageTabText, activePage === 2 && styles.pageTabTextActive]}>
-            03 Defense
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       {/* ==============================================================
           PAGED HORIZONTAL VIEW (CLONING 3 PHONES FROM media_1792698296443)
          ============================================================== */}
@@ -228,11 +193,22 @@ export default function DashboardScreen() {
         contentContainerStyle={{ width: containerSize.width * 3 }}
       >
         {/* ############################################################
-            PHONE 1: DARK TOP + LIME BOTTOM (STEPS 1, 2, 3 ANIMATED)
+            PHONE 1 (LEFT): 50% DARK TOP + 50% LIME BOTTOM WITH ANIMATIONS
            ############################################################ */}
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
-          {/* Top Section: Deep Forest Charcoal */}
-          <View style={styles.phone1Top}>
+          {/* Top Half: Deep Forest Charcoal (#0F1A12) */}
+          <View style={styles.p1TopDark}>
+            {/* iOS Status Bar Row (Light items on dark) */}
+            <View style={styles.iosStatusBarRow}>
+              <Text style={styles.statusTimeLight}>9:41</Text>
+              <View style={styles.dynamicIslandNotch} />
+              <View style={styles.statusIconsGroup}>
+                <Ionicons name="cellular" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Ionicons name="wifi" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Ionicons name="battery-full" size={16} color="#FFFFFF" />
+              </View>
+            </View>
+
             {/* Header: AquaGuard® + MENU */}
             <View style={styles.p1HeaderRow}>
               <Text style={styles.brandTitleWhite}>AquaGuard®</Text>
@@ -249,7 +225,7 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Title Row: Water flow Monitoring + Round Action Button */}
+            {/* Title Row: Water flow Monitoring + Round Lime Action Button */}
             <View style={styles.p1TitleRow}>
               <View style={styles.p1TitleGroup}>
                 <Text style={styles.p1TitleWhite}>Water flow</Text>
@@ -260,46 +236,57 @@ export default function DashboardScreen() {
                 onPress={() => setShowScenarioModal(true)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="arrow-up" size={17} color="#0D140D" style={{ transform: [{ rotate: '45deg' }] }} />
+                <Ionicons
+                  name="arrow-up"
+                  size={15}
+                  color="#0F1A12"
+                  style={{ transform: [{ rotate: '45deg' }] }}
+                />
               </TouchableOpacity>
             </View>
 
-            {/* 3-Column Stats Row with Vertical Dividers */}
+            {/* 3-Column Stats Row with Neon Lime Values */}
             <View style={styles.p1StatsRow}>
               <View style={styles.p1StatCol}>
                 <Text style={styles.p1StatLabel}>Inlet Flow</Text>
-                <Text style={styles.p1StatValue}>{formatFlow(inFlow)}</Text>
-                <Text style={styles.p1StatUnit}>L/min</Text>
+                <View style={styles.p1StatValueRow}>
+                  <Text style={styles.p1StatValueLime}>{formatFlow(inFlow)}</Text>
+                  <Text style={styles.p1StatUnitLime}>%</Text>
+                </View>
               </View>
 
               <View style={styles.p1StatDivider} />
 
               <View style={styles.p1StatCol}>
                 <Text style={styles.p1StatLabel}>Outlet Flow</Text>
-                <Text style={styles.p1StatValue}>{formatFlow(outFlow)}</Text>
-                <Text style={styles.p1StatUnit}>L/min</Text>
+                <View style={styles.p1StatValueRow}>
+                  <Text style={styles.p1StatValueLime}>{formatFlow(outFlow)}</Text>
+                  <Text style={styles.p1StatUnitLime}>%</Text>
+                </View>
               </View>
 
               <View style={styles.p1StatDivider} />
 
               <View style={styles.p1StatCol}>
                 <Text style={styles.p1StatLabel}>Flow Delta</Text>
-                <Text
-                  style={[
-                    styles.p1StatValue,
-                    flowDifference > 1.5 && { color: COLORS.danger },
-                  ]}
-                >
-                  {flowDifference >= 0 ? '+' : ''}
-                  {formatFlow(flowDifference)}
-                </Text>
-                <Text style={styles.p1StatUnit}>L/min</Text>
+                <View style={styles.p1StatValueRow}>
+                  <Text
+                    style={[
+                      styles.p1StatValueLime,
+                      flowDifference > 1.5 && { color: COLORS.danger },
+                    ]}
+                  >
+                    {flowDifference >= 0 ? '+' : ''}
+                    {formatFlow(flowDifference)}
+                  </Text>
+                  <Text style={styles.p1StatUnitLime}>%</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          {/* Below Section: Vibrant Lime Green with Step 1, 2, 3 & ANIMATIONS */}
-          <View style={styles.phone1BottomLime}>
+          {/* Bottom Half: Electric Neon Lime (#D4FF32) with Steps & ANIMATIONS */}
+          <View style={styles.p1BottomLime}>
             {/* Giant Background 'g' Watermark with Breathing Animation */}
             <Animated.View
               style={[
@@ -325,17 +312,14 @@ export default function DashboardScreen() {
               pointerEvents="none"
             />
 
-            {/* Stacked Step 1, Step 2, Step 3 */}
+            {/* Stacked Step 1, Step 2, Step 3 (Tall, evenly spaced) */}
             <View style={styles.stepsContainer}>
               {/* Step 1 */}
               <View style={styles.p1StepRow}>
-                <View style={styles.stepLeftGroup}>
-                  <Text style={styles.stepNumText}>Step 1</Text>
-                  <Text style={styles.stepDescText}>Intake Calibration</Text>
-                </View>
-                <View style={styles.stepRightGroup}>
+                <Text style={styles.stepNumText}>Step 1</Text>
+                <View style={styles.stepRightIndicatorGroup}>
+                  <Text style={styles.stepMinusDash}>-</Text>
                   <Text style={styles.stepMetricText}>{formatFlow(inFlow)} L/m</Text>
-                  <View style={styles.stepLiveDot} />
                 </View>
               </View>
 
@@ -343,13 +327,9 @@ export default function DashboardScreen() {
 
               {/* Step 2 */}
               <View style={styles.p1StepRow}>
-                <View style={styles.stepLeftGroup}>
-                  <Text style={styles.stepNumText}>Step 2</Text>
-                  <Text style={styles.stepDescText}>Node Balance Check</Text>
-                </View>
-                <View style={styles.stepRightGroup}>
+                <Text style={styles.stepNumText}>Step 2</Text>
+                <View style={styles.stepRightIndicatorGroup}>
                   <Text style={styles.stepMetricText}>{formatFlow(outFlow)} L/m</Text>
-                  <View style={styles.stepLiveDot} />
                 </View>
               </View>
 
@@ -357,38 +337,33 @@ export default function DashboardScreen() {
 
               {/* Step 3 */}
               <View style={styles.p1StepRow}>
-                <View style={styles.stepLeftGroup}>
-                  <Text style={styles.stepNumText}>Step 3</Text>
-                  <Text style={styles.stepDescText}>Persistence Filter</Text>
-                </View>
-                <View style={styles.stepRightGroup}>
-                  <View
+                <Text style={styles.stepNumText}>Step 3</Text>
+                <View
+                  style={[
+                    styles.stepBadgePill,
+                    isAlert && { backgroundColor: COLORS.danger },
+                  ]}
+                >
+                  <Animated.View
                     style={[
-                      styles.stepBadgePill,
-                      isAlert && { backgroundColor: COLORS.danger },
+                      styles.badgePulseBeacon,
+                      { opacity: beaconAnim },
+                      isAlert && { backgroundColor: '#FFFFFF' },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.stepBadgeText,
+                      isAlert && { color: '#FFFFFF' },
                     ]}
                   >
-                    <Animated.View
-                      style={[
-                        styles.badgePulseBeacon,
-                        { opacity: beaconAnim },
-                        isAlert && { backgroundColor: '#FFFFFF' },
-                      ]}
-                    />
-                    <Text
-                      style={[
-                        styles.stepBadgeText,
-                        isAlert && { color: '#FFFFFF' },
-                      ]}
-                    >
-                      {isAlert ? 'DEFICIT ALERT' : 'CERTIFIED'}
-                    </Text>
-                  </View>
+                    {isAlert ? 'ALERT' : 'CERTIFIED'}
+                  </Text>
                 </View>
               </View>
             </View>
 
-            {/* Subtle Bottom Status Bar */}
+            {/* Discrete Bottom Footer Indicator */}
             <View style={styles.p1FooterBar}>
               <Text style={styles.p1FooterText}>Realtime Telemetry Active</Text>
               <View style={styles.p1FooterDot} />
@@ -397,11 +372,22 @@ export default function DashboardScreen() {
         </View>
 
         {/* ############################################################
-            PHONE 2: TAUPE TOP (HEADLINE) + 2 COLOR BLOCKS + FOOTER
+            PHONE 2 (CENTER): TAUPE TOP (HEADLINE) + 2 COLOR BLOCKS + FOOTER
            ############################################################ */}
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
-          {/* Top Section: Taupe Neutral with Large Headline */}
-          <View style={styles.phone2TopTaupe}>
+          {/* Top Section: Light Warm Taupe (#DDD8D5) */}
+          <View style={styles.p2TopTaupe}>
+            {/* iOS Status Bar Row (Dark items on taupe) */}
+            <View style={styles.iosStatusBarRow}>
+              <Text style={styles.statusTimeDark}>9:41</Text>
+              <View style={styles.dynamicIslandNotch} />
+              <View style={styles.statusIconsGroup}>
+                <Ionicons name="cellular" size={13} color="#1C1918" style={{ marginRight: 4 }} />
+                <Ionicons name="wifi" size={13} color="#1C1918" style={{ marginRight: 4 }} />
+                <Ionicons name="battery-full" size={16} color="#1C1918" />
+              </View>
+            </View>
+
             {/* Header: AquaGuard® + MENU */}
             <View style={styles.p2HeaderRow}>
               <Text style={styles.brandTitleDark}>AquaGuard®</Text>
@@ -432,25 +418,25 @@ export default function DashboardScreen() {
 
             {/* Floating text bottom-right */}
             <View style={styles.p2RightFloatText}>
-              <Text style={styles.p2FloatLine}>Water audit</Text>
-              <Text style={styles.p2FloatLine}>made</Text>
+              <Text style={styles.p2FloatLine}>Water</Text>
+              <Text style={styles.p2FloatLine}>audit made</Text>
               <Text style={styles.p2FloatLineBold}>simple</Text>
             </View>
           </View>
 
           {/* Bottom Section: 2 Side-by-Side Blocks + Dark Footer Bar */}
-          <View style={styles.phone2BottomContainer}>
+          <View style={styles.p2BottomContainer}>
             <View style={styles.p2TwoBlocksRow}>
-              {/* Left Block: Electric Lime (Daily Volume) */}
+              {/* Left Block: Electric Neon Lime (#D4FF32) */}
               <View style={styles.p2BlockLime}>
                 <Text style={styles.p2BlockLabelDark}>Daily Volume</Text>
                 <Text style={styles.p2BlockValueDark}>
                   {totalVolumeLiters.toFixed(1)}
-                  <Text style={styles.p2BlockUnitDark}> L</Text>
+                  <Text style={styles.p2BlockUnitDark}>%</Text>
                 </Text>
               </View>
 
-              {/* Right Block: Dark Charcoal (System Health) */}
+              {/* Right Block: Dark Mauve Charcoal (#4A4240) */}
               <View style={styles.p2BlockDark}>
                 <Text style={styles.p2BlockLabelLight}>System Health</Text>
                 <Text
@@ -459,7 +445,7 @@ export default function DashboardScreen() {
                     isAlert && { color: COLORS.danger },
                   ]}
                 >
-                  {isAlert ? 'LEAK' : '99.4%'}
+                  {isAlert ? 'LEAK' : '86.5%'}
                 </Text>
               </View>
             </View>
@@ -478,18 +464,29 @@ export default function DashboardScreen() {
                 onPress={() => setShowScenarioModal(true)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="play" size={15} color="#D4FF32" />
+                <Ionicons name="play" size={14} color="#D4FF32" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
         {/* ############################################################
-            PHONE 3: LIME TOP (GIANT 'O') + TAUPE PLAN BLOCK + FOOTER
+            PHONE 3 (RIGHT): LIME TOP (GIANT 'O') + TAUPE PLAN + FOOTER
            ############################################################ */}
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
-          {/* Top Section: Lime Green with Giant 'O' Graphic */}
-          <View style={styles.phone3TopLime}>
+          {/* Top Section: Neon Lime (#D4FF32) with Giant 'O' */}
+          <View style={styles.p3TopLime}>
+            {/* iOS Status Bar Row (Dark items on lime) */}
+            <View style={styles.iosStatusBarRow}>
+              <Text style={styles.statusTimeDark}>9:41</Text>
+              <View style={styles.dynamicIslandNotch} />
+              <View style={styles.statusIconsGroup}>
+                <Ionicons name="cellular" size={13} color="#0F1A12" style={{ marginRight: 4 }} />
+                <Ionicons name="wifi" size={13} color="#0F1A12" style={{ marginRight: 4 }} />
+                <Ionicons name="battery-full" size={16} color="#0F1A12" />
+              </View>
+            </View>
+
             {/* Header: AquaGuard® + MENU */}
             <View style={styles.p3HeaderRow}>
               <Text style={styles.brandTitleDark}>AquaGuard®</Text>
@@ -506,7 +503,7 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Giant Graphic 'O' with Concentric Dual-Flow Pulse */}
+            {/* Giant Graphic 'O' with Concentric Pulse Ring */}
             <View style={styles.p3GraphicContainer}>
               <Animated.View
                 style={[
@@ -521,23 +518,18 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Bottom Section: Taupe Body with Plan Level + Footer */}
-          <View style={styles.phone3BottomTaupe}>
+          {/* Bottom Section: Warm Taupe Body with Plan Level + Footer */}
+          <View style={styles.p3BottomTaupe}>
             <View style={styles.p3ContentWrap}>
-              <Text style={styles.p3SubLabel}>PIPELINE SECURITY LEVEL</Text>
+              <Text style={styles.p3SubLabel}>SUBSCRIPTION LEVEL</Text>
               <Text style={styles.p3PlanTitle}>Guardian Pro</Text>
-
-              <View style={styles.p3FeatureBox}>
-                <Ionicons name="shield-checkmark" size={18} color="#0D140D" />
-                <Text style={styles.p3FeatureText}>Autonomous dual-flow balance engine</Text>
-              </View>
 
               <Text style={styles.p3BottomNote}>
                 Maximize your water system efficiency and prevent municipal loss
               </Text>
             </View>
 
-            {/* Dark Footer Bar */}
+            {/* Dark Footer Bar (Details) */}
             <View style={styles.p3FooterBar}>
               <TouchableOpacity
                 onPress={() => router.push('/history')}
@@ -551,7 +543,42 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* ==============================================================
-          SIMULATION & DEMO CONTROLS MODAL (Interactive ESP32 Bridge)
+          TOP PAGINATION PILL (Discrete 01 • 02 • 03 Switcher)
+         ============================================================== */}
+      <View style={styles.topPaginationPill}>
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 0 && styles.pageTabActive]}
+          onPress={() => goToPage(0)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 0 && styles.pageTabTextActive]}>
+            01
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 1 && styles.pageTabActive]}
+          onPress={() => goToPage(1)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 1 && styles.pageTabTextActive]}>
+            02
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.pageTab, activePage === 2 && styles.pageTabActive]}
+          onPress={() => goToPage(2)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.pageTabText, activePage === 2 && styles.pageTabTextActive]}>
+            03
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ==============================================================
+          SIMULATION & DEMO CONTROLS MODAL (Wokwi ESP32 Bridge)
          ============================================================== */}
       <Modal
         visible={showScenarioModal}
@@ -660,6 +687,42 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Quick Screen Navigation Links */}
+            <View style={styles.quickNavRow}>
+              <TouchableOpacity
+                style={styles.quickNavBtn}
+                onPress={() => {
+                  setShowScenarioModal(false);
+                  router.push('/history');
+                }}
+              >
+                <Ionicons name="stats-chart" size={16} color="#0D140D" />
+                <Text style={styles.quickNavText}>Analytics</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickNavBtn}
+                onPress={() => {
+                  setShowScenarioModal(false);
+                  router.push('/alerts');
+                }}
+              >
+                <Ionicons name="alert-circle" size={16} color="#0D140D" />
+                <Text style={styles.quickNavText}>Alerts ({activeCount})</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickNavBtn}
+                onPress={() => {
+                  setShowScenarioModal(false);
+                  router.push('/admin');
+                }}
+              >
+                <Ionicons name="shield-checkmark" size={16} color="#0D140D" />
+                <Text style={styles.quickNavText}>Admin</Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
               style={styles.modalResetBtn}
               onPress={() => {
@@ -679,9 +742,42 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#0D140D',
+    backgroundColor: '#0F1A12',
     position: 'relative',
     overflow: 'hidden',
+  },
+
+  // -------------------------------------------------------------
+  // iOS Status Bar Elements
+  // -------------------------------------------------------------
+  iosStatusBarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  statusTimeLight: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  statusTimeDark: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1C1918',
+    letterSpacing: -0.2,
+  },
+  dynamicIslandNotch: {
+    width: 96,
+    height: 25,
+    borderRadius: 13,
+    backgroundColor: '#000000',
+  },
+  statusIconsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   // -------------------------------------------------------------
@@ -689,18 +785,18 @@ const styles = StyleSheet.create({
   // -------------------------------------------------------------
   topPaginationPill: {
     position: 'absolute',
-    top: 6,
+    bottom: 22,
     alignSelf: 'center',
     zIndex: 100,
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
     borderRadius: 24,
     padding: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   pageTab: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 18,
   },
@@ -708,13 +804,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4FF32',
   },
   pageTabText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#A0A4AB',
-    letterSpacing: 0.3,
   },
   pageTabTextActive: {
-    color: '#0D140D',
+    color: '#0F1A12',
     fontWeight: '900',
   },
 
@@ -724,17 +819,15 @@ const styles = StyleSheet.create({
   pageWrapper: {
     flex: 1,
     height: '100%',
-    paddingBottom: 86, // Space for floating bottom tab bar
   },
 
   // =============================================================
-  // PHONE 1 STYLES: Dark Top + Lime Bottom with Steps
+  // PHONE 1 STYLES: Dark Top (50%) + Lime Bottom (50%)
   // =============================================================
-  phone1Top: {
-    flex: 0.95,
+  p1TopDark: {
+    flex: 1,
     backgroundColor: '#0F1A12',
-    paddingHorizontal: 20,
-    paddingTop: 44, // below pagination bar
+    paddingHorizontal: 22,
     paddingBottom: 16,
     justifyContent: 'space-between',
   },
@@ -742,12 +835,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   brandTitleWhite: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 19,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
   },
   menuBtnLight: {
     flexDirection: 'row',
@@ -764,17 +858,17 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   menuTextWhite: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
 
   p1TitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   p1TitleGroup: {
     flexDirection: 'row',
@@ -783,53 +877,57 @@ const styles = StyleSheet.create({
   },
   p1TitleWhite: {
     fontSize: 27,
-    fontWeight: '500',
+    fontWeight: '400',
     color: '#FFFFFF',
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
   p1TitleSubGreen: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#A0B898',
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#8E9F88',
   },
   roundActionLimeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#D4FF32',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  // 3-Column Stats Row
+  // 3-Column Stats Row with Neon Lime Values
   p1StatsRow: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
     paddingTop: 12,
-    marginTop: 4,
+    marginBottom: 6,
   },
   p1StatCol: {
     flex: 1,
     alignItems: 'flex-start',
   },
   p1StatLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8A9B85',
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#8E9F88',
     marginBottom: 4,
   },
-  p1StatValue: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -1,
+  p1StatValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
-  p1StatUnit: {
-    fontSize: 10,
+  p1StatValueLime: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#D4FF32',
+    letterSpacing: -1.2,
+  },
+  p1StatUnitLime: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#8A9B85',
-    marginTop: 1,
+    color: '#D4FF32',
+    marginLeft: 1,
   },
   p1StatDivider: {
     width: 1,
@@ -837,37 +935,39 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 
-  // Phone 1 Bottom: Lime Green with Steps
-  phone1BottomLime: {
-    flex: 1.05,
+  // Phone 1 Bottom: Neon Lime Green (50%)
+  p1BottomLime: {
+    flex: 1,
     backgroundColor: '#D4FF32',
     position: 'relative',
     overflow: 'hidden',
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 14,
+    paddingHorizontal: 22,
+    paddingTop: 14,
+    paddingBottom: 22,
     justifyContent: 'space-between',
   },
   giantWatermarkWrap: {
     position: 'absolute',
-    bottom: -35,
-    right: 5,
+    bottom: -30,
+    right: 0,
+    left: 0,
+    alignItems: 'center',
     opacity: 0.22,
   },
   giantWatermarkG: {
-    fontSize: 220,
+    fontSize: 250,
     fontWeight: '900',
     color: '#0F1A12',
-    lineHeight: 220,
+    lineHeight: 250,
   },
   stepScanBeam: {
     position: 'absolute',
     left: 0,
     right: 0,
-    top: 20,
-    height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-    borderRadius: 14,
+    top: 15,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 16,
   },
   stepsContainer: {
     zIndex: 10,
@@ -876,47 +976,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-  },
-  stepLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    paddingVertical: 18,
   },
   stepNumText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#0D140D',
+    color: '#0F1A12',
   },
-  stepDescText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#2A3626',
-  },
-  stepRightGroup: {
+  stepRightIndicatorGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  stepMinusDash: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F1A12',
+    opacity: 0.6,
+  },
   stepMetricText: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#0D140D',
-  },
-  stepLiveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#0D140D',
+    fontWeight: '700',
+    color: '#0F1A12',
   },
   stepHairlineDivider: {
     height: 1,
-    backgroundColor: 'rgba(13, 20, 13, 0.12)',
+    backgroundColor: 'rgba(15, 26, 18, 0.14)',
   },
   stepBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D140D',
+    backgroundColor: '#0F1A12',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -940,7 +1030,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     zIndex: 10,
-    paddingTop: 6,
   },
   p1FooterText: {
     fontSize: 11,
@@ -952,17 +1041,16 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#0D140D',
+    backgroundColor: '#0F1A12',
   },
 
   // =============================================================
-  // PHONE 2 STYLES: Taupe Top + 2 Split Blocks + Footer
+  // PHONE 2 STYLES: Taupe Top (58%) + 2 Blocks (42%) + Footer
   // =============================================================
-  phone2TopTaupe: {
-    flex: 1.15,
-    backgroundColor: '#E5E2DE',
-    paddingHorizontal: 20,
-    paddingTop: 44,
+  p2TopTaupe: {
+    flex: 1.35,
+    backgroundColor: '#DDD8D5',
+    paddingHorizontal: 22,
     paddingBottom: 16,
     justifyContent: 'space-between',
   },
@@ -970,12 +1058,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   brandTitleDark: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: -0.5,
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#1C1918',
+    letterSpacing: -0.4,
   },
   menuBtnDark: {
     flexDirection: 'row',
@@ -988,54 +1077,54 @@ const styles = StyleSheet.create({
   menuLineDark: {
     width: 17,
     height: 2,
-    backgroundColor: '#0D0E11',
+    backgroundColor: '#1C1918',
     borderRadius: 1,
   },
   menuTextDark: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: 0.5,
+    color: '#1C1918',
+    letterSpacing: 0.8,
   },
 
   p2HeadlineWrap: {
-    marginTop: 8,
+    marginTop: 6,
   },
   p2GiantHeadline: {
-    fontSize: 34,
-    fontWeight: '900',
-    color: '#554E4B',
+    fontSize: 33,
+    fontWeight: '800',
+    color: '#544E4C',
     lineHeight: 35,
-    letterSpacing: -1.6,
+    letterSpacing: -1.4,
   },
   p2Subtitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#7E7873',
-    marginTop: 6,
+    color: '#7C7571',
+    marginTop: 8,
   },
 
   p2RightFloatText: {
     alignSelf: 'flex-end',
     alignItems: 'flex-end',
-    marginTop: 8,
+    marginBottom: 4,
   },
   p2FloatLine: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#554E4B',
+    color: '#544E4C',
     lineHeight: 16,
   },
   p2FloatLineBold: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0D0E11',
-    lineHeight: 17,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1C1918',
+    lineHeight: 16,
   },
 
   // Phone 2 Bottom Section
-  phone2BottomContainer: {
-    flex: 0.85,
+  p2BottomContainer: {
+    flex: 0.95,
     backgroundColor: '#0F1A12',
     justifyContent: 'space-between',
   },
@@ -1046,43 +1135,43 @@ const styles = StyleSheet.create({
   p2BlockLime: {
     flex: 1,
     backgroundColor: '#D4FF32',
-    padding: 16,
+    padding: 18,
     justifyContent: 'center',
   },
   p2BlockLabelDark: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#0D140D',
-    marginBottom: 4,
+    color: '#0F1A12',
+    marginBottom: 6,
   },
   p2BlockValueDark: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '900',
-    color: '#0D140D',
-    letterSpacing: -1,
+    color: '#0F1A12',
+    letterSpacing: -1.2,
   },
   p2BlockUnitDark: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
   },
 
   p2BlockDark: {
     flex: 1,
-    backgroundColor: '#35302E',
-    padding: 16,
+    backgroundColor: '#4A4240',
+    padding: 18,
     justifyContent: 'center',
   },
   p2BlockLabelLight: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#A8A19D',
-    marginBottom: 4,
+    color: '#C4BCB8',
+    marginBottom: 6,
   },
   p2BlockValueLight: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -1,
+    letterSpacing: -1.2,
   },
 
   p2FooterBar: {
@@ -1091,11 +1180,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
   },
   p2DetailsText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#D4FF32',
   },
   p2PlayBtn: {
@@ -1109,11 +1198,10 @@ const styles = StyleSheet.create({
   // =============================================================
   // PHONE 3 STYLES: Lime Top (Giant 'O') + Taupe Plan + Footer
   // =============================================================
-  phone3TopLime: {
-    flex: 1.1,
+  p3TopLime: {
+    flex: 1.35,
     backgroundColor: '#D4FF32',
-    paddingHorizontal: 20,
-    paddingTop: 44,
+    paddingHorizontal: 22,
     paddingBottom: 16,
     justifyContent: 'space-between',
   },
@@ -1121,6 +1209,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   p3GraphicContainer: {
     flex: 1,
@@ -1132,50 +1221,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   giantLetterO: {
-    fontSize: 180,
+    fontSize: 210,
     fontWeight: '900',
     color: '#0F1A12',
-    lineHeight: 180,
-    letterSpacing: -6,
+    lineHeight: 210,
+    letterSpacing: -8,
   },
 
-  phone3BottomTaupe: {
-    flex: 0.9,
-    backgroundColor: '#E5E2DE',
+  p3BottomTaupe: {
+    flex: 0.95,
+    backgroundColor: '#DDD8D5',
     justifyContent: 'space-between',
   },
   p3ContentWrap: {
-    padding: 20,
+    padding: 22,
   },
   p3SubLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#706B66',
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     marginBottom: 6,
   },
   p3PlanTitle: {
     fontSize: 36,
     fontWeight: '900',
-    color: '#0D0E11',
+    color: '#1C1918',
     letterSpacing: -1.5,
-    marginBottom: 12,
-  },
-  p3FeatureBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  p3FeatureText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0D0E11',
+    marginBottom: 8,
   },
   p3BottomNote: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     color: '#706B66',
+    marginTop: 8,
   },
 
   p3FooterBar: {
@@ -1183,11 +1262,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F1A12',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
   },
   p3DetailsText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#D4FF32',
   },
 
@@ -1280,6 +1359,29 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
   },
+
+  // Quick navigation buttons inside modal
+  quickNavRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  quickNavBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EAE8DE',
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  quickNavText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D140D',
+  },
+
   modalResetBtn: {
     backgroundColor: COLORS.darkCharcoal,
     borderRadius: 14,
