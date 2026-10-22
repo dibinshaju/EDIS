@@ -12,9 +12,15 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         tabBarActiveTintColor: COLORS.darkCharcoal,
         tabBarInactiveTintColor: '#8F959E',
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '800',
+          letterSpacing: 0.2,
+          marginBottom: 6,
+        },
         tabBarStyle: {
           position: 'absolute',
           bottom: 16,
@@ -22,7 +28,7 @@ export default function TabsLayout() {
           right: 18,
           backgroundColor: '#FFFFFF',
           borderRadius: 36,
-          height: 64,
+          height: 68,
           borderWidth: 1,
           borderColor: COLORS.cardBorder,
           shadowColor: '#000000',
@@ -31,7 +37,8 @@ export default function TabsLayout() {
           shadowRadius: 18,
           elevation: 10,
           paddingHorizontal: 8,
-          paddingBottom: Platform.OS === 'ios' ? 4 : 0,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 8 : 4,
         },
       }}
     >
@@ -40,15 +47,13 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
+          tabBarLabel: 'Home',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons
-                name={focused ? 'home' : 'home-outline'}
-                size={22}
-                color={focused ? COLORS.darkCharcoal : '#8F959E'}
-              />
-              {focused && <View style={styles.activeDot} />}
-            </View>
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={22}
+              color={focused ? COLORS.darkCharcoal : '#8F959E'}
+            />
           ),
         }}
       />
@@ -58,27 +63,30 @@ export default function TabsLayout() {
         name="history"
         options={{
           title: 'Analytics',
+          tabBarLabel: 'Analytics',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons
-                name={focused ? 'document-text' : 'document-text-outline'}
-                size={22}
-                color={focused ? COLORS.darkCharcoal : '#8F959E'}
-              />
-              {focused && <View style={styles.activeDot} />}
-            </View>
+            <Ionicons
+              name={focused ? 'stats-chart' : 'stats-chart-outline'}
+              size={22}
+              color={focused ? COLORS.darkCharcoal : '#8F959E'}
+            />
           ),
         }}
       />
 
-      {/* 3. Center Elevated Action Button [ + ] */}
+      {/* 3. Tools / Simulation */}
       <Tabs.Screen
         name="scenarios"
         options={{
-          title: 'Simulate',
+          title: 'Tools',
+          tabBarLabel: 'Tools',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.centerFab}>
-              <Ionicons name="add" size={26} color={COLORS.accentLime} />
+            <View style={[styles.centerFab, focused && styles.centerFabActive]}>
+              <Ionicons
+                name={focused ? 'construct' : 'construct-outline'}
+                size={22}
+                color={focused ? '#0D0E11' : COLORS.accentYellow}
+              />
             </View>
           ),
         }}
@@ -89,23 +97,21 @@ export default function TabsLayout() {
         name="alerts"
         options={{
           title: 'Alerts',
+          tabBarLabel: 'Alerts',
           tabBarBadge: activeCount > 0 ? activeCount : undefined,
           tabBarBadgeStyle: {
             backgroundColor: COLORS.danger,
             color: '#FFFFFF',
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: '900',
             top: -2,
           },
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons
-                name={focused ? 'notifications' : 'notifications-outline'}
-                size={22}
-                color={focused ? COLORS.darkCharcoal : '#8F959E'}
-              />
-              {focused && <View style={styles.activeDot} />}
-            </View>
+            <Ionicons
+              name={focused ? 'notifications' : 'notifications-outline'}
+              size={22}
+              color={focused ? COLORS.darkCharcoal : '#8F959E'}
+            />
           ),
         }}
       />
@@ -115,15 +121,13 @@ export default function TabsLayout() {
         name="admin"
         options={{
           title: 'Admin',
+          tabBarLabel: 'Admin',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons
-                name={focused ? 'person' : 'person-outline'}
-                size={22}
-                color={focused ? COLORS.darkCharcoal : '#8F959E'}
-              />
-              {focused && <View style={styles.activeDot} />}
-            </View>
+            <Ionicons
+              name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'}
+              size={22}
+              color={focused ? COLORS.darkCharcoal : '#8F959E'}
+            />
           ),
         }}
       />
@@ -146,9 +150,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   centerFab: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLORS.darkCharcoal,
     alignItems: 'center',
     justifyContent: 'center',
@@ -157,8 +161,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
-    marginTop: -14,
+    marginTop: -16,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  centerFabActive: {
+    backgroundColor: COLORS.accentYellow,
+    borderColor: '#0D0E11',
   },
 });
