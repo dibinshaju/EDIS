@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { ScenarioController } from '../../src/components/ScenarioController';
 import { useSensor } from '../../src/context/SensorContext';
-import { Ionicons } from '@expo/vector-icons';
 import { formatFlow } from '../../src/utils/format';
 
 export default function ScenariosScreen() {
@@ -11,90 +10,69 @@ export default function ScenariosScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="git-branch-outline" size={16} color={COLORS.textPrimary} />
-          </View>
-          <Text style={styles.headerTitle}>Evaluation Scenarios</Text>
-        </View>
-        <Text style={styles.headerSubtitle}>
-          Deterministic flow vectors for academic demonstration
-        </Text>
-      </View>
-
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* Active Telemetry Snapshot */}
+        {/* Editorial Header */}
+        <View style={styles.header}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Scenario Suite</Text>
+            <View style={styles.indexPill}>
+              <Text style={styles.indexPillText}>02 of 04</Text>
+            </View>
+          </View>
+
+          <View style={styles.tagPill}>
+            <Text style={styles.tagPillText}>Simulation Vectors</Text>
+          </View>
+
+          <View style={styles.heroTitleWrap}>
+            <Text style={styles.heroTitlePrimary}>Preset Flows &</Text>
+            <Text style={styles.heroTitleAccent}>Stress Testing</Text>
+          </View>
+        </View>
+
+        {/* Live Flow Snapshot Pill */}
         <View style={styles.snapshotCard}>
-          <Text style={styles.snapshotTitle}>Current Telemetry Output</Text>
           <View style={styles.snapshotRow}>
             <View style={styles.snapshotItem}>
-              <Text style={styles.snapshotLabel}>Inlet Flow (S1)</Text>
-              <Text style={[styles.snapshotVal, { color: COLORS.textPrimary }]}>
-                {formatFlow(currentReading.inletFlow)} L/min
+              <Text style={styles.snapshotLabel}>Inlet S1</Text>
+              <Text style={styles.snapshotVal}>
+                {formatFlow(currentReading.inletFlow)} <Text style={styles.unit}>L/m</Text>
               </Text>
             </View>
+
             <View style={styles.snapshotDivider} />
+
             <View style={styles.snapshotItem}>
-              <Text style={styles.snapshotLabel}>Outlet Flow (S2)</Text>
-              <Text style={[styles.snapshotVal, { color: COLORS.textSecondary }]}>
-                {formatFlow(currentReading.outletFlow)} L/min
+              <Text style={styles.snapshotLabel}>Outlet S2</Text>
+              <Text style={styles.snapshotVal}>
+                {formatFlow(currentReading.outletFlow)} <Text style={styles.unit}>L/m</Text>
               </Text>
             </View>
+
             <View style={styles.snapshotDivider} />
+
             <View style={styles.snapshotItem}>
               <Text style={styles.snapshotLabel}>Deficit (S1-S2)</Text>
               <Text
                 style={[
                   styles.snapshotVal,
-                  { color: currentReading.flowDifference > 1.5 ? COLORS.danger : COLORS.textPrimary },
+                  {
+                    color:
+                      currentReading.flowDifference > 1.5
+                        ? COLORS.danger
+                        : COLORS.textPrimary,
+                  },
                 ]}
               >
                 {currentReading.flowDifference >= 0 ? '+' : ''}
-                {formatFlow(currentReading.flowDifference)} L/min
+                {formatFlow(currentReading.flowDifference)} <Text style={styles.unit}>L/m</Text>
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Master Scenario Controller */}
+        {/* Master Scenario Controller Component */}
         <ScenarioController />
-
-        {/* Evaluator Demonstration Guide */}
-        <View style={styles.guideCard}>
-          <View style={styles.guideHeader}>
-            <Ionicons name="clipboard-outline" size={16} color={COLORS.textPrimary} />
-            <Text style={styles.guideTitle}>Evaluator Demonstration Guide</Text>
-          </View>
-
-          <View style={styles.stepBox}>
-            <Text style={styles.stepNum}>Step 1</Text>
-            <Text style={styles.stepText}>
-              Select <Text style={styles.bold}>1. Balanced Baseline Flow</Text>. Observe matching inlet and outlet readings (~5.0 L/min) and steady-state monitoring.
-            </Text>
-          </View>
-
-          <View style={styles.stepBox}>
-            <Text style={styles.stepNum}>Step 2</Text>
-            <Text style={styles.stepText}>
-              Select <Text style={styles.bold}>2. Suspected Water Leak</Text>. Watch the +2.0 L/min deficit accumulate volume, advance suspicious intervals (3 intervals), and trigger the critical alert.
-            </Text>
-          </View>
-
-          <View style={styles.stepBox}>
-            <Text style={styles.stepNum}>Step 3</Text>
-            <Text style={styles.stepText}>
-              Select <Text style={styles.bold}>3. Abnormal High Consumption</Text> to prove that high flow (12.0 L/min) when balanced is classified as consumption, not a pipe breach.
-            </Text>
-          </View>
-
-          <View style={styles.stepBox}>
-            <Text style={styles.stepNum}>Step 4</Text>
-            <Text style={styles.stepText}>
-              Select <Text style={styles.bold}>5. Diagnostic: Reversed Flow</Text> to show that Outlet &gt; Inlet correctly generates a calibration check without false alarm.
-            </Text>
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -105,60 +83,79 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.canvasBg,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: COLORS.canvasBg,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
   scroll: {
     flex: 1,
   },
   content: {
-    padding: 14,
-    paddingBottom: 80,
+    padding: 16,
+    paddingBottom: 90,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  metaLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  indexPill: {
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  indexPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  tagPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
+    marginBottom: 10,
+  },
+  tagPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  heroTitleWrap: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  heroTitlePrimary: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#111215',
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  heroTitleAccent: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: COLORS.accentOrange,
+    lineHeight: 36,
+    letterSpacing: -1.2,
   },
   snapshotCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: 14,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: 12,
-  },
-  snapshotTitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-    textTransform: 'uppercase',
+    shadowRadius: 3,
+    elevation: 1,
   },
   snapshotRow: {
     flexDirection: 'row',
@@ -170,65 +167,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   snapshotLabel: {
-    fontSize: 10,
+    fontSize: 11,
     color: COLORS.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   snapshotVal: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#111215',
     marginTop: 2,
+  },
+  unit: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
   },
   snapshotDivider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-  },
-  guideCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: SPACING.xl,
-  },
-  guideHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  guideTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  stepBox: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
-    alignItems: 'flex-start',
-  },
-  stepNum: {
-    backgroundColor: COLORS.cardSubtle,
-    color: COLORS.textPrimary,
-    fontSize: 10,
-    fontWeight: '800',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  stepText: {
-    flex: 1,
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    lineHeight: 16,
-  },
-  bold: {
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    backgroundColor: '#EDEBE4',
   },
 });
