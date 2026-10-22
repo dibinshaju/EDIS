@@ -1017,11 +1017,6 @@ const styles = StyleSheet.create({
   bodyContent: {
     paddingHorizontal: 16,
   },
-  gridActionTextLight: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#0D0E11',
-  },
 
   /* 4. System Status Card */
   statusCard: {
