@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSensor } from '../context/SensorContext';
 import { ScenarioType } from '../types/sensor';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
@@ -17,18 +17,18 @@ interface ScenarioOption {
 const SCENARIOS: ScenarioOption[] = [
   {
     id: 'normal',
-    title: '1. Normal Balanced Flow',
+    title: '1. Balanced Baseline Flow',
     badge: 'NORMAL',
-    description: 'Inlet (12.5 L/min) and Outlet (12.3 L/min) are balanced. Steady municipal draw.',
+    description: 'Inlet (12.5 L/min) and Outlet (12.3 L/min) match closely. Steady municipal draw.',
     icon: 'water-outline',
-    color: COLORS.success,
+    color: COLORS.darkCharcoal,
   },
   {
     id: 'suspected_leak',
     title: '2. Suspected Water Leak',
     badge: 'CRITICAL',
     description: 'Inlet (16.0 L/min) exceeds Outlet (10.8 L/min) by +5.2 L/min loss sustained.',
-    icon: 'alert-circle',
+    icon: 'alert-circle-outline',
     color: COLORS.danger,
   },
   {
@@ -41,27 +41,27 @@ const SCENARIOS: ScenarioOption[] = [
   },
   {
     id: 'night_time_flow',
-    title: '4. Night-Time Flow',
+    title: '4. Continuous Night Flow',
     badge: 'QUIESCENT',
-    description: 'Unbroken flow (4.5 L/min) during quiescent night window (11:00 PM - 5:00 AM).',
+    description: 'Unbroken flow (4.5 L/min) during quiescent night window (23:00 - 05:00).',
     icon: 'moon-outline',
-    color: '#8B5CF6',
+    color: '#6366F1',
   },
   {
     id: 'sensor_anomaly',
-    title: '5. Sensor Anomaly (Outlet > Inlet)',
+    title: '5. Diagnostic: Reversed Flow',
     badge: 'DIAGNOSTIC',
-    description: 'Outlet (15.2 L/min) > Inlet (9.0 L/min). Reverses flow, checks calibration error.',
+    description: 'Outlet (15.2 L/min) > Inlet (9.0 L/min). Checks calibration or reverse draw.',
     icon: 'build-outline',
-    color: COLORS.info,
+    color: '#0D9488',
   },
   {
     id: 'recovery',
-    title: '6. System Recovery & Normalization',
-    badge: 'RECOVERY',
-    description: 'Water loss arrested; inlet and outlet equalize back to normal baseline.',
-    icon: 'checkmark-done-circle',
-    color: COLORS.tealPrimary,
+    title: '6. Incident Recovery',
+    badge: 'RESOLVED',
+    description: 'Deficit eliminated; telemetry normalizes back to certified baseline.',
+    icon: 'checkmark-circle-outline',
+    color: COLORS.success,
   },
 ];
 
@@ -72,31 +72,29 @@ export const ScenarioController: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.heading}>Expo Demo Scenario Controller</Text>
-          <Text style={styles.subheading}>
-            Select a deterministic scenario to demonstrate system response
-          </Text>
+          <Text style={styles.heading}>Expo Evaluation Suite</Text>
+          <Text style={styles.subheading}>Deterministic telemetry vectors for academic demo</Text>
         </View>
 
         <TouchableOpacity style={styles.resetBtn} onPress={resetSimulator}>
-          <Ionicons name="refresh" size={14} color="#FFFFFF" />
+          <Ionicons name="refresh" size={13} color="#FFFFFF" />
           <Text style={styles.resetBtnText}>Reset</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Source selector (Demo vs Wokwi MQTT) */}
+      {/* Source selector (Pill style matching image) */}
       <View style={styles.sourceSelector}>
         <TouchableOpacity
           style={[styles.sourceTab, dataSource === 'demo' && styles.sourceTabActive]}
           onPress={() => setDataSource('demo')}
         >
           <Ionicons
-            name="flask"
-            size={14}
-            color={dataSource === 'demo' ? COLORS.navyDark : COLORS.textMuted}
+            name="cube-outline"
+            size={13}
+            color={dataSource === 'demo' ? '#FFFFFF' : COLORS.textSecondary}
           />
           <Text style={[styles.sourceTabText, dataSource === 'demo' && styles.sourceTabTextActive]}>
-            Deterministic Demo Simulation
+            Deterministic Simulator
           </Text>
         </TouchableOpacity>
 
@@ -106,16 +104,16 @@ export const ScenarioController: React.FC = () => {
         >
           <Ionicons
             name="hardware-chip-outline"
-            size={14}
-            color={dataSource === 'wokwi' ? COLORS.navyDark : COLORS.textMuted}
+            size={13}
+            color={dataSource === 'wokwi' ? '#FFFFFF' : COLORS.textSecondary}
           />
           <Text style={[styles.sourceTabText, dataSource === 'wokwi' && styles.sourceTabTextActive]}>
-            Live Wokwi ESP32
+            Wokwi Virtual Hardware
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Scenario List */}
+      {/* Scenario List with yellow accent nodes */}
       <View style={styles.scenarioList}>
         {SCENARIOS.map((item) => {
           const isActive = activeScenario === item.id;
@@ -124,35 +122,33 @@ export const ScenarioController: React.FC = () => {
               key={item.id}
               style={[
                 styles.scenarioCard,
-                isActive && { borderColor: item.color, backgroundColor: `${item.color}08` },
+                isActive && styles.scenarioCardActive,
               ]}
               onPress={() => setScenario(item.id)}
               activeOpacity={0.8}
             >
               <View style={styles.scenarioTop}>
                 <View style={styles.scenarioTitleRow}>
-                  <View style={[styles.iconBox, { backgroundColor: `${item.color}18` }]}>
-                    <Ionicons name={item.icon} size={16} color={item.color} />
+                  <View style={[styles.nodeCircle, isActive && { backgroundColor: COLORS.accentLime }]}>
+                    <Ionicons
+                      name={item.icon}
+                      size={14}
+                      color={isActive ? COLORS.darkCharcoal : COLORS.textSecondary}
+                    />
                   </View>
-                  <Text style={[styles.scenarioTitle, isActive && { color: item.color }]}>
+                  <Text style={[styles.scenarioTitle, isActive && { fontWeight: '800' }]}>
                     {item.title}
                   </Text>
                 </View>
-                <View style={[styles.badge, { backgroundColor: `${item.color}20` }]}>
-                  <Text style={[styles.badgeText, { color: item.color }]}>{item.badge}</Text>
+
+                <View style={[styles.badge, isActive && { backgroundColor: COLORS.darkCharcoal }]}>
+                  <Text style={[styles.badgeText, isActive && { color: '#FFFFFF' }]}>
+                    {item.badge}
+                  </Text>
                 </View>
               </View>
 
               <Text style={styles.scenarioDesc}>{item.description}</Text>
-
-              {isActive && (
-                <View style={styles.activeBanner}>
-                  <Ionicons name="radio-button-on" size={12} color={item.color} />
-                  <Text style={[styles.activeBannerText, { color: item.color }]}>
-                    Actively Streaming to Telemetry Pipeline
-                  </Text>
-                </View>
-              )}
             </TouchableOpacity>
           );
         })}
@@ -163,12 +159,17 @@ export const ScenarioController: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.xl,
+    padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     marginBottom: SPACING.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -177,32 +178,32 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heading: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
   subheading: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 2,
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    marginTop: 1,
   },
   resetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: RADIUS.sm,
+    paddingVertical: 4,
+    borderRadius: 14,
   },
   resetBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   sourceSelector: {
     flexDirection: 'row',
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.cardSubtle,
     padding: 3,
     borderRadius: RADIUS.md,
     marginBottom: 12,
@@ -217,31 +218,34 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   sourceTabActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: COLORS.darkCharcoal,
   },
   sourceTabText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
   },
   sourceTabTextActive: {
-    color: COLORS.navyDark,
-    fontWeight: '700',
+    color: '#FFFFFF',
   },
   scenarioList: {
     gap: 8,
   },
   scenarioCard: {
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    backgroundColor: COLORS.cardSubtle,
     borderRadius: RADIUS.md,
     padding: 10,
-    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  scenarioCardActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.textPrimary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   scenarioTop: {
     flexDirection: 'row',
@@ -255,46 +259,35 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
-  iconBox: {
-    width: 26,
-    height: 26,
-    borderRadius: RADIUS.sm,
+  nodeCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   scenarioTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
     flex: 1,
   },
   badge: {
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 10,
   },
   badgeText: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '800',
+    color: COLORS.textSecondary,
   },
   scenarioDesc: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    lineHeight: 15,
-    marginLeft: 34,
-  },
-  activeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 6,
-    marginLeft: 34,
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  activeBannerText: {
     fontSize: 10,
-    fontWeight: '700',
+    color: COLORS.textSecondary,
+    lineHeight: 14,
+    marginLeft: 32,
   },
 });
