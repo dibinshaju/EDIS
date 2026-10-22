@@ -113,250 +113,229 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image media_1792694621347.jpg) */}
-      <View style={styles.topHeroCard}>
-        {/* Top Header Bar: Clean title on left, Nav Symbols & Index on right */}
-        <View style={styles.heroTopBar}>
-          <View style={styles.brandRow}>
-            <View style={styles.logoCircle}>
+      {/* 1. TOP ENGAGEPRO MODULAR CARD (Matching Reference Image media_1792696244517.jpg) */}
+      <View style={styles.topModularCard}>
+        {/* Header: AquaGuard® on left, = MENU + Quick Nav on right */}
+        <View style={styles.headerBar}>
+          <View style={styles.brandGroup}>
+            <View style={styles.brandIconCircle}>
               <Ionicons name="water" size={14} color="#0D0E11" />
             </View>
-            <Text style={styles.brandLogoText}>AquaGuard</Text>
+            <Text style={styles.brandTitleText}>AquaGuard®</Text>
           </View>
 
-          {/* Nav Symbols (Home, Tools, Alerts, Admin) */}
-          <View style={styles.topNavSymbolsRow}>
-            <TouchableOpacity
-              onPress={() => router.push('/')}
-              style={[styles.topNavIconBtn, styles.topNavIconBtnActive]}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="home" size={15} color="#0D0E11" />
+          <View style={styles.headerRightGroup}>
+            {/* Nav symbols */}
+            <TouchableOpacity onPress={() => router.push('/')} style={[styles.miniNavBtn, styles.miniNavBtnActive]}>
+              <Ionicons name="home" size={13} color="#0D0E11" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/scenarios')} style={styles.miniNavBtn}>
+              <Ionicons name="construct-outline" size={13} color="#0D0E11" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/alerts')} style={styles.miniNavBtn}>
+              <Ionicons name="notifications-outline" size={13} color="#0D0E11" />
+              {activeCount > 0 && <View style={styles.miniDotAlert} />}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/admin')} style={styles.miniNavBtn}>
+              <Ionicons name="shield-checkmark-outline" size={13} color="#0D0E11" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => router.push('/scenarios')}
-              style={styles.topNavIconBtn}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="construct-outline" size={15} color="#0D0E11" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/alerts')}
-              style={styles.topNavIconBtn}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="notifications-outline" size={15} color="#0D0E11" />
-              {activeCount > 0 && <View style={styles.topNavDotBadge} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/admin')}
-              style={styles.topNavIconBtn}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="shield-checkmark-outline" size={15} color="#0D0E11" />
-            </TouchableOpacity>
-
-            <View style={styles.heroPagePill}>
-              <Text style={styles.heroPagePillBold}>01</Text>
-              <Text style={styles.heroPagePillLight}>/04</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Category Pill Tag (matching "Resources" tag in reference) */}
-        <View style={styles.categoryPill}>
-          <Text style={styles.categoryPillText}>Telemetry Engine</Text>
-        </View>
-
-        {/* Massive Headline (matching "Best Google fonts for tech websites") */}
-        <View style={styles.heroTitleBlock}>
-          <Text style={styles.heroTitleGiant}>Smart Water</Text>
-          <Text style={styles.heroTitleGiant}>monitor for</Text>
-          <View style={styles.heroTitleLastRow}>
-            <Text style={styles.heroTitleGiant}>pipelines</Text>
-            {/* Violet starburst sticker right beside/over headline */}
-            <View style={styles.starburstInline}>
-              <Svg width="54" height="54" viewBox="0 0 100 100">
-                <Path
-                  d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
-                  fill={COLORS.accentPurple}
-                />
-              </Svg>
-              <View style={styles.starburstTextWrap}>
-                <Text style={styles.starburstNumber}>IOT</Text>
-                <Text style={styles.starburstSub}>LIVE</Text>
+            {/* "= MENU" button from reference */}
+            <TouchableOpacity onPress={() => router.push('/admin')} style={styles.menuBtn} activeOpacity={0.8}>
+              <View style={styles.menuLines}>
+                <View style={styles.menuLine} />
+                <View style={styles.menuLine} />
               </View>
-            </View>
+              <Text style={styles.menuText}>MENU</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Floating Black Cursor Pill (matching "Inayat Naqvi" cursor badge in reference) */}
-        <View style={styles.floatingCursorBadge}>
-          <View style={styles.cursorAvatar}>
-            <Ionicons name="hardware-chip" size={12} color="#FFFFFF" />
+        {/* Hero Category Title Row with Circular Arrow Button (Exact match to Screen 1: "Social media Management ( ↗ )") */}
+        <View style={styles.categoryActionRow}>
+          <View style={styles.categoryTitleGroup}>
+            <Text style={styles.categoryTitleBold}>Water pipeline</Text>
+            <Text style={styles.categoryTitleItalic}>Monitoring</Text>
           </View>
-          <Text style={styles.cursorBadgeText}>Virtual ESP32 Bridge</Text>
-          <Ionicons name="navigate" size={11} color="#FFFFFF" style={styles.cursorArrow} />
-        </View>
-
-        {/* Slanted Floating Tags Row */}
-        <View style={styles.slantedTagsWrap}>
-          <View style={[styles.slantedTag, { transform: [{ rotate: '-3deg' }] }]}>
-            <Text style={styles.slantedTagText}>Inlet S1: {formatFlow(inFlow)} L/m</Text>
-          </View>
-
-          <View style={[styles.slantedTag, { transform: [{ rotate: '2deg' }], marginTop: 6 }]}>
-            <Text style={styles.slantedTagText}>Outlet S2: {formatFlow(outFlow)} L/m</Text>
-          </View>
-
-          <View style={[styles.slantedTag, { transform: [{ rotate: '-2deg' }] }]}>
-            <Text style={styles.slantedTagText}>Delta: {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)} L/m</Text>
-          </View>
-        </View>
-
-        {/* Bottom Hero Meta Bar (matching "@ui.inayat" and "Save for later" in reference) */}
-        <View style={styles.heroFooterMetaRow}>
-          <View>
-            <Text style={styles.heroAuthorHandle}>@aquaguard.telemetry</Text>
-            <Text style={styles.heroAuthorSub}>Municipal Pipeline Telemetry</Text>
-          </View>
-
           <TouchableOpacity
-            style={styles.saveForLaterPill}
-            onPress={() => router.push('/wokwi-guide')}
+            style={styles.circleArrowBtn}
+            onPress={() => router.push('/history')}
             activeOpacity={0.8}
           >
-            <Text style={styles.saveForLaterText}>Wokwi Bridge &rarr;</Text>
+            <Ionicons name="arrow-up-outline" size={18} color="#0D0E11" style={{ transform: [{ rotate: '45deg' }] }} />
           </TouchableOpacity>
         </View>
 
-        {/* Bottom Overhanging Lime-Yellow Simulation Control Bar */}
-        <View style={styles.heroBottomRow}>
-          <View style={styles.overhangingPill}>
-            <Text style={styles.overhangingPillLabel}>Simulate State</Text>
-            <View style={styles.miniDotRow}>
-              <TouchableOpacity
-                onPress={() => setScenario('normal')}
-                style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
-              >
-                <Ionicons name="checkmark" size={11} color="#0D0E11" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setScenario('suspected_leak')}
-                style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
-              >
-                <Ionicons name="alert" size={11} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setScenario('abnormal_consumption')}
-                style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
-              >
-                <Ionicons name="speedometer" size={11} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
-              </TouchableOpacity>
+        {/* Hero Big Display Headline (Screen 2: "Easily boost your social media engagement") */}
+        <View style={styles.headlineBlock}>
+          <Text style={styles.displayHeading}>Easily detect</Text>
+          <Text style={styles.displayHeading}>pipeline leaks &</Text>
+          <Text style={styles.displayHeading}>consumption</Text>
+          <Text style={styles.headlineSubtitle}>
+            Autonomous IoT telemetry & deficit persistence analytics
+          </Text>
+        </View>
+
+        {/* 3-COLUMN METRIC ROW (Exact match to Screen 1: User Growth 56.3% | RIO 75% | Engagement 30%) */}
+        <View style={styles.threeColMetricCard}>
+          <View style={styles.colMetricItem}>
+            <Text style={styles.colMetricLabel}>Inlet Flow</Text>
+            <View style={styles.colMetricValRow}>
+              <Text style={styles.colMetricValue}>{formatFlow(inFlow)}</Text>
+              <Text style={styles.colMetricUnit}>L/m</Text>
+            </View>
+          </View>
+
+          <View style={styles.colMetricDivider} />
+
+          <View style={styles.colMetricItem}>
+            <Text style={styles.colMetricLabel}>Outlet Flow</Text>
+            <View style={styles.colMetricValRow}>
+              <Text style={styles.colMetricValue}>{formatFlow(outFlow)}</Text>
+              <Text style={styles.colMetricUnit}>L/m</Text>
+            </View>
+          </View>
+
+          <View style={styles.colMetricDivider} />
+
+          <View style={[styles.colMetricItem, flowDifference > 1.5 && { backgroundColor: 'rgba(239, 68, 68, 0.08)' }]}>
+            <Text style={[styles.colMetricLabel, flowDifference > 1.5 && { color: COLORS.danger }]}>Flow Delta</Text>
+            <View style={styles.colMetricValRow}>
+              <Text style={[styles.colMetricValue, flowDifference > 1.5 && { color: COLORS.danger }]}>
+                {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)}
+              </Text>
+              <Text style={[styles.colMetricUnit, flowDifference > 1.5 && { color: COLORS.danger }]}>L/m</Text>
             </View>
           </View>
         </View>
-      </View>
 
-      {/* 2. MANIFESTO HEADLINE SECTION (On Dark Canvas) */}
-      <View style={styles.manifestoSection}>
-        {/* Centered Small Starburst Icon */}
-        <View style={styles.miniStarburstWrap}>
-          <Svg width="28" height="28" viewBox="0 0 100 100">
-            <Path
-              d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
-              fill={COLORS.accentPurple}
+        {/* STACKED STEP STRIP CARDS WITH GIANT MONOGRAM (Exact match to Screen 1: Step 1, Step 2, Step 3 over giant letterform) */}
+        <View style={styles.stepStripsContainer}>
+          {/* Giant Background Monogram ("W" for Water) */}
+          <View style={styles.monogramBackdrop} pointerEvents="none">
+            <Text style={styles.monogramText}>W</Text>
+          </View>
+
+          <View style={styles.stepStripRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 1</Text>
+            </View>
+            <View style={styles.stepContentWrap}>
+              <Text style={styles.stepTitle}>Municipal Intake Baseline</Text>
+              <Text style={styles.stepDesc}>S1 Ultrasonic metering: {formatFlow(inFlow)} L/min baseline</Text>
+            </View>
+            <Ionicons name="checkmark-circle" size={16} color={COLORS.accentYellow} />
+          </View>
+
+          <View style={styles.stepStripDivider} />
+
+          <View style={styles.stepStripRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 2</Text>
+            </View>
+            <View style={styles.stepContentWrap}>
+              <Text style={styles.stepTitle}>Deficit Persistence Evaluation</Text>
+              <Text style={styles.stepDesc}>
+                {flowDifference > 1.5 ? 'Deficit persistence exceeded (>1.5 L/min)' : 'Real-time 3.0s window: Certified Normal'}
+              </Text>
+            </View>
+            <Ionicons
+              name={flowDifference > 1.5 ? 'alert-circle' : 'checkmark-circle'}
+              size={16}
+              color={flowDifference > 1.5 ? COLORS.danger : COLORS.accentYellow}
             />
-          </Svg>
+          </View>
+
+          <View style={styles.stepStripDivider} />
+
+          <View style={styles.stepStripRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>Step 3</Text>
+            </View>
+            <View style={styles.stepContentWrap}>
+              <Text style={styles.stepTitle}>Autonomous Solenoid Isolation</Text>
+              <Text style={styles.stepDesc}>Valve State: Open • Pipeline Health 100%</Text>
+            </View>
+            <Ionicons name="shield-checkmark" size={16} color={COLORS.accentYellow} />
+          </View>
         </View>
 
-        <Text style={styles.manifestoHeadline}>
-          PRECISION WATER TELEMETRY ENGINE. REAL-TIME PERSISTENCE FILTERING FOR PIPELINE INTEGRITY.
-        </Text>
+        {/* SPLIT 2-BLOCK METRIC CARDS (Exact match to Screen 2: Left Yellow "Audience Reach 56.3%", Right "Audience Online 86.5%") */}
+        <View style={styles.splitBlockContainer}>
+          {/* Left Block: Electric Canary Yellow */}
+          <TouchableOpacity
+            style={styles.splitBlockYellow}
+            onPress={() => router.push('/history')}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.splitBlockLabelDark}>Audience Reach • Today's Volume</Text>
+            <View style={styles.splitValueRow}>
+              <Text style={styles.splitValueDark}>{totalVolumeLiters.toFixed(1)}</Text>
+              <Text style={styles.splitUnitDark}>L</Text>
+            </View>
+            <Text style={styles.splitSubDark}>Metered municipal consumption</Text>
+          </TouchableOpacity>
+
+          {/* Right Block: Paper White Technical Surface */}
+          <TouchableOpacity
+            style={styles.splitBlockWhite}
+            onPress={() => router.push('/alerts')}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.splitBlockLabelLight}>System Integrity • Telemetry</Text>
+            <View style={styles.splitValueRow}>
+              <Text style={[styles.splitValueLight, statusState === 'leak' && { color: COLORS.danger }]}>
+                {statusState === 'leak' ? 'DEFICIT' : '98.5%'}
+              </Text>
+            </View>
+            <Text style={styles.splitSubLight}>
+              {statusState === 'leak' ? 'Suspected Leak Active' : 'Dual-node calibrated'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* BOTTOM FULL-WIDTH ACTION BANNER (Exact match to Screen 2: "Details ▶") */}
+        <TouchableOpacity
+          style={styles.detailsActionBanner}
+          onPress={() => router.push('/wokwi-guide')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.detailsBannerLeft}>
+            <Ionicons name="hardware-chip-outline" size={16} color={COLORS.accentYellow} />
+            <Text style={styles.detailsBannerText}>Details • Wokwi Virtual Hardware Suite</Text>
+          </View>
+          <View style={styles.playTriangleWrap}>
+            <Ionicons name="play" size={14} color={COLORS.accentYellow} />
+          </View>
+        </TouchableOpacity>
+
+        {/* Simulation Scenario Pill */}
+        <View style={styles.heroSimulateRow}>
+          <Text style={styles.heroSimulateLabel}>Quick Scenario Test:</Text>
+          <View style={styles.miniDotRow}>
+            <TouchableOpacity
+              onPress={() => setScenario('normal')}
+              style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
+            >
+              <Ionicons name="checkmark" size={11} color="#0D0E11" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setScenario('suspected_leak')}
+              style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
+            >
+              <Ionicons name="alert" size={11} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setScenario('abnormal_consumption')}
+              style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
+            >
+              <Ionicons name="speedometer" size={11} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <View style={styles.bodyContent}>
-        {/* 3. SIGNATURE 2x2 CUT-CORNER GRID BOXES (Exact match to Reference 01, 02, 03, 04) */}
-        <View style={styles.gridContainer}>
-          {/* BOX 01: SIGNATURE ELECTRIC LIME-YELLOW CARD WITH CUT CORNER */}
-          <TouchableOpacity
-            style={[styles.gridCard, styles.gridCardYellow]}
-            onPress={() => router.push('/history')}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.gridNumberDark}>01</Text>
-            <Text style={styles.gridTitleDark}>Inlet Flow (S1)</Text>
-            <Text style={styles.gridValueDark}>
-              {formatFlow(inFlow)} <Text style={styles.gridUnitDark}>L/MIN</Text>
-            </Text>
-            <Text style={styles.gridSubDark}>
-              Municipal supply entry baseline.
-            </Text>
-            <View style={styles.gridActionPillDark}>
-              <Text style={styles.gridActionTextDark}>Details &rarr;</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* BOX 02: WHITE CARD WITH CUT CORNER */}
-          <TouchableOpacity
-            style={[styles.gridCard, styles.gridCardWhite]}
-            onPress={() => router.push('/history')}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.gridNumberLight}>02</Text>
-            <Text style={styles.gridTitleLight}>Outlet Flow (S2)</Text>
-            <Text style={styles.gridValueLight}>
-              {formatFlow(outFlow)} <Text style={styles.gridUnitLight}>L/MIN</Text>
-            </Text>
-            <Text style={styles.gridSubLight}>
-              Distribution point discharge rate.
-            </Text>
-            <View style={styles.gridActionPillLight}>
-              <Text style={styles.gridActionTextLight}>Inspect &rarr;</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* BOX 03: WHITE CARD WITH CUT CORNER */}
-          <TouchableOpacity
-            style={[styles.gridCard, styles.gridCardWhite]}
-            onPress={() => router.push('/alerts')}
-            activeOpacity={0.9}
-          >
-            <Text style={[styles.gridNumberLight, flowDifference > 1.5 && { color: COLORS.danger }]}>03</Text>
-            <Text style={styles.gridTitleLight}>Flow Delta</Text>
-            <Text style={[styles.gridValueLight, flowDifference > 1.5 && { color: COLORS.danger }]}>
-              {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)} <Text style={styles.gridUnitLight}>L/MIN</Text>
-            </Text>
-            <Text style={styles.gridSubLight}>
-              {flowDifference > 1.5 ? 'Deficit deficit detected.' : 'Balanced stream.'}
-            </Text>
-            <View style={styles.gridActionPillLight}>
-              <Text style={styles.gridActionTextLight}>Audit &rarr;</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* BOX 04: WHITE CARD WITH CUT CORNER */}
-          <TouchableOpacity
-            style={[styles.gridCard, styles.gridCardWhite]}
-            onPress={() => router.push('/history')}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.gridNumberLight}>04</Text>
-            <Text style={styles.gridTitleLight}>Cumulative Usage</Text>
-            <Text style={styles.gridValueLight}>
-              {totalVolumeLiters.toFixed(1)} <Text style={styles.gridUnitLight}>LITERS</Text>
-            </Text>
-            <Text style={styles.gridSubLight}>
-              Metered volume recorded today.
-            </Text>
-            <View style={styles.gridActionPillLight}>
-              <Text style={styles.gridActionTextLight}>Analytics &rarr;</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
 
         {/* 4. SYSTEM STATUS BANNER */}
         <View style={styles.statusCard}>
