@@ -1,8 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../src/constants/theme';
 import { useAlerts } from '../../src/context/AlertContext';
 
 export default function TabsLayout() {
@@ -33,7 +31,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
               size={20}
@@ -48,7 +46,7 @@ export default function TabsLayout() {
         name="history"
         options={{
           title: 'Analytics',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? 'bar-chart' : 'bar-chart-outline'}
               size={20}
@@ -58,20 +56,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 3. Center Quick Simulation Action */}
-      <Tabs.Screen
-        name="scenarios"
-        options={{
-          title: 'Simulate',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.centerActionBadge}>
-              <Ionicons name="flash" size={16} color="#FFFFFF" />
-            </View>
-          ),
-        }}
-      />
-
-      {/* 4. Alerts */}
+      {/* 3. Alerts */}
       <Tabs.Screen
         name="alerts"
         options={{
@@ -83,7 +68,7 @@ export default function TabsLayout() {
             fontSize: 9,
             fontWeight: '900',
           },
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? 'notifications' : 'notifications-outline'}
               size={20}
@@ -93,12 +78,12 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5. Admin */}
+      {/* 4. Admin */}
       <Tabs.Screen
         name="admin"
         options={{
           title: 'Admin',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? 'settings' : 'settings-outline'}
               size={20}
@@ -107,17 +92,14 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+      {/* Auxiliary Route: Scenarios (Controls accessible from Home & Quick Actions) */}
+      <Tabs.Screen
+        name="scenarios"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  centerActionBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
