@@ -2,8 +2,9 @@
 set -euo pipefail
 
 REPO_DIR="/home/nonsence/EDIS"
-LOG_FILE="$REPO_DIR/auto_push.log"
+LOG_FILE="$HOME/.edis_auto_push.log"
 
+mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$REPO_DIR"
 
 if ! git -C "$REPO_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
