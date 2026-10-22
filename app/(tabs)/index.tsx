@@ -807,8 +807,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4FF32',
   },
   pageTabText: {
-    fontFamily: FONTS.body,
-    fontSize: 14,
+    fontFamily: FONTS.number,
+    fontSize: 12,
     color: '#A0A4AB',
     letterSpacing: 0.5,
   },
@@ -1373,7 +1373,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scenarioNumber: {
-    fontFamily: FONTS.heading,
+    fontFamily: FONTS.number,
     fontSize: 14,
     color: COLORS.darkCharcoal,
   },
