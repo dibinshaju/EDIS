@@ -391,9 +391,9 @@ export default function DashboardScreen() {
           <TouchableOpacity
             style={[
               styles.taskCard,
-              activeScenario === 'leak' && styles.taskCardActive,
+              activeScenario === 'suspected_leak' && styles.taskCardActive,
             ]}
-            onPress={() => setScenario('leak')}
+            onPress={() => setScenario('suspected_leak')}
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
@@ -406,13 +406,13 @@ export default function DashboardScreen() {
             <View
               style={[
                 styles.taskCheckBtn,
-                activeScenario === 'leak' && [styles.taskCheckBtnActive, { backgroundColor: COLORS.danger }],
+                activeScenario === 'suspected_leak' && [styles.taskCheckBtnActive, { backgroundColor: COLORS.danger }],
               ]}
             >
               <Ionicons
                 name="checkmark"
                 size={14}
-                color={activeScenario === 'leak' ? '#FFFFFF' : '#8F959E'}
+                color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#8F959E'}
               />
             </View>
           </TouchableOpacity>
@@ -421,9 +421,9 @@ export default function DashboardScreen() {
           <TouchableOpacity
             style={[
               styles.taskCard,
-              activeScenario === 'high_consumption' && styles.taskCardActive,
+              activeScenario === 'abnormal_consumption' && styles.taskCardActive,
             ]}
-            onPress={() => setScenario('high_consumption')}
+            onPress={() => setScenario('abnormal_consumption')}
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
@@ -436,7 +436,7 @@ export default function DashboardScreen() {
             <View
               style={[
                 styles.taskCheckBtn,
-                activeScenario === 'high_consumption' && [
+                activeScenario === 'abnormal_consumption' && [
                   styles.taskCheckBtnActive,
                   { backgroundColor: COLORS.warning },
                 ],
@@ -445,7 +445,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="checkmark"
                 size={14}
-                color={activeScenario === 'high_consumption' ? '#FFFFFF' : '#8F959E'}
+                color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#8F959E'}
               />
             </View>
           </TouchableOpacity>
