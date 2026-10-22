@@ -32,7 +32,7 @@ export default function TabsLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="water" size={size} color={color} />
+            <Ionicons name="water" size={size} color={String(color)} />
           ),
         }}
       />
@@ -41,7 +41,7 @@ export default function TabsLayout() {
         options={{
           title: 'Scenarios',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flask" size={size} color={color} />
+            <Ionicons name="flask" size={size} color={String(color)} />
           ),
         }}
       />
@@ -50,7 +50,7 @@ export default function TabsLayout() {
         options={{
           title: 'History',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart" size={size} color={color} />
+            <Ionicons name="stats-chart" size={size} color={String(color)} />
           ),
         }}
       />
@@ -65,7 +65,7 @@ export default function TabsLayout() {
             fontWeight: '800',
           },
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="alert-circle" size={size} color={color} />
+            <Ionicons name="alert-circle" size={size} color={String(color)} />
           ),
         }}
       />
@@ -74,7 +74,7 @@ export default function TabsLayout() {
         options={{
           title: 'Admin',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="shield-checkmark" size={size} color={color} />
+            <Ionicons name="shield-checkmark" size={size} color={String(color)} />
           ),
         }}
       />
