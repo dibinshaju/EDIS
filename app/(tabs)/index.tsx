@@ -1172,13 +1172,14 @@ const styles = StyleSheet.create({
   },
   p2BlockValueDark: {
     fontFamily: FONTS.body,
-    fontSize: 40,
+    fontSize: 62,
+    lineHeight: 62,
     color: '#0F1A12',
-    letterSpacing: 0.5,
+    letterSpacing: 3.5,
   },
   p2BlockUnitDark: {
     fontFamily: FONTS.body,
-    fontSize: 22,
+    fontSize: 24,
   },
 
   p2BlockDark: {
@@ -1196,9 +1197,10 @@ const styles = StyleSheet.create({
   },
   p2BlockValueLight: {
     fontFamily: FONTS.body,
-    fontSize: 40,
+    fontSize: 62,
+    lineHeight: 62,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 3.5,
   },
 
   p2FooterBar: {
