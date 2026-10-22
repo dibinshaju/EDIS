@@ -68,7 +68,7 @@ export default function DashboardScreen() {
       case 'high':
         return {
           title: 'High Consumption',
-          color: COLORS.warning,
+          color: '#D97706',
           bgColor: '#FFFBEB',
           borderColor: '#FDE68A',
           icon: 'speedometer-outline' as const,
@@ -77,7 +77,7 @@ export default function DashboardScreen() {
       case 'checking':
         return {
           title: 'Checking Deficit',
-          color: COLORS.warning,
+          color: '#D97706',
           bgColor: '#FFFBEB',
           borderColor: '#FDE68A',
           icon: 'time-outline' as const,
@@ -87,10 +87,10 @@ export default function DashboardScreen() {
       default:
         return {
           title: 'Normal Flow',
-          color: COLORS.success,
-          bgColor: '#ECFDF5',
-          borderColor: '#A7F3D0',
-          icon: 'checkmark-circle-outline' as const,
+          color: '#0D0E11',
+          bgColor: COLORS.accentYellow,
+          borderColor: '#E5EE00',
+          icon: 'checkmark-circle' as const,
           explanation: 'Inlet and outlet flows match within certified safe margins.',
         };
     }
@@ -112,47 +112,50 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. EDITORIAL HERO SECTION WITH LARGE PAGE-FILLING TYPOGRAPHY (From Uploaded Image) */}
+      {/* 1. TOP EDITORIAL HERO CARD (Industrial Condensed Typography & Canary Yellow Highlighter) */}
       <View style={styles.editorialHeaderCard}>
-        {/* Top bar matching "Carousel" on left and "01 of 10" pill on right */}
+        {/* Top technical meta bar */}
         <View style={styles.topMetaBar}>
           <View style={styles.brandTitleWrap}>
-            <Text style={styles.topBrandName}>AquaGuard</Text>
-            <View style={styles.livePulseDot} />
+            <Text style={styles.topBrandName}>AQUAGUARD</Text>
+            <Text style={styles.topBrandSub}>/ TELEMETRY</Text>
           </View>
 
           <View style={styles.indexPillBadge}>
-            <Text style={styles.indexPillText}>01 <Text style={styles.indexPillSub}>of 04</Text></Text>
+            <Text style={styles.indexPillText}>01 <Text style={styles.indexPillSub}>/ 04</Text></Text>
           </View>
         </View>
 
-        {/* Category Pill matching "Resources" pill in uploaded image */}
+        {/* Technical Sub-label & Date */}
         <View style={styles.categoryPillWrap}>
-          <View style={styles.categoryPill}>
-            <Text style={styles.categoryPillText}>Water Telemetry</Text>
-          </View>
+          <Text style={styles.categoryTechLabel}>IOT WATER MONITORING // SYSTEM V1.0</Text>
           <Text style={styles.headerDateLabel}>{todayDateStr}</Text>
         </View>
 
-        {/* GIANT EDITORIAL HEADLINE FILLING THE PAGE (Exact match to "Best Google fonts for tech websites") */}
+        {/* GIANT CONDENSED HEADLINE (Matching "GOOD UI MAKES THE NEXT STEP OBVIOUS.") */}
         <View style={styles.giantHeadlineWrap}>
-          <Text style={styles.giantHeadlineDark}>Smart Water</Text>
-          <Text style={styles.giantHeadlineDark}>
-            monitor for <Text style={styles.giantHeadlineOrange}>pipeline</Text>
-          </Text>
-          <Text style={styles.giantHeadlineOrange}>leakage</Text>
+          <Text style={styles.giantHeadlineCondensed}>SMART WATER</Text>
+          <Text style={styles.giantHeadlineCondensed}>MONITOR FOR</Text>
+          <Text style={styles.giantHeadlineCondensed}>NEXT-STEP</Text>
+          
+          {/* Highlighter Yellow Block behind LEAK DETECTION */}
+          <View style={styles.highlighterBox}>
+            <Text style={styles.highlighterText}>LEAK DETECTION.</Text>
+          </View>
         </View>
 
-        {/* Floating dark badge matching "Inayat Naqvi" author pill in uploaded photo */}
-        <View style={styles.floatingAuthorPillWrap}>
+        {/* Technical sub-rule note */}
+        <View style={styles.headlineNoteRow}>
+          <Text style={styles.headlineNoteText}>
+            Dual flow differential metering • Real-time pipeline safety engine
+          </Text>
           <View style={styles.authorBadgePill}>
             <View style={styles.authorAvatarCircle}>
-              <Ionicons name="hardware-chip" size={13} color={COLORS.darkCharcoal} />
+              <Ionicons name="hardware-chip" size={12} color="#0D0E11" />
             </View>
             <Text style={styles.authorBadgeName}>
-              {isDemo ? 'Virtual Simulation' : 'ESP32 MQTT Link'}
+              {isDemo ? 'VIRTUAL ESP32' : 'WOKWI LIVE'}
             </Text>
-            <View style={[styles.statusDotSmall, { backgroundColor: isDemo ? COLORS.accentOrange : COLORS.success }]} />
           </View>
         </View>
       </View>
@@ -173,30 +176,41 @@ export default function DashboardScreen() {
               </Text>
             </View>
 
-            <View style={[styles.statusCheckCircle, { backgroundColor: sysStatus.color }]}>
-              <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+            <View
+              style={[
+                styles.statusCheckCircle,
+                { backgroundColor: sysStatus.title === 'Normal Flow' ? COLORS.accentYellow : sysStatus.color },
+              ]}
+            >
+              <Ionicons
+                name="checkmark"
+                size={14}
+                color={sysStatus.title === 'Normal Flow' ? '#0D0E11' : '#FFFFFF'}
+              />
             </View>
           </View>
 
           <Text style={styles.statusExplanationText}>{sysStatus.explanation}</Text>
         </View>
 
-        {/* 3. HERO SENSOR CARD (Massive typography filling the card) */}
+        {/* 3. HERO SENSOR CARD (Numbered 01 / S1 INLET FLOW with Giant Condensed Number) */}
         <View style={styles.heroSensorCard}>
           <View style={styles.cardTopRow}>
-            <View style={styles.sensorPillTag}>
-              <View style={styles.sensorDotOrange} />
-              <Text style={styles.sensorPillText}>01 S1 INLET FLOW</Text>
+            <View style={styles.numberedHeaderWrap}>
+              <View style={styles.yellowNumberBox}>
+                <Text style={styles.yellowNumberText}>01</Text>
+              </View>
+              <Text style={styles.numberedSectionTitle}>/ S1 INLET FLOW</Text>
             </View>
             <Text style={styles.sensorMetaText}>MUNICIPAL MAIN</Text>
           </View>
 
           <View style={styles.valueRow}>
-            <Text style={styles.heroValueLarge}>{formatFlow(inFlow)}</Text>
-            <Text style={styles.heroUnitOrange}>L/min</Text>
+            <Text style={styles.heroValueCondensed}>{formatFlow(inFlow)}</Text>
+            <Text style={styles.heroUnitCondensed}>L/MIN</Text>
           </View>
 
-          {/* Flow progress track with tech vermillion orange accent */}
+          {/* Flow progress track with canary yellow fill */}
           <View style={styles.flowTrack}>
             <View
               style={[
@@ -207,21 +221,23 @@ export default function DashboardScreen() {
           </View>
 
           <View style={styles.sensorCardFooter}>
-            <Text style={styles.sensorFooterText}>Primary pipeline intake • Baseline 12.0 L/m</Text>
-            <Ionicons name="arrow-forward" size={14} color={COLORS.darkCharcoal} />
+            <Text style={styles.sensorFooterText}>Intake baseline 12.0 L/min • Pressure balanced</Text>
+            <Ionicons name="arrow-forward" size={14} color="#0D0E11" />
           </View>
         </View>
 
-        {/* 4. SUPPORTING METRICS ROW (3 Cards) */}
+        {/* 4. SUPPORTING METRICS ROW (02 S2 OUTLET, 03 FLOW DELTA, 04 CONSUMPTION) */}
         <View style={styles.metricRow}>
           {/* S2 Outlet */}
           <View style={styles.subMetricCard}>
             <View style={styles.subMetricTop}>
-              <Ionicons name="arrow-up-circle-outline" size={14} color="#0D9488" />
-              <Text style={styles.subMetricLabel}>S2 OUTLET</Text>
+              <View style={styles.yellowMiniBox}>
+                <Text style={styles.yellowMiniBoxText}>02</Text>
+              </View>
+              <Text style={styles.subMetricLabel}>OUTLET</Text>
             </View>
-            <Text style={styles.subMetricValue}>
-              {formatFlow(outFlow)} <Text style={styles.subMetricUnit}>L/m</Text>
+            <Text style={styles.subMetricValueCondensed}>
+              {formatFlow(outFlow)} <Text style={styles.subMetricUnit}>L/M</Text>
             </Text>
             <Text style={styles.subMetricFoot}>Distribution</Text>
           </View>
@@ -229,21 +245,19 @@ export default function DashboardScreen() {
           {/* Flow Delta */}
           <View style={[styles.subMetricCard, flowDifference > 1.5 && styles.subMetricAlert]}>
             <View style={styles.subMetricTop}>
-              <Ionicons
-                name="git-compare-outline"
-                size={14}
-                color={flowDifference > 1.5 ? COLORS.danger : COLORS.accentOrange}
-              />
-              <Text style={styles.subMetricLabel}>FLOW DELTA</Text>
+              <View style={[styles.yellowMiniBox, flowDifference > 1.5 && { backgroundColor: COLORS.danger }]}>
+                <Text style={[styles.yellowMiniBoxText, flowDifference > 1.5 && { color: '#FFFFFF' }]}>03</Text>
+              </View>
+              <Text style={styles.subMetricLabel}>DELTA</Text>
             </View>
             <Text
               style={[
-                styles.subMetricValue,
+                styles.subMetricValueCondensed,
                 flowDifference > 1.5 && { color: COLORS.danger },
               ]}
             >
               {flowDifference >= 0 ? '+' : ''}
-              {formatFlow(flowDifference)} <Text style={styles.subMetricUnit}>L/m</Text>
+              {formatFlow(flowDifference)} <Text style={styles.subMetricUnit}>L/M</Text>
             </Text>
             <Text style={styles.subMetricFoot}>
               {flowDifference > 1.5 ? 'Deficit' : 'Inlet - Outlet'}
@@ -253,10 +267,12 @@ export default function DashboardScreen() {
           {/* Today Consumption */}
           <View style={styles.subMetricCard}>
             <View style={styles.subMetricTop}>
-              <Ionicons name="water-outline" size={14} color={COLORS.darkCharcoal} />
-              <Text style={styles.subMetricLabel}>CONSUMPTION</Text>
+              <View style={styles.yellowMiniBox}>
+                <Text style={styles.yellowMiniBoxText}>04</Text>
+              </View>
+              <Text style={styles.subMetricLabel}>TOTAL</Text>
             </View>
-            <Text style={styles.subMetricValue}>
+            <Text style={styles.subMetricValueCondensed}>
               {totalVolumeLiters.toFixed(1)} <Text style={styles.subMetricUnit}>L</Text>
             </Text>
             <Text style={styles.subMetricFoot}>Today Total</Text>
@@ -266,13 +282,18 @@ export default function DashboardScreen() {
         {/* 5. INLET VS OUTLET DUAL COMPARISON & WAVEFORM */}
         <View style={styles.comparisonCard}>
           <View style={styles.comparisonHeader}>
-            <Text style={styles.sectionTitle}>Inlet vs Outlet Comparison</Text>
+            <View style={styles.numberedHeaderWrap}>
+              <View style={styles.yellowNumberBox}>
+                <Text style={styles.yellowNumberText}>05</Text>
+              </View>
+              <Text style={styles.numberedSectionTitle}>/ FLOW COMPARISON</Text>
+            </View>
             <Text style={styles.comparisonSubtitle}>
               {Math.abs(flowDifference) < 0.2
                 ? 'Balanced Pipeline Stream'
                 : flowDifference > 0
-                ? flowDifference.toFixed(1) + ' L/min Deficit Detected'
-                : Math.abs(flowDifference).toFixed(1) + ' L/min Reversed Flow'}
+                ? flowDifference.toFixed(1) + ' L/min Deficit'
+                : Math.abs(flowDifference).toFixed(1) + ' L/min Reversed'}
             </Text>
           </View>
 
@@ -286,7 +307,7 @@ export default function DashboardScreen() {
                     styles.barFill,
                     {
                       width: Math.min(100, (inFlow / 35) * 100) + '%',
-                      backgroundColor: COLORS.darkCharcoal,
+                      backgroundColor: '#0D0E11',
                     },
                   ]}
                 />
@@ -302,7 +323,7 @@ export default function DashboardScreen() {
                     styles.barFill,
                     {
                       width: Math.min(100, (outFlow / 35) * 100) + '%',
-                      backgroundColor: COLORS.accentOrange,
+                      backgroundColor: COLORS.accentYellow,
                     },
                   ]}
                 />
@@ -323,12 +344,12 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* 6. PIPELINE MONITORING TASKS (Task Checklist Structure) */}
+        {/* 6. PIPELINE MONITORING TASKS (Numbered Checklist) */}
         <View style={styles.tasksSection}>
           <View style={styles.tasksHeaderRow}>
-            <Text style={styles.sectionTitle}>Pipeline Monitoring Tasks</Text>
+            <Text style={styles.sectionTitleCondensed}>MONITORING PIPELINE TASKS</Text>
             <TouchableOpacity onPress={resetDemo} style={styles.resetPillBtn}>
-              <Text style={styles.resetPillBtnText}>Reset Demo</Text>
+              <Text style={styles.resetPillBtnText}>RESET DEMO</Text>
             </TouchableOpacity>
           </View>
 
@@ -342,9 +363,11 @@ export default function DashboardScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
-              <View style={[styles.taskStatusDot, { backgroundColor: COLORS.success }]} />
+              <View style={[styles.taskYellowIndexBox, activeScenario === 'normal' && { backgroundColor: COLORS.accentYellow }]}>
+                <Text style={styles.taskYellowIndexText}>01</Text>
+              </View>
               <View>
-                <Text style={styles.taskTitle}>Normal Flow Verification</Text>
+                <Text style={styles.taskTitleCondensed}>NORMAL FLOW VERIFICATION</Text>
                 <Text style={styles.taskSubtitle}>Inlet matches outlet (&lt; 0.2 L/min delta)</Text>
               </View>
             </View>
@@ -357,7 +380,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name="checkmark"
                 size={14}
-                color={activeScenario === 'normal' ? COLORS.accentOrange : '#8F959E'}
+                color={activeScenario === 'normal' ? '#0D0E11' : '#8F959E'}
               />
             </View>
           </TouchableOpacity>
@@ -372,9 +395,11 @@ export default function DashboardScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
-              <View style={[styles.taskStatusDot, { backgroundColor: COLORS.danger }]} />
+              <View style={[styles.taskYellowIndexBox, { backgroundColor: COLORS.danger }]}>
+                <Text style={[styles.taskYellowIndexText, { color: '#FFFFFF' }]}>02</Text>
+              </View>
               <View>
-                <Text style={styles.taskTitle}>Pipe Rupture & Leak Deficit</Text>
+                <Text style={styles.taskTitleCondensed}>PIPE RUPTURE & LEAK DEFICIT</Text>
                 <Text style={styles.taskSubtitle}>Inlet exceeds outlet (&gt; 1.5 L/min sustained)</Text>
               </View>
             </View>
@@ -402,9 +427,11 @@ export default function DashboardScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
-              <View style={[styles.taskStatusDot, { backgroundColor: COLORS.warning }]} />
+              <View style={[styles.taskYellowIndexBox, { backgroundColor: '#F59E0B' }]}>
+                <Text style={[styles.taskYellowIndexText, { color: '#FFFFFF' }]}>03</Text>
+              </View>
               <View>
-                <Text style={styles.taskTitle}>High Consumption Demand</Text>
+                <Text style={styles.taskTitleCondensed}>HIGH CONSUMPTION DEMAND</Text>
                 <Text style={styles.taskSubtitle}>Heavy demand (&gt; 25.0 L/min balanced)</Text>
               </View>
             </View>
@@ -413,7 +440,7 @@ export default function DashboardScreen() {
                 styles.taskCheckBtn,
                 activeScenario === 'abnormal_consumption' && [
                   styles.taskCheckBtnActive,
-                  { backgroundColor: COLORS.warning },
+                  { backgroundColor: '#F59E0B' },
                 ],
               ]}
             >
@@ -435,9 +462,11 @@ export default function DashboardScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.taskLeft}>
-              <View style={[styles.taskStatusDot, { backgroundColor: '#0D9488' }]} />
+              <View style={[styles.taskYellowIndexBox, { backgroundColor: '#0D9488' }]}>
+                <Text style={[styles.taskYellowIndexText, { color: '#FFFFFF' }]}>04</Text>
+              </View>
               <View>
-                <Text style={styles.taskTitle}>Sensor Calibration Anomaly</Text>
+                <Text style={styles.taskTitleCondensed}>SENSOR CALIBRATION ANOMALY</Text>
                 <Text style={styles.taskSubtitle}>Outlet exceeds inlet (negative deficit check)</Text>
               </View>
             </View>
@@ -459,47 +488,48 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 7. HARDWARE & WOKWI LINK (With "Save for later" style pill button) */}
+        {/* 7. HARDWARE CARD WITH ELECTRIC CANARY YELLOW BANNER BUTTON */}
         <View style={styles.hardwareCard}>
           <View style={styles.cardTopRow}>
             <View style={styles.hardwareTitleGroup}>
-              <Ionicons name="hardware-chip-outline" size={16} color={COLORS.darkCharcoal} />
-              <Text style={styles.sectionTitle}>Telemetry & Virtual Link</Text>
+              <Ionicons name="hardware-chip-outline" size={16} color="#0D0E11" />
+              <Text style={styles.sectionTitleCondensed}>TELEMETRY & HARDWARE BRIDGE</Text>
             </View>
             <View style={styles.sourcePill}>
-              <Text style={styles.sourcePillText}>{isDemo ? 'Local Engine' : 'Wokwi MQTT'}</Text>
+              <Text style={styles.sourcePillText}>{isDemo ? 'LOCAL ENGINE' : 'WOKWI MQTT'}</Text>
             </View>
           </View>
 
           <View style={styles.hardwareInfoGrid}>
             <View style={styles.hwInfoItem}>
-              <Text style={styles.hwInfoLabel}>Virtual ESP32</Text>
+              <Text style={styles.hwInfoLabel}>VIRTUAL ESP32</Text>
               <Text style={styles.hwInfoVal}>
-                {isDemo ? 'Simulated' : mqttStatus === 'connected' ? 'Online' : 'Standby'}
+                {isDemo ? 'SIMULATED' : mqttStatus === 'connected' ? 'ONLINE' : 'STANDBY'}
               </Text>
             </View>
 
             <View style={styles.hwInfoItem}>
-              <Text style={styles.hwInfoLabel}>MQTT Broker</Text>
+              <Text style={styles.hwInfoLabel}>MQTT BROKER</Text>
               <Text style={styles.hwInfoVal}>
-                {mqttStatus === 'connected' ? 'Connected' : isDemo ? 'Demo Active' : 'Disconnected'}
+                {mqttStatus === 'connected' ? 'CONNECTED' : isDemo ? 'DEMO ACTIVE' : 'DISCONNECTED'}
               </Text>
             </View>
 
             <View style={styles.hwInfoItem}>
-              <Text style={styles.hwInfoLabel}>Active Time</Text>
-              <Text style={styles.hwInfoVal}>T+{elapsed}s</Text>
+              <Text style={styles.hwInfoLabel}>UPTIME</Text>
+              <Text style={styles.hwInfoVal}>T+{elapsed}S</Text>
             </View>
           </View>
 
-          {/* Button in the exact style of "Save for later" pill in uploaded photo! */}
+          {/* Electric Canary Yellow CTA button matching "-> RUN THE 5-POINT CHECK ->" */}
           <TouchableOpacity
-            style={styles.saveForLaterStyleBtn}
+            style={styles.yellowBannerBtn}
             onPress={() => router.push('/wokwi-guide')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Ionicons name="link-outline" size={15} color={COLORS.darkCharcoal} />
-            <Text style={styles.saveForLaterBtnText}>Open Wokwi Simulation Guide</Text>
+            <Text style={styles.yellowBannerBtnText}>
+              &rarr; RUN WOKWI VIRTUAL HARDWARE CHECK &rarr;
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -510,169 +540,165 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.canvasBg, // Warm ivory stone (#EFECE6)
+    backgroundColor: COLORS.canvasBg, // Warm technical parchment (#ECEBE4)
   },
   scrollContent: {
     paddingBottom: 110, // Clearance for bottom floating dock
   },
 
-  /* 1. EDITORIAL HERO SECTION WITH LARGE PAGE-FILLING TYPOGRAPHY */
+  /* 1. TOP EDITORIAL HERO CARD */
   editorialHeaderCard: {
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     paddingTop: 18,
-    paddingBottom: 28,
-    paddingHorizontal: 22,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderColor: COLORS.cardBorder,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
   },
   topMetaBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   brandTitleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   topBrandName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
-    letterSpacing: -0.3,
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.5,
   },
-  livePulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.accentOrange,
+  topBrandSub: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    letterSpacing: 0.5,
   },
   indexPillBadge: {
-    backgroundColor: COLORS.cardSubtle, // #E5E2DA from image ("01 of 10")
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 14,
+    backgroundColor: COLORS.cardSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   indexPillText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
   },
   indexPillSub: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.textSecondary,
   },
   categoryPillWrap: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 10,
   },
-  categoryPill: {
-    backgroundColor: COLORS.cardSubtle, // #E5E2DA pill from image ("Resources")
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  categoryPillText: {
-    fontSize: 11,
+  categoryTechLabel: {
+    fontSize: 10,
     fontWeight: '800',
-    color: COLORS.darkCharcoal,
-    letterSpacing: 0.2,
+    color: COLORS.textSecondary,
+    letterSpacing: 0.8,
   },
   headerDateLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textSecondary,
+    letterSpacing: 0.3,
   },
 
-  /* GIANT EDITORIAL HEADLINE FILLING THE PAGE */
+  /* GIANT CONDENSED HEADLINE */
   giantHeadlineWrap: {
     marginVertical: 4,
   },
-  giantHeadlineDark: {
+  giantHeadlineCondensed: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -1,
+    lineHeight: 44,
+    textTransform: 'uppercase',
+  },
+  highlighterBox: {
+    backgroundColor: COLORS.accentYellow, // #F7FF00 Canary yellow
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginTop: 2,
+    borderRadius: 4,
+  },
+  highlighterText: {
     fontSize: 38,
     fontWeight: '900',
-    color: COLORS.darkCharcoal, // Jet black (#111215)
-    letterSpacing: -1.8,
+    color: '#0D0E11',
+    letterSpacing: -0.8,
     lineHeight: 42,
+    textTransform: 'uppercase',
   },
-  giantHeadlineOrange: {
-    fontSize: 38,
-    fontWeight: '900',
-    color: COLORS.accentOrange, // Bold vibrant tech orange (#FF5522)
-    letterSpacing: -1.8,
-    lineHeight: 42,
+  headlineNoteRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.cardBorder,
   },
-
-  /* Floating Author/Node Badge (Matching "Inayat Naqvi" badge in uploaded photo) */
-  floatingAuthorPillWrap: {
-    marginTop: 18,
-    alignItems: 'flex-end',
+  headlineNoteText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    flex: 1,
+    marginRight: 10,
   },
   authorBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.darkCharcoal, // Jet black pill (#111215)
-    borderRadius: 20,
-    paddingVertical: 5,
-    paddingLeft: 5,
-    paddingRight: 12,
-    gap: 7,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#0D0E11',
+    borderRadius: 14,
+    paddingVertical: 4,
+    paddingLeft: 4,
+    paddingRight: 8,
+    gap: 6,
   },
   authorAvatarCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.accentYellow,
     alignItems: 'center',
     justifyContent: 'center',
   },
   authorBadgeName: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  statusDotSmall: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
 
   /* Body Content */
   bodyContent: {
-    paddingHorizontal: 18,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 14,
   },
 
   /* 2. System Status Card */
   statusCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 18,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
   },
   statusCardHeader: {
     flexDirection: 'row',
@@ -686,7 +712,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
   },
   statusBadgeText: {
@@ -704,50 +730,46 @@ const styles = StyleSheet.create({
   statusExplanationText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#0D0E11',
     lineHeight: 18,
   },
 
   /* 3. Hero Sensor Card */
   heroSensorCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 18,
     padding: 18,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
   },
   cardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  sensorPillTag: {
+  numberedHeaderWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: COLORS.cardSubtle,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
   },
-  sensorDotOrange: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.accentOrange,
+  yellowNumberBox: {
+    backgroundColor: COLORS.accentYellow, // #F7FF00
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  sensorPillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
-    letterSpacing: 0.5,
+  yellowNumberText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#0D0E11',
+  },
+  numberedSectionTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
   },
   sensorMetaText: {
     fontSize: 10,
@@ -761,29 +783,30 @@ const styles = StyleSheet.create({
     gap: 8,
     marginVertical: 4,
   },
-  heroValueLarge: {
-    fontSize: 48,
+  heroValueCondensed: {
+    fontSize: 54,
     fontWeight: '900',
-    color: COLORS.darkCharcoal,
-    letterSpacing: -2,
-    lineHeight: 52,
+    color: '#0D0E11',
+    letterSpacing: -1.5,
+    lineHeight: 56,
   },
-  heroUnitOrange: {
+  heroUnitCondensed: {
     fontSize: 18,
     fontWeight: '900',
-    color: COLORS.accentOrange,
+    color: COLORS.textSecondary,
+    letterSpacing: 0.5,
   },
   flowTrack: {
-    height: 6,
-    borderRadius: 3,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: COLORS.cardSubtle,
     marginVertical: 10,
     overflow: 'hidden',
   },
   flowTrackFill: {
     height: '100%',
-    backgroundColor: COLORS.accentOrange, // Tech vermillion orange
-    borderRadius: 3,
+    backgroundColor: COLORS.accentYellow, // Canary yellow fill
+    borderRadius: 4,
   },
   sensorCardFooter: {
     flexDirection: 'row',
@@ -801,12 +824,12 @@ const styles = StyleSheet.create({
   metricRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   subMetricCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 12,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
@@ -818,56 +841,62 @@ const styles = StyleSheet.create({
   subMetricTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     marginBottom: 6,
   },
+  yellowMiniBox: {
+    backgroundColor: COLORS.accentYellow,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+  },
+  yellowMiniBoxText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#0D0E11',
+  },
   subMetricLabel: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#0D0E11',
     letterSpacing: 0.3,
   },
-  subMetricValue: {
-    fontSize: 17,
+  subMetricValueCondensed: {
+    fontSize: 20,
     fontWeight: '900',
-    color: COLORS.darkCharcoal,
+    color: '#0D0E11',
     letterSpacing: -0.5,
   },
   subMetricUnit: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textSecondary,
   },
   subMetricFoot: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '700',
     color: COLORS.textSecondary,
     marginTop: 2,
+    textTransform: 'uppercase',
   },
 
   /* 5. Dual Flow Comparison & Waveform */
   comparisonCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 18,
-    marginBottom: 14,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
   comparisonHeader: {
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: COLORS.darkCharcoal,
-    letterSpacing: -0.4,
-  },
   comparisonSubtitle: {
     fontSize: 11,
     fontWeight: '600',
     color: COLORS.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   barCompareWrap: {
     gap: 8,
@@ -879,10 +908,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   barLabel: {
-    width: 58,
+    width: 62,
     fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
+    fontWeight: '800',
+    color: '#0D0E11',
+    textTransform: 'uppercase',
   },
   barTrack: {
     flex: 1,
@@ -897,9 +927,9 @@ const styles = StyleSheet.create({
   },
   barValue: {
     width: 34,
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#0D0E11',
     textAlign: 'right',
   },
   waveformWrap: {
@@ -909,82 +939,96 @@ const styles = StyleSheet.create({
 
   /* 6. Pipeline Tasks */
   tasksSection: {
-    marginBottom: 14,
+    marginBottom: 12,
   },
   tasksHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  sectionTitleCondensed: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   resetPillBtn: {
     backgroundColor: COLORS.cardSubtle,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   resetPillBtnText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
   },
   taskCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 14,
+    padding: 12,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
   taskCardActive: {
-    borderColor: COLORS.darkCharcoal,
-    borderWidth: 1.5,
+    borderColor: '#0D0E11',
+    borderWidth: 2,
   },
   taskLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
   },
-  taskStatusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  taskYellowIndexBox: {
+    backgroundColor: COLORS.cardSubtle,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
   },
-  taskTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
-    letterSpacing: -0.3,
+  taskYellowIndexText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0D0E11',
+  },
+  taskTitleCondensed: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
   },
   taskSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textSecondary,
     marginTop: 1,
   },
   taskCheckBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 1.5,
     borderColor: COLORS.cardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   taskCheckBtnActive: {
-    backgroundColor: COLORS.darkCharcoal,
-    borderColor: COLORS.darkCharcoal,
+    backgroundColor: COLORS.accentYellow,
+    borderColor: '#0D0E11',
   },
 
   /* 7. Hardware Card */
   hardwareCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 18,
+    borderRadius: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
@@ -997,46 +1041,49 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardSubtle,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 6,
   },
   sourcePillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.5,
   },
   hardwareInfoGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 14,
+    marginVertical: 12,
   },
   hwInfoItem: {
     flex: 1,
   },
   hwInfoLabel: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     color: COLORS.textSecondary,
     marginBottom: 2,
   },
   hwInfoVal: {
     fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+    fontWeight: '900',
+    color: '#0D0E11',
   },
 
-  /* Button matching "Save for later" pill in uploaded photo! */
-  saveForLaterStyleBtn: {
-    flexDirection: 'row',
+  /* Electric Canary Yellow CTA button matching "-> RUN THE 5-POINT CHECK ->" */
+  yellowBannerBtn: {
+    backgroundColor: COLORS.accentYellow, // #F7FF00 Canary yellow
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.cardSubtle, // #E5E2DA
-    paddingVertical: 11,
-    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2EA00',
   },
-  saveForLaterBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.darkCharcoal,
+  yellowBannerBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
 });
