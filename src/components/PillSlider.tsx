@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, PanResponder, LayoutChangeEvent } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PillSliderProps {
   label: string;
@@ -23,40 +24,28 @@ export const PillSlider: React.FC<PillSliderProps> = ({
   onChange,
   color = COLORS.darkCharcoal,
 }) => {
-  const trackWidthRef = useRef<number>(200);
+  const fraction = Math.max(0, Math.min(1, (value - min) / (max - min)));
 
-  const calculateValueFromPosition = (pageX: number, trackLeft: number) => {
-    const width = trackWidthRef.current || 200;
-    const clampedX = Math.max(0, Math.min(pageX - trackLeft, width));
-    const ratio = clampedX / width;
-    let rawVal = min + ratio * (max - min);
-    if (step) {
-      rawVal = Math.round(rawVal / step) * step;
-    }
-    const finalVal = Math.max(min, Math.min(max, Number(rawVal.toFixed(2))));
-    onChange(finalVal);
+  const handleDecrement = () => {
+    const next = Math.max(min, Number((value - step).toFixed(2)));
+    onChange(next);
   };
 
-  const trackRef = useRef<View>(null);
+  const handleIncrement = () => {
+    const next = Math.min(max, Number((value + step).toFixed(2)));
+    onChange(next);
+  };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (evt) => {
-        trackRef.current?.measure((x, y, width, height, pageX) => {
-          calculateValueFromPosition(evt.nativeEvent.pageX, pageX);
-        });
-      },
-      onPanResponderMove: (evt) => {
-        trackRef.current?.measure((x, y, width, height, pageX) => {
-          calculateValueFromPosition(evt.nativeEvent.pageX, pageX);
-        });
-      },
-    })
-  ).current;
-
-  const fraction = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  const handleTrackPress = (e: any) => {
+    const { locationX } = e.nativeEvent;
+    const width = 200; // estimated width
+    const ratio = Math.max(0, Math.min(1, locationX / width));
+    let raw = min + ratio * (max - min);
+    if (step) {
+      raw = Math.round(raw / step) * step;
+    }
+    onChange(Math.max(min, Math.min(max, Number(raw.toFixed(2)))));
+  };
 
   return (
     <View style={styles.container}>
@@ -67,24 +56,31 @@ export const PillSlider: React.FC<PillSliderProps> = ({
         </Text>
       </View>
 
-      <View
-        ref={trackRef}
-        style={styles.track}
-        onLayout={(e: LayoutChangeEvent) => {
-          trackWidthRef.current = e.nativeEvent.layout.width;
-        }}
-        {...panResponder.panHandlers}
-      >
-        <View style={[styles.fill, { width: `${fraction * 100}%`, backgroundColor: color }]} />
-        <View
-          style={[
-            styles.thumb,
-            {
-              left: `${fraction * 100}%`,
-              borderColor: color,
-            },
-          ]}
-        />
+      <View style={styles.sliderControlRow}>
+        <TouchableOpacity style={styles.stepBtn} onPress={handleDecrement} activeOpacity={0.7}>
+          <Ionicons name="remove" size={14} color={COLORS.darkCharcoal} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.track}
+          onPress={handleTrackPress}
+          activeOpacity={0.9}
+        >
+          <View style={[styles.fill, { width: `${fraction * 100}%`, backgroundColor: color }]} />
+          <View
+            style={[
+              styles.thumb,
+              {
+                left: `${fraction * 100}%`,
+                borderColor: color,
+              },
+            ]}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.stepBtn} onPress={handleIncrement} activeOpacity={0.7}>
+          <Ionicons name="add" size={14} color={COLORS.darkCharcoal} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -111,30 +107,45 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
+  sliderControlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: COLORS.cardSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#CBC7BD',
+  },
   track: {
-    height: 14,
+    flex: 1,
+    height: 12,
     backgroundColor: '#DAD7CE',
-    borderRadius: 7,
+    borderRadius: 6,
     position: 'relative',
     justifyContent: 'center',
-    cursor: 'pointer' as any,
   },
   fill: {
     height: '100%',
-    borderRadius: 7,
+    borderRadius: 6,
   },
   thumb: {
     position: 'absolute',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#FFFFFF',
     borderWidth: 3,
-    marginLeft: -11,
+    marginLeft: -10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

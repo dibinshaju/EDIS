@@ -8,21 +8,32 @@ export const COLORS = {
   // Signature Acid / Neon Lime Accent
   accentLime: '#D8FA1E',      // Neon yellow-green accent circles & badges
   accentLimeLight: '#EEFFA3', // Light lime tint
-  accentLimeDark: '#A6C408',
+  accentLimeDark: '#869F06',
   
   // Charcoal / Dark accents
   darkCharcoal: '#1E2125',    // Dark charcoal for pills and frames
   darkSurface: '#2B2E34',     // Dark pill surfaces
   darkPillText: '#FFFFFF',
   
+  // Backward-compatible color aliases
+  tealPrimary: '#1E2125',
+  tealDark: '#121417',
+  textDark: '#1A1C20',
+  textLight: '#94979E',
+  textMuted: '#6E727A',
+  
   // Pills & Badges
   pillBgLight: '#DAD7CE',
   pillBorder: '#CBC7BD',
   
+  // Demo badge colors
+  demoBadgeBg: '#F2F0EA',
+  demoBadgeBorder: '#CBC7BD',
+  demoBadgeText: '#1E2125',
+  
   // Typography
   textPrimary: '#1A1C20',     // Dark charcoal text
   textSecondary: '#6E727A',   // Mid grey text
-  textMuted: '#94979E',       // Light muted grey
   
   // Status Colors (stylized to match palette)
   danger: '#EF4444',
