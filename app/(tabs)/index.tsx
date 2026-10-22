@@ -630,28 +630,28 @@ const styles = StyleSheet.create({
     paddingBottom: 110, // Clearance for bottom dock
   },
 
-  /* 1. TOP ASYMMETRICAL WHITE HERO CARD */
-  topHeroCard: {
+  /* 1. TOP ENGAGEPRO MODULAR CARD */
+  topModularCard: {
     backgroundColor: '#F3F2EB',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     paddingTop: 16,
-    paddingBottom: 22,
-    paddingHorizontal: 20,
-    position: 'relative',
+    paddingBottom: 20,
+    paddingHorizontal: 18,
+    marginBottom: 14,
   },
-  heroTopBar: {
+  headerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  brandRow: {
+  brandGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  logoCircle: {
+  brandIconCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -659,394 +659,363 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandLogoText: {
+  brandTitleText: {
     fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.2,
   },
-  topNavSymbolsRow: {
+  headerRightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
-  topNavIconBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  miniNavBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#EAE8DE',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  topNavIconBtnActive: {
+  miniNavBtnActive: {
     backgroundColor: COLORS.accentYellow,
     borderWidth: 1,
     borderColor: '#E2EA00',
   },
-  topNavDotBadge: {
+  miniDotAlert: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 3,
+    right: 3,
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: COLORS.danger,
   },
-  heroPagePill: {
+  menuBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 8,
+    gap: 5,
+    backgroundColor: '#0D0E11',
+    paddingHorizontal: 9,
     paddingVertical: 5,
     borderRadius: 12,
+    marginLeft: 2,
   },
-  heroPagePillBold: {
-    fontSize: 12,
+  menuLines: {
+    gap: 3,
+  },
+  menuLine: {
+    width: 10,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+  },
+  menuText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+
+  /* Hero Category Title Row with Circular Arrow Button */
+  categoryActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  categoryTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
+  categoryTitleBold: {
+    fontSize: 20,
     fontWeight: '900',
     color: '#0D0E11',
+    letterSpacing: -0.4,
   },
-  heroPagePillLight: {
-    fontSize: 12,
+  categoryTitleItalic: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#66655E',
+    fontStyle: 'italic',
+  },
+  circleArrowBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.accentYellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2EA00',
   },
 
-  /* Category Tag Pill (matching "Resources" in reference) */
-  categoryPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 8,
-    marginBottom: 12,
+  /* Big Headline Block */
+  headlineBlock: {
+    marginBottom: 16,
   },
-  categoryPillText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: 0.3,
-  },
-
-  /* Massive Headline Block (matching "Best Google fonts for tech websites") */
-  heroTitleBlock: {
-    marginBottom: 12,
-  },
-  heroTitleGiant: {
+  displayHeading: {
     fontSize: 48,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -2,
     lineHeight: 48,
   },
-  heroTitleLastRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  starburstInline: {
-    width: 54,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  starburstTextWrap: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  starburstNumber: {
+  headlineSubtitle: {
     fontSize: 13,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  starburstSub: {
-    fontSize: 8,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
+    fontWeight: '600',
+    color: '#66655E',
+    marginTop: 8,
+    lineHeight: 18,
   },
 
-  /* Floating Black Cursor Badge (matching "Inayat Naqvi" badge in reference) */
-  floatingCursorBadge: {
+  /* 3-Column Metric Row */
+  threeColMetricCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#0D0E11',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-    gap: 6,
-    marginBottom: 16,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cursorAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#282A30',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cursorBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
-  cursorArrow: {
-    transform: [{ rotate: '-45deg' }],
-  },
-
-  /* Slanted Tags */
-  slantedTagsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-    paddingVertical: 2,
-  },
-  slantedTag: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#D8D6CE',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  slantedTagText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0D0E11',
-    letterSpacing: 0.2,
-  },
-
-  /* Bottom Hero Meta Row (matching "@ui.inayat" and "Save for later" in reference) */
-  heroFooterMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginTop: 6,
     marginBottom: 12,
   },
-  heroAuthorHandle: {
-    fontSize: 14,
+  colMetricItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  colMetricDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#EAE8DE',
+    alignSelf: 'center',
+  },
+  colMetricLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#66655E',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  colMetricValRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
+  },
+  colMetricValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.5,
+  },
+  colMetricUnit: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#66655E',
+  },
+
+  /* Stacked Step Strips with Giant Monogram Backdrop */
+  stepStripsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  monogramBackdrop: {
+    position: 'absolute',
+    right: -10,
+    bottom: -35,
+    opacity: 0.06,
+  },
+  monogramText: {
+    fontSize: 180,
+    fontWeight: '900',
+    color: '#0D0E11',
+    lineHeight: 180,
+  },
+  stepStripRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    gap: 10,
+  },
+  stepBadge: {
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  stepBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#0D0E11',
+  },
+  stepContentWrap: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 13,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.2,
   },
-  heroAuthorSub: {
-    fontSize: 12,
+  stepDesc: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#66655E',
-    marginTop: 2,
+    marginTop: 1,
   },
-  saveForLaterPill: {
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-  },
-  saveForLaterText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0D0E11',
+  stepStripDivider: {
+    height: 1,
+    backgroundColor: '#F3F2EB',
+    marginVertical: 4,
   },
 
-  /* Bottom Hero Row (Simulation pills) */
-  heroBottomRow: {
+  /* Split 2-Block Cards */
+  splitBlockContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
+    gap: 10,
+    marginBottom: 12,
   },
-  overhangingPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: COLORS.accentYellow, // Bright canary yellow
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
+  splitBlockYellow: {
+    flex: 1,
+    backgroundColor: COLORS.accentYellow,
+    borderRadius: 18,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#E2EA00',
   },
-  overhangingPillLabel: {
-    fontSize: 12,
+  splitBlockWhite: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
+  },
+  splitBlockLabelDark: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#333333',
+    marginBottom: 6,
+  },
+  splitBlockLabelLight: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#66655E',
+    marginBottom: 6,
+  },
+  splitValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+  },
+  splitValueDark: {
+    fontSize: 32,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: 0.2,
+    letterSpacing: -1,
+  },
+  splitValueLight: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -1,
+  },
+  splitUnitDark: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0D0E11',
+  },
+  splitSubDark: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333333',
+    marginTop: 4,
+  },
+  splitSubLight: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#66655E',
+    marginTop: 4,
+  },
+
+  /* Bottom Full-Width Action Banner */
+  detailsActionBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0D0E11',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  detailsBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailsBannerText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  playTriangleWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* Scenario Test Row */
+  heroSimulateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+  },
+  heroSimulateLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#66655E',
   },
   miniDotRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   scenarioDotBtn: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
   },
   scenarioDotBtnActive: {
-    backgroundColor: '#0D0E11',
-  },
-
-  /* 2. MANIFESTO HEADLINE SECTION */
-  manifestoSection: {
-    paddingHorizontal: 22,
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  miniStarburstWrap: {
-    marginBottom: 12,
-  },
-  manifestoHeadline: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-    lineHeight: 28,
+    backgroundColor: COLORS.accentYellow,
+    borderColor: '#0D0E11',
   },
 
   /* Body Content */
   bodyContent: {
     paddingHorizontal: 16,
-  },
-
-  /* 3. SIGNATURE 2x2 CUT-CORNER GRID BOXES */
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 14,
-  },
-  gridCard: {
-    width: '48%',
-    padding: 16,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 4, // Stylized cut-corner shape from reference!
-    minHeight: 180,
-    justifyContent: 'space-between',
-  },
-  gridCardYellow: {
-    backgroundColor: COLORS.accentYellow, // #F7FF00 electric canary yellow
-    borderWidth: 1,
-    borderColor: '#E2EA00',
-  },
-  gridCardWhite: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-  },
-
-  /* Dark text styles for Card 01 */
-  gridNumberDark: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -2,
-  },
-  gridTitleDark: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -0.4,
-    marginTop: 2,
-  },
-  gridValueDark: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -0.8,
-    marginTop: 4,
-  },
-  gridUnitDark: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#333333',
-  },
-  gridSubDark: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333333',
-    lineHeight: 16,
-    marginTop: 4,
-  },
-  gridActionPillDark: {
-    borderWidth: 1,
-    borderColor: '#0D0E11',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 10,
-  },
-  gridActionTextDark: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#0D0E11',
-  },
-
-  /* Light text styles for Cards 02, 03, 04 */
-  gridNumberLight: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -2,
-  },
-  gridTitleLight: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -0.4,
-    marginTop: 2,
-  },
-  gridValueLight: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -0.8,
-    marginTop: 4,
-  },
-  gridUnitLight: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#66655E',
-  },
-  gridSubLight: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#66655E',
-    lineHeight: 16,
-    marginTop: 4,
-  },
-  gridActionPillLight: {
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-    backgroundColor: '#F3F2EB',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 10,
   },
   gridActionTextLight: {
     fontSize: 11,
