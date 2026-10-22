@@ -48,9 +48,19 @@ export const COLORS = {
   successBg: '#D1FAE5',
   successText: '#065F46',
   
+  // Graphic Tech Accent (from uploaded reference image)
+  accentOrange: '#FF5500',    // Punchy tech orange from "tech websites" headline
+  accentOrangeLight: '#FFE8DF',
+
   // Desktop Outer Canvas Presentation Background (from photo)
   presentationBackdrop: '#D4FB0A', // Bright electric lime background
   deviceBezel: '#2C2E33',          // Tablet/phone dark bezel
+};
+
+export const FONTS = {
+  display: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+  body: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
+  mono: 'SF Mono, Menlo, Courier, monospace',
 };
 
 export const SPACING = {
@@ -64,8 +74,9 @@ export const SPACING = {
 
 export const RADIUS = {
   sm: 8,
-  md: 16,
-  lg: 24,   // Signature organic rounded corners from image
-  xl: 32,
+  md: 14,
+  lg: 20,   // Clean rounded corners from reference
+  xl: 28,
   full: 9999,
 };
+
