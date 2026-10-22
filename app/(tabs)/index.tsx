@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
     fontSize: 50,
     lineHeight: 50,
     color: '#FFFFFF',
-    letterSpacing: 3.5,
+    letterSpacing: 0.5,
   },
   p1TitleFlowRow: {
     flexDirection: 'row',
@@ -894,13 +894,13 @@ const styles = StyleSheet.create({
     fontSize: 50,
     lineHeight: 50,
     color: '#FFFFFF',
-    letterSpacing: 3.5,
+    letterSpacing: 0.5,
   },
   p1TitleSubGreen: {
     fontFamily: FONTS.body,
     fontSize: 14,
     color: '#8E9F88',
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
   },
   roundActionLimeBtn: {
     width: 32,
@@ -916,20 +916,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
-    paddingTop: 10,
-    marginBottom: 4,
+    paddingTop: 12,
+    marginBottom: 6,
   },
   p1StatCol: {
     flex: 1,
     alignItems: 'flex-start',
-    overflow: 'visible',
   },
   p1StatLabel: {
     fontFamily: FONTS.heading,
-    fontSize: 9,
+    fontSize: 9.5,
     color: '#8E9F88',
-    marginBottom: 2,
-    letterSpacing: 1,
+    marginBottom: 4,
+    letterSpacing: 0.2,
   },
   p1StatValueRow: {
     flexDirection: 'row',
@@ -937,22 +936,20 @@ const styles = StyleSheet.create({
   },
   p1StatValueLime: {
     fontFamily: FONTS.body,
-    fontSize: 62,
-    lineHeight: 62,
+    fontSize: 38,
     color: '#D4FF32',
-    letterSpacing: 3.5,
+    letterSpacing: 0.5,
   },
   p1StatUnitLime: {
     fontFamily: FONTS.body,
-    fontSize: 20,
+    fontSize: 16,
     color: '#D4FF32',
     marginLeft: 2,
-    letterSpacing: 1,
   },
   p1StatDivider: {
     width: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
 
   // Phone 1 Bottom: Neon Lime Green (50%)
@@ -1172,14 +1169,13 @@ const styles = StyleSheet.create({
   },
   p2BlockValueDark: {
     fontFamily: FONTS.body,
-    fontSize: 62,
-    lineHeight: 62,
+    fontSize: 40,
     color: '#0F1A12',
-    letterSpacing: 3.5,
+    letterSpacing: 0.5,
   },
   p2BlockUnitDark: {
     fontFamily: FONTS.body,
-    fontSize: 24,
+    fontSize: 22,
   },
 
   p2BlockDark: {
@@ -1197,10 +1193,9 @@ const styles = StyleSheet.create({
   },
   p2BlockValueLight: {
     fontFamily: FONTS.body,
-    fontSize: 62,
-    lineHeight: 62,
+    fontSize: 40,
     color: '#FFFFFF',
-    letterSpacing: 3.5,
+    letterSpacing: 0.5,
   },
 
   p2FooterBar: {
