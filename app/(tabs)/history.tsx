@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: COLORS.accentLime, // Neon lime dot
+    backgroundColor: COLORS.accentOrange, // Tech orange dot
     marginTop: 4,
   },
 
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.accentLime, // Neon yellow-lime core
+    backgroundColor: COLORS.accentOrange, // Tech orange core
   },
   nodeInactive: {
     width: 12,
