@@ -6,17 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
-import { useMqtt } from '../../src/context/MqttContext';
 import { PillSlider } from '../../src/components/PillSlider';
 import { WaveformChart } from '../../src/components/WaveformChart';
 import { formatFlow } from '../../src/utils/format';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
-  const router = useRouter();
   const {
     inFlow,
     outFlow,
@@ -28,18 +25,12 @@ export default function DashboardScreen() {
     needIntervals,
     mismatchThreshold,
     statusState,
-    statusDetail,
     events,
     setScenario,
     manualFlow,
-    setMismatchThreshold,
-    setNeedIntervals,
     resetDemo,
     activeScenario,
-    dataSource,
   } = useSensor();
-
-  const { status: mqttStatus } = useMqtt();
 
   const getStatusColor = () => {
     switch (statusState) {
@@ -58,69 +49,69 @@ export default function DashboardScreen() {
   const getStatusTitle = () => {
     switch (statusState) {
       case 'leak':
-        return 'POSSIBLE LEAK · persistent mismatch';
+        return 'POSSIBLE LEAK';
       case 'datacheck':
-        return 'DATA CHECK · outlet exceeds inlet';
+        return 'DATA CHECK';
       case 'high':
-        return 'HIGH CONSUMPTION · balanced flow';
+        return 'HIGH DRAW';
       case 'checking':
-        return 'CHECKING · mismatch detected';
+        return 'CHECKING';
       case 'normal':
       default:
-        return 'NORMAL · monitoring';
+        return 'NORMAL';
     }
   };
 
-  const progressPct = Math.min(100, Math.round((Math.min(suspicious, needIntervals) / needIntervals) * 100));
+  const progressPct = Math.min(
+    100,
+    Math.round((Math.min(suspicious, needIntervals) / needIntervals) * 100)
+  );
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
-      {/* 1. Top Header Bar (Cardiology UI aesthetic) */}
-      <View style={styles.topHeader}>
-        <View style={styles.topHeaderLeft}>
-          <View style={styles.brandCircle}>
-            <Ionicons name="water-outline" size={16} color={COLORS.textPrimary} />
-          </View>
-          <View>
-            <Text style={styles.eyebrow}>IoT • WATER DYNAMICS</Text>
-            <Text style={styles.mainTitle}>Smart Water Leakage Detection</Text>
+      {/* 1. Top Editorial Header (Matching uploaded graphic) */}
+      <View style={styles.header}>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>Telemetry Monitor</Text>
+          <View style={styles.indexPill}>
+            <Text style={styles.indexPillText}>01 of 04</Text>
           </View>
         </View>
 
-        <View style={styles.prototypePill}>
-          <Text style={styles.prototypePillText}>DIGITAL PROTOTYPE · MOCK DATA</Text>
+        {/* Category Capsule Tag */}
+        <View style={styles.tagPill}>
+          <Text style={styles.tagPillText}>Resources</Text>
+        </View>
+
+        {/* Hero Title with Graphic Orange Accent */}
+        <View style={styles.heroTitleWrap}>
+          <Text style={styles.heroTitlePrimary}>Smart Water</Text>
+          <Text style={styles.heroTitlePrimary}>
+            Flow & <Text style={styles.heroTitleAccent}>Leak Alert</Text>
+          </Text>
         </View>
       </View>
 
-      {/* Prototype Disclosure Notice Banner */}
-      <View style={styles.noticeBox}>
-        <Ionicons name="information-circle-outline" size={16} color={COLORS.textPrimary} />
-        <Text style={styles.noticeText}>
-          <Text style={styles.bold}>Prototype disclosure: </Text>
-          Readings on this page demonstrate dual-sensor comparison and persistence-filtered detection logic.
-        </Text>
-      </View>
-
-      {/* 2. Top 4 Metric Cards Grid */}
+      {/* 2. Top 4 Essential KPI Cards */}
       <View style={styles.kpiGrid}>
         <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Inlet flow · S1</Text>
+          <Text style={styles.kpiLabel}>Inlet S1</Text>
           <Text style={styles.kpiValue}>
-            {formatFlow(inFlow)} <Text style={styles.kpiUnit}>L/min</Text>
+            {formatFlow(inFlow)} <Text style={styles.kpiUnit}>L/m</Text>
           </Text>
-          <Text style={styles.kpiSub}>Water entering section</Text>
+          <Text style={styles.kpiSub}>Municipal intake</Text>
         </View>
 
         <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Outlet flow · S2</Text>
+          <Text style={styles.kpiLabel}>Outlet S2</Text>
           <Text style={styles.kpiValue}>
-            {formatFlow(outFlow)} <Text style={styles.kpiUnit}>L/min</Text>
+            {formatFlow(outFlow)} <Text style={styles.kpiUnit}>L/m</Text>
           </Text>
-          <Text style={styles.kpiSub}>Water leaving section</Text>
+          <Text style={styles.kpiSub}>Distribution line</Text>
         </View>
 
         <View style={[styles.kpiCard, mismatch > mismatchThreshold && styles.kpiCardAlert]}>
-          <Text style={styles.kpiLabel}>Volume mismatch</Text>
+          <Text style={styles.kpiLabel}>Mismatch</Text>
           <Text
             style={[
               styles.kpiValue,
@@ -129,187 +120,168 @@ export default function DashboardScreen() {
           >
             {mismatch >= 0 ? '+' : ''}{mismatch.toFixed(2)} <Text style={styles.kpiUnit}>L</Text>
           </Text>
-          <Text style={styles.kpiSub}>Inlet − Outlet deficit</Text>
+          <Text style={styles.kpiSub}>Deficit loss</Text>
         </View>
 
         <View style={styles.kpiCard}>
-          <Text style={styles.kpiLabel}>Monitoring time</Text>
+          <Text style={styles.kpiLabel}>Runtime</Text>
           <Text style={styles.kpiValue}>
-            {elapsed} <Text style={styles.kpiUnit}>sec</Text>
+            {elapsed} <Text style={styles.kpiUnit}>s</Text>
           </Text>
-          <Text style={styles.kpiSub}>Simulated runtime</Text>
+          <Text style={styles.kpiSub}>Active session</Text>
         </View>
       </View>
 
-      {/* 3. Main Dashboard Panels: Scenario Controls & System Status */}
-      <View style={styles.panelsContainer}>
-        {/* Panel A: Scenario Controls */}
-        <View style={styles.cardPanel}>
-          <Text style={styles.panelTitle}>Scenario Controls</Text>
-
-          {/* Scenario Buttons (Normal, Leak, High, Reset) */}
-          <View style={styles.controlsRow}>
-            <TouchableOpacity
-              style={[styles.btn, activeScenario === 'normal' && styles.btnActive]}
-              onPress={() => setScenario('normal')}
-            >
-              <Text style={[styles.btnText, activeScenario === 'normal' && styles.btnTextActive]}>
-                Normal flow
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.btn, activeScenario === 'suspected_leak' && styles.btnActive]}
-              onPress={() => setScenario('suspected_leak')}
-            >
-              <Text style={[styles.btnText, activeScenario === 'suspected_leak' && styles.btnTextActive]}>
-                Simulate leak
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.btn, activeScenario === 'abnormal_consumption' && styles.btnActive]}
-              onPress={() => setScenario('abnormal_consumption')}
-            >
-              <Text style={[styles.btnText, activeScenario === 'abnormal_consumption' && styles.btnTextActive]}>
-                High draw
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.btnReset} onPress={resetDemo}>
-              <Text style={styles.btnResetText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Interactive Flow Sliders */}
-          <PillSlider
-            label="Inlet flow (S1)"
-            value={inFlow}
-            min={0}
-            max={15}
-            step={0.5}
-            unit="L/min"
-            onChange={(val) => manualFlow(val, outFlow)}
-            color={COLORS.darkCharcoal}
-          />
-
-          <PillSlider
-            label="Outlet flow (S2)"
-            value={outFlow}
-            min={0}
-            max={15}
-            step={0.5}
-            unit="L/min"
-            onChange={(val) => manualFlow(inFlow, val)}
-            color={COLORS.textSecondary}
-          />
-
-          <PillSlider
-            label="Mismatch threshold"
-            value={mismatchThreshold}
-            min={0.2}
-            max={3.0}
-            step={0.1}
-            unit="L"
-            onChange={(val) => setMismatchThreshold(val)}
-            color={COLORS.accentLimeDark}
-          />
-
-          <PillSlider
-            label="Required suspicious intervals"
-            value={needIntervals}
-            min={1}
-            max={6}
-            step={1}
-            unit="intervals"
-            onChange={(val) => setNeedIntervals(val)}
-            color={COLORS.darkCharcoal}
-          />
-
-          <Text style={styles.smallNote}>
-            Each interval represents 10 simulated seconds. Use the scenario buttons for a repeatable demonstration, or adjust flows manually.
-          </Text>
-
-          {/* Cumulative Volumes (Mini boxes from prototype) */}
-          <View style={styles.twoColMini}>
-            <View style={styles.miniBox}>
-              <Text style={styles.miniTag}>Inlet Volume</Text>
-              <Text style={styles.miniValue}>{inVol.toFixed(2)} L</Text>
-              <Text style={styles.miniSub}>Cumulative metered</Text>
-            </View>
-
-            <View style={styles.miniBox}>
-              <Text style={styles.miniTag}>Outlet Volume</Text>
-              <Text style={styles.miniValue}>{outVol.toFixed(2)} L</Text>
-              <Text style={styles.miniSub}>Cumulative metered</Text>
-            </View>
-          </View>
+      {/* 3. Essential Scenario Triggers */}
+      <View style={styles.cardPanel}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.sectionTitle}>Simulate Scenarios</Text>
+          <TouchableOpacity style={styles.resetBtn} onPress={resetDemo}>
+            <Ionicons name="refresh" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.resetBtnText}>Reset</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Panel B: System Status & Live History */}
-        <View style={styles.cardPanel}>
-          <Text style={styles.panelTitle}>System Status</Text>
+        <View style={styles.scenarioPillsRow}>
+          <TouchableOpacity
+            style={[styles.scenarioPill, activeScenario === 'normal' && styles.scenarioPillActive]}
+            onPress={() => setScenario('normal')}
+          >
+            <Text
+              style={[
+                styles.scenarioPillText,
+                activeScenario === 'normal' && styles.scenarioPillTextActive,
+              ]}
+            >
+              Normal
+            </Text>
+          </TouchableOpacity>
 
-          {/* Status Box */}
-          <View style={styles.statusBox}>
+          <TouchableOpacity
+            style={[
+              styles.scenarioPill,
+              activeScenario === 'suspected_leak' && styles.scenarioPillActiveAlert,
+            ]}
+            onPress={() => setScenario('suspected_leak')}
+          >
+            <Text
+              style={[
+                styles.scenarioPillText,
+                activeScenario === 'suspected_leak' && styles.scenarioPillTextActive,
+              ]}
+            >
+              Simulate Leak
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.scenarioPill,
+              activeScenario === 'abnormal_consumption' && styles.scenarioPillActive,
+            ]}
+            onPress={() => setScenario('abnormal_consumption')}
+          >
+            <Text
+              style={[
+                styles.scenarioPillText,
+                activeScenario === 'abnormal_consumption' && styles.scenarioPillTextActive,
+              ]}
+            >
+              High Draw
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sliders: Essential Controls Only */}
+        <PillSlider
+          label="Inlet Flow S1"
+          value={inFlow}
+          min={0}
+          max={15}
+          step={0.5}
+          unit="L/min"
+          onChange={(val) => manualFlow(val, outFlow)}
+          color={COLORS.darkCharcoal}
+        />
+
+        <PillSlider
+          label="Outlet Flow S2"
+          value={outFlow}
+          min={0}
+          max={15}
+          step={0.5}
+          unit="L/min"
+          onChange={(val) => manualFlow(inFlow, val)}
+          color={COLORS.textSecondary}
+        />
+
+        {/* Cumulative Volume Meter */}
+        <View style={styles.volRow}>
+          <View style={styles.volBox}>
+            <Text style={styles.volLabel}>Inlet Volume</Text>
+            <Text style={styles.volValue}>{inVol.toFixed(2)} L</Text>
+          </View>
+          <View style={styles.volBox}>
+            <Text style={styles.volLabel}>Outlet Volume</Text>
+            <Text style={styles.volValue}>{outVol.toFixed(2)} L</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 4. Status & Diagnostic Verification */}
+      <View style={styles.cardPanel}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.sectionTitle}>System Status</Text>
+          <View style={styles.statusPill}>
             <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
-            <Text style={[styles.statusText, { color: getStatusColor() }]}>
+            <Text style={[styles.statusPillText, { color: getStatusColor() }]}>
               {getStatusTitle()}
             </Text>
           </View>
-          <Text style={styles.statusDetail}>{statusDetail}</Text>
-
-          {/* Suspicious Intervals Progress Bar */}
-          <View style={styles.barLabelRow}>
-            <Text style={styles.barLabel}>Suspicious intervals</Text>
-            <Text style={styles.barCountText}>
-              {Math.min(suspicious, needIntervals)} / {needIntervals}
-            </Text>
-          </View>
-
-          <View style={styles.barTrack}>
-            <View
-              style={[
-                styles.barFill,
-                {
-                  width: `${progressPct}%`,
-                  backgroundColor: progressPct >= 100 ? COLORS.danger : COLORS.accentLimeDark,
-                },
-              ]}
-            />
-          </View>
-
-          {/* Layered Medical Waveform Chart */}
-          <View style={styles.chartWrap}>
-            <Text style={styles.chartTitle}>Recent Flow Telemetry</Text>
-            <WaveformChart
-              title="Dual-Sensor Stream"
-              currentValue={inFlow}
-              averageValue={outFlow}
-              deltaValue={inFlow - outFlow}
-              isAlert={statusState === 'leak'}
-            />
-          </View>
-
-          {/* Event Log */}
-          <Text style={styles.eventsHeading}>Event Log</Text>
-          <View style={styles.eventListBox}>
-            {events.map((ev) => (
-              <View key={ev.id} style={styles.eventRow}>
-                <Text style={styles.eventTime}>{ev.t}</Text>
-                <Text style={styles.eventMsg}>{ev.message}</Text>
-              </View>
-            ))}
-          </View>
         </View>
-      </View>
 
-      {/* Engineering Note at Bottom */}
-      <View style={styles.footNote}>
-        <Text style={styles.footNoteText}>
-          <Text style={styles.bold}>Engineering note: </Text>
-          A persistent mismatch suggests possible water loss only if both sensors are calibrated, measurements are time-aligned, and there are no unmeasured branches or storage tanks between them. Reversed mismatch is treated as a sensor/calibration check, not a pipe breach.
-        </Text>
+        {/* Suspicious Intervals Progress */}
+        <View style={styles.barLabelRow}>
+          <Text style={styles.barLabel}>Persistence Intervals</Text>
+          <Text style={styles.barCount}>
+            {Math.min(suspicious, needIntervals)} / {needIntervals}
+          </Text>
+        </View>
+        <View style={styles.barTrack}>
+          <View
+            style={[
+              styles.barFill,
+              {
+                width: `${progressPct}%`,
+                backgroundColor: progressPct >= 100 ? COLORS.danger : COLORS.accentOrange,
+              },
+            ]}
+          />
+        </View>
+
+        {/* Waveform Chart */}
+        <View style={styles.chartContainer}>
+          <WaveformChart
+            title="Flow Telemetry Stream"
+            currentValue={inFlow}
+            averageValue={outFlow}
+            deltaValue={inFlow - outFlow}
+            isAlert={statusState === 'leak'}
+          />
+        </View>
+
+        {/* Live Event Feed (Latest 3 events only, crisp and short) */}
+        <Text style={styles.feedTitle}>Recent Log</Text>
+        <View style={styles.feedBox}>
+          {events.slice(0, 3).map((ev) => (
+            <View key={ev.id} style={styles.feedRow}>
+              <Text style={styles.feedTime}>{ev.t}</Text>
+              <Text style={styles.feedMsg} numberOfLines={1}>
+                {ev.message}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
@@ -318,314 +290,278 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.canvasBg, // Soft warm stone/putty grey
+    backgroundColor: COLORS.canvasBg,
   },
   scrollContent: {
-    padding: 14,
-    paddingBottom: 80,
+    padding: 16,
+    paddingBottom: 90,
   },
-  topHeader: {
+  header: {
+    marginBottom: 16,
+  },
+  metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-    flexWrap: 'wrap',
-    gap: 8,
   },
-  topHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  brandCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  eyebrow: {
-    fontSize: 9,
-    fontWeight: '800',
+  metaLabel: {
+    fontSize: 12,
+    fontWeight: '600',
     color: COLORS.textSecondary,
-    letterSpacing: 1,
+    letterSpacing: 0.2,
   },
-  mainTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+  indexPill: {
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  indexPillText: {
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    letterSpacing: -0.3,
   },
-  prototypePill: {
-    backgroundColor: '#FFFFFF',
+  tagPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2DFD8',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: RADIUS.sm,
+    marginBottom: 10,
   },
-  prototypePillText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-  },
-  noticeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.md,
-    padding: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  noticeText: {
+  tagPillText: {
     fontSize: 11,
-    color: COLORS.textSecondary,
-    flex: 1,
-    lineHeight: 15,
-  },
-  bold: {
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.textPrimary,
+    letterSpacing: 0.3,
   },
-  // 4 KPI Cards Grid
+  heroTitleWrap: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  heroTitlePrimary: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#111215',
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  heroTitleAccent: {
+    color: COLORS.accentOrange,
+  },
   kpiGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   kpiCard: {
     flex: 1,
-    minWidth: '47%' as any,
+    minWidth: '47%',
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.lg,
-    padding: 12,
+    padding: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    shadowRadius: 3,
+    elevation: 1,
   },
   kpiCardAlert: {
-    borderColor: COLORS.danger,
-    backgroundColor: '#FFF8F8',
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FECACA',
+    borderWidth: 1,
   },
   kpiLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.textSecondary,
+    marginBottom: 4,
   },
   kpiValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginVertical: 4,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#111215',
+    letterSpacing: -0.8,
   },
   kpiUnit: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: COLORS.textSecondary,
   },
   kpiSub: {
-    fontSize: 9,
-    color: COLORS.textMuted,
-  },
-  // 2-Column or Stacked Panels
-  panelsContainer: {
-    gap: 12,
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+    fontWeight: '500',
   },
   cardPanel: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: 14,
+    borderRadius: RADIUS.lg,
+    padding: 16,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    shadowRadius: 3,
+    elevation: 1,
   },
-  panelTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginBottom: 10,
-  },
-  controlsRow: {
+  cardHeaderRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  btn: {
-    backgroundColor: COLORS.cardSubtle,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 16,
-  },
-  btnActive: {
-    backgroundColor: COLORS.darkCharcoal,
-  },
-  btnText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  btnTextActive: {
-    color: '#FFFFFF',
-  },
-  btnReset: {
-    backgroundColor: 'transparent',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 16,
-  },
-  btnResetText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  smallNote: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    lineHeight: 14,
-    marginTop: 6,
-    marginBottom: 12,
-  },
-  twoColMini: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  miniBox: {
-    flex: 1,
-    backgroundColor: COLORS.cardSubtle,
-    borderRadius: RADIUS.md,
-    padding: 10,
-  },
-  miniTag: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase',
-  },
-  miniValue: {
+  sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginVertical: 2,
+    color: '#111215',
+    letterSpacing: -0.3,
   },
-  miniSub: {
-    fontSize: 9,
-    color: COLORS.textMuted,
-  },
-  // Status Box
-  statusBox: {
+  resetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3F2EC',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  resetBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  scenarioPillsRow: {
+    flexDirection: 'row',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 14,
+  },
+  scenarioPill: {
+    flex: 1,
+    backgroundColor: '#F3F2EC',
+    paddingVertical: 9,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+  },
+  scenarioPillActive: {
+    backgroundColor: COLORS.darkCharcoal,
+  },
+  scenarioPillActiveAlert: {
+    backgroundColor: COLORS.danger,
+  },
+  scenarioPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  scenarioPillTextActive: {
+    color: '#FFFFFF',
+  },
+  volRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  volBox: {
+    flex: 1,
+    backgroundColor: '#F8F7F4',
+    padding: 10,
+    borderRadius: RADIUS.md,
+  },
+  volLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  volValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111215',
+    marginTop: 2,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F5F4EE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
   },
   statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
-  statusText: {
-    fontSize: 13,
+  statusPillText: {
+    fontSize: 10,
     fontWeight: '800',
-  },
-  statusDetail: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginBottom: 10,
+    letterSpacing: 0.3,
   },
   barLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+    marginTop: 4,
   },
   barLabel: {
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textSecondary,
-    fontWeight: '600',
   },
-  barCountText: {
-    fontSize: 10,
+  barCount: {
+    fontSize: 11,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: '#111215',
   },
   barTrack: {
-    height: 8,
-    backgroundColor: COLORS.cardSubtle,
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: '#ECEAE4',
+    borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 14,
   },
   barFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  chartWrap: {
-    alignItems: 'center',
-    marginVertical: 6,
+  chartContainer: {
+    marginTop: 4,
+    marginBottom: 12,
   },
-  chartTitle: {
-    alignSelf: 'flex-start',
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  eventsHeading: {
+  feedTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  eventListBox: {
-    backgroundColor: COLORS.cardSubtle,
-    borderRadius: RADIUS.md,
-    padding: 10,
-    maxHeight: 140,
-  },
-  eventRow: {
-    flexDirection: 'row',
-    paddingVertical: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.03)',
-  },
-  eventTime: {
-    fontSize: 10,
-    color: COLORS.textMuted,
-    fontWeight: '700',
-    width: 50,
-  },
-  eventMsg: {
-    fontSize: 10,
-    color: COLORS.textPrimary,
-    flex: 1,
-  },
-  footNote: {
-    marginTop: 14,
-    paddingHorizontal: 4,
-  },
-  footNoteText: {
-    fontSize: 10,
     color: COLORS.textSecondary,
-    lineHeight: 15,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  feedBox: {
+    backgroundColor: '#F8F7F4',
+    borderRadius: RADIUS.md,
+    padding: 8,
+  },
+  feedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDEBE4',
+  },
+  feedTime: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.accentOrange,
+    minWidth: 42,
+  },
+  feedMsg: {
+    flex: 1,
+    fontSize: 11,
+    color: COLORS.textPrimary,
+    fontWeight: '500',
   },
 });
