@@ -870,23 +870,35 @@ const styles = StyleSheet.create({
   p1TitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 4,
   },
   p1TitleGroup: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  p1TitleWater: {
+    fontFamily: FONTS.heading,
+    fontSize: 50,
+    lineHeight: 50,
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  p1TitleFlowRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
   },
-  p1TitleWhite: {
+  p1TitleFlow: {
     fontFamily: FONTS.heading,
-    fontSize: 20,
+    fontSize: 50,
+    lineHeight: 50,
     color: '#FFFFFF',
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
   },
   p1TitleSubGreen: {
     fontFamily: FONTS.body,
-    fontSize: 13,
+    fontSize: 14,
     color: '#8E9F88',
     letterSpacing: 0.5,
   },
