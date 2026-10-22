@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
   },
   presentationTitle: {
     color: COLORS.darkCharcoal,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
   },
   presentationSubtitle: {
     color: '#4B5563',
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '500',
   },
   presentationRight: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: COLORS.darkCharcoal,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
   },
   frameToggleBtn: {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   frameToggleText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
   },
   // iPhone 18 Pro Crimson Titanium / Deep Red metallic frame
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   statusTime: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accentLimeDark,
   },
   dynamicText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: COLORS.textPrimary,
     letterSpacing: 0.5,
