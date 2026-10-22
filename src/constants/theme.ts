@@ -1,44 +1,44 @@
 export const COLORS = {
-  // Editorial Warm Tech Palette (from latest design reference)
-  canvasBg: '#EFECE6',        // Warm ivory / stone canvas from the image
-  cardBg: '#FFFFFF',          // Crisp white rounded cards
-  cardSubtle: '#E5E2DA',      // Warm muted pill background ("Resources", "Save for later")
-  cardBorder: '#DDD9D0',      // Subtle muted border
+  // Industrial Editorial Blueprint Palette (from latest UI Fundamentals image)
+  canvasBg: '#ECEBE4',        // Warm technical parchment / newsprint paper
+  cardBg: '#FFFFFF',          // Paper white
+  cardSubtle: '#DFDED6',      // Technical muted grey tint
+  cardBorder: '#D0CEC4',      // Crisp technical border
   
-  // Signature Electric Tech Vermillion / Warm Orange Accent ("tech websites")
-  accentOrange: '#FF5522',    // Bold vibrant tech vermillion / warm orange
-  accentOrangeLight: '#FFE8DF',
-  accentOrangeDark: '#CC3A0C',
+  // Signature Electric Canary Highlighter Yellow (#F7FF00 / #FAFF00)
+  accentYellow: '#F7FF00',    // Electric highlighter canary yellow from reference
+  accentYellowHover: '#E5EE00',
+  accentOrange: '#F7FF00',    // Map primary highlight to canary yellow
+  accentLime: '#F7FF00',      // Map lime to canary yellow
+  accentLimeLight: '#FBFF80',
+  accentLimeDark: '#0D0E11',  // High-contrast pitch black on yellow
 
-  // Accent mapping
-  accentLime: '#FF5522',      // Map to the bold tech orange accent
-  accentLimeLight: '#FFE8DF',
-  accentLimeDark: '#FF5522',
-  
-  // Charcoal / Jet Black accents
-  darkCharcoal: '#111215',    // Jet black from the bold headline
-  darkSurface: '#1E1F24',     // Dark pill surfaces
+  // Deep Ink Black (Heavy grotesque headline black)
+  darkCharcoal: '#0D0E11',    // Deep pitch ink black
+  darkSurface: '#18191D',     // Dark technical surface
   darkPillText: '#FFFFFF',
   
   // Backward-compatible color aliases
-  tealPrimary: '#111215',
-  tealDark: '#0A0A0C',
-  textDark: '#111215',
-  textLight: '#9A9790',
-  textMuted: '#787670',
+  tealPrimary: '#0D0E11',
+  tealDark: '#000000',
+  textDark: '#0D0E11',
+  textLight: '#A3A299',
+  textMuted: '#66655E',
   
-  // Pills & Badges
-  pillBgLight: '#E5E2DA',
-  pillBorder: '#DDD9D0',
+  // Technical Number Badges & Buttons
+  badgeYellowBg: '#F7FF00',   // Bright yellow box for "01", "02", "03"
+  badgeYellowText: '#0D0E11', // Heavy black text on yellow
+  pillBgLight: '#DFDED6',
+  pillBorder: '#D0CEC4',
   
   // Demo badge colors
-  demoBadgeBg: '#E5E2DA',
-  demoBadgeBorder: '#DDD9D0',
-  demoBadgeText: '#111215',
+  demoBadgeBg: '#DFDED6',
+  demoBadgeBorder: '#D0CEC4',
+  demoBadgeText: '#0D0E11',
   
-  // Typography (Plus Jakarta Sans high contrast)
-  textPrimary: '#111215',     // Heavy black text
-  textSecondary: '#787670',   // Warm mid-grey text from subheadings
+  // Typography (Industrial high contrast)
+  textPrimary: '#0D0E11',     // Pitch ink black
+  textSecondary: '#66655E',   // Technical mid-grey
   
   // Status Colors (stylized to match palette)
   danger: '#EF4444',
@@ -53,15 +53,16 @@ export const COLORS = {
   successBg: '#D1FAE5',
   successText: '#065F46',
 
-  // Desktop Outer Canvas Presentation Background (Warm editorial studio tone)
-  presentationBackdrop: '#E4E0D6', // Warm studio presentation background
-  deviceBezel: '#181A1D',          // Clean device bezel
+  // Desktop Outer Canvas Presentation Background (Warm technical desk)
+  presentationBackdrop: '#E0DFD8', // Technical studio presentation background
+  deviceBezel: '#18191D',          // Clean device bezel
 };
 
 export const FONTS = {
-  display: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
-  body: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
-  mono: 'SF Mono, Menlo, Courier, monospace',
+  display: '"Barlow Condensed", "Bebas Neue", "Impact", -apple-system, sans-serif',
+  condensed: '"Barlow Condensed", "Bebas Neue", sans-serif',
+  body: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  mono: '"SF Mono", "Courier New", monospace',
 };
 
 export const SPACING = {
