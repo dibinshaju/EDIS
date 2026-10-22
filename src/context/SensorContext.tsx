@@ -33,6 +33,7 @@ interface SensorContextType {
   setMismatchThreshold: (val: number) => void;
   setNeedIntervals: (val: number) => void;
   resetDemo: () => void;
+  resetSimulator: () => void;
   
   // App Infrastructure Compatibility
   currentReading: TelemetryReading;
