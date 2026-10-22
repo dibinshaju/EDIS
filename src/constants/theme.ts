@@ -1,20 +1,30 @@
 export const COLORS = {
-  navyDark: '#0B1F3A',
-  navyMedium: '#132E52',
-  navyLight: '#1E3E6B',
-  tealPrimary: '#00B4D8',
-  tealDark: '#0077B6',
-  tealLight: '#90E0EF',
-  accentNeon: '#C8F135',
-  bgLight: '#F4F6F9',
-  cardBg: '#FFFFFF',
-  cardBorder: '#E2E8F0',
-  textDark: '#0F172A',
-  textMuted: '#64748B',
-  textLight: '#94A3B8',
-  white: '#FFFFFF',
+  // Exact palette extracted from uploaded design
+  canvasBg: '#E9E7E1',        // Soft warm stone / putty grey background
+  cardBg: '#FFFFFF',          // Crisp white rounded cards
+  cardSubtle: '#F2F0EA',      // Soft tinted card secondary
+  cardBorder: '#D8D5CC',      // Subtle muted border
   
-  // Status & Alerts
+  // Signature Acid / Neon Lime Accent
+  accentLime: '#D8FA1E',      // Neon yellow-green accent circles & badges
+  accentLimeLight: '#EEFFA3', // Light lime tint
+  accentLimeDark: '#A6C408',
+  
+  // Charcoal / Dark accents
+  darkCharcoal: '#1E2125',    // Dark charcoal for pills and frames
+  darkSurface: '#2B2E34',     // Dark pill surfaces
+  darkPillText: '#FFFFFF',
+  
+  // Pills & Badges
+  pillBgLight: '#DAD7CE',
+  pillBorder: '#CBC7BD',
+  
+  // Typography
+  textPrimary: '#1A1C20',     // Dark charcoal text
+  textSecondary: '#6E727A',   // Mid grey text
+  textMuted: '#94979E',       // Light muted grey
+  
+  // Status Colors (stylized to match palette)
   danger: '#EF4444',
   dangerBg: '#FEE2E2',
   dangerText: '#991B1B',
@@ -27,29 +37,24 @@ export const COLORS = {
   successBg: '#D1FAE5',
   successText: '#065F46',
   
-  info: '#3B82F6',
-  infoBg: '#DBEAFE',
-  infoText: '#1E40AF',
-  
-  // Demo mode
-  demoBadgeBg: '#FEF3C7',
-  demoBadgeBorder: '#F59E0B',
-  demoBadgeText: '#B45309',
+  // Desktop Outer Canvas Presentation Background (from photo)
+  presentationBackdrop: '#D4FB0A', // Bright electric lime background
+  deviceBezel: '#2C2E33',          // Tablet/phone dark bezel
 };
 
 export const SPACING = {
   xs: 4,
   sm: 8,
-  md: 16,
-  lg: 20,
+  md: 14,
+  lg: 18,
   xl: 24,
   xxl: 32,
 };
 
 export const RADIUS = {
-  sm: 6,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  sm: 8,
+  md: 16,
+  lg: 24,   // Signature organic rounded corners from image
+  xl: 32,
   full: 9999,
 };
