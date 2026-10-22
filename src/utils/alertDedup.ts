@@ -1,0 +1,110 @@
+import { AlertCategory, AlertEvent, AlertSeverity } from '../types/alert';
+import { AlertCandidate } from './leakDetection';
+import { TelemetryReading } from '../types/sensor';
+
+export class AlertDeduplicator {
+  private activeAlertsByCategory = new Map<AlertCategory, AlertEvent>();
+  private lastAlertTimestampByCategory = new Map<AlertCategory, number>();
+  private readonly cooldownMs: number;
+
+  constructor(cooldownSeconds: number = 60) {
+    this.cooldownMs = cooldownSeconds * 1000;
+  }
+
+  /**
+   * Generates a unique stable ID for an alert event
+   */
+  private generateAlertId(category: AlertCategory, timestamp: number): string {
+    const randomHex = Math.random().toString(36).substring(2, 7);
+    return `ALT-${category}-${timestamp}-${randomHex}`;
+  }
+
+  /**
+   * Processes an alert candidate and returns an AlertEvent if a new alert or significant update is warranted.
+   */
+  public processCandidate(
+    candidate: AlertCandidate,
+    reading: TelemetryReading,
+    now: number = Date.now()
+  ): { isNew: boolean; event: AlertEvent } | null {
+    const existing = this.activeAlertsByCategory.get(candidate.category);
+    const lastTimestamp = this.lastAlertTimestampByCategory.get(candidate.category) || 0;
+
+    // If there is an existing ACTIVE or ACKNOWLEDGED alert for this category
+    if (existing && existing.status !== 'RESOLVED') {
+      // If already acknowledged, we don't spam buzzer or create new duplicate event
+      existing.occurrenceCount += 1;
+      existing.inletFlow = reading.inletFlow;
+      existing.outletFlow = reading.outletFlow;
+      existing.flowDifference = reading.flowDifference;
+      existing.durationSec = candidate.durationSec;
+      
+      return { isNew: false, event: existing };
+    }
+
+    // Cooldown check for recently resolved categories
+    if (now - lastTimestamp < this.cooldownMs && candidate.category !== 'RECOVERED') {
+      return null;
+    }
+
+    // Create a brand new alert event
+    const newEvent: AlertEvent = {
+      id: this.generateAlertId(candidate.category, now),
+      category: candidate.category,
+      severity: candidate.severity,
+      status: 'ACTIVE',
+      title: candidate.title,
+      explanation: candidate.explanation,
+      timestamp: now,
+      inletFlow: reading.inletFlow,
+      outletFlow: reading.outletFlow,
+      flowDifference: reading.flowDifference,
+      durationSec: candidate.durationSec,
+      isSimulated: reading.isSimulated,
+      source: reading.isSimulated ? 'demo' : 'wokwi',
+      occurrenceCount: 1,
+    };
+
+    this.activeAlertsByCategory.set(candidate.category, newEvent);
+    this.lastAlertTimestampByCategory.set(candidate.category, now);
+
+    return { isNew: true, event: newEvent };
+  }
+
+  /**
+   * Mark an alert as acknowledged by user
+   */
+  public acknowledgeAlert(alertId: string, adminName: string = 'Admin'): AlertEvent | null {
+    for (const alert of this.activeAlertsByCategory.values()) {
+      if (alert.id === alertId && alert.status === 'ACTIVE') {
+        alert.status = 'ACKNOWLEDGED';
+        alert.acknowledgedAt = Date.now();
+        alert.acknowledgedBy = adminName;
+        return alert;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Mark active incident of a category as resolved
+   */
+  public resolveCategory(category: AlertCategory, now: number = Date.now()): AlertEvent | null {
+    const existing = this.activeAlertsByCategory.get(category);
+    if (existing && existing.status !== 'RESOLVED') {
+      existing.status = 'RESOLVED';
+      existing.resolvedAt = now;
+      this.activeAlertsByCategory.delete(category);
+      return existing;
+    }
+    return null;
+  }
+
+  /**
+   * Reset tracking state
+   */
+  public clear(): void {
+    this.activeAlertsByCategory.clear();
+    this.lastAlertTimestampByCategory.clear();
+  }
+}
