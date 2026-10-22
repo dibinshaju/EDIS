@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 90,
+    paddingBottom: 110,
   },
   header: {
     marginBottom: 16,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   heroTitleAccent: {
     fontSize: 32,
     fontWeight: '900',
-    color: COLORS.accentOrange,
+    color: COLORS.accentLimeDark,
     lineHeight: 36,
     letterSpacing: -1.2,
   },
