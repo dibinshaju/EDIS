@@ -34,6 +34,15 @@ export default function AdminScreen() {
     String(thresholds.highConsumptionThreshold)
   );
 
+  // Night-time schedule state
+  const [isNightScheduleEnabled, setIsNightScheduleEnabled] = useState(true);
+  const [nightStart, setNightStart] = useState('23:00');
+  const [nightEnd, setNightEnd] = useState('05:00');
+
+  // Notification preferences
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+
   const handleSaveThresholds = () => {
     const m = parseFloat(mismatchInput);
     const p = parseInt(persistenceInput, 10);
@@ -49,7 +58,7 @@ export default function AdminScreen() {
       persistenceDurationSec: p,
       highConsumptionThreshold: h,
     });
-    alert('Threshold settings updated.');
+    alert('Detection thresholds and parameters successfully saved.');
   };
 
   const handleUpdateBroker = () => {
@@ -67,36 +76,30 @@ export default function AdminScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* Editorial Header */}
+        {/* 1. Header */}
         <View style={styles.header}>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>System Preferences</Text>
-            <View style={styles.indexPill}>
-              <Text style={styles.indexPillText}>Settings</Text>
+          <View style={styles.headerTop}>
+            <View style={styles.brandRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="settings-outline" size={18} color="#0F172A" />
+              </View>
+              <View>
+                <Text style={styles.headerTitle}>Admin Center</Text>
+                <Text style={styles.headerSubtitle}>System Controls & Diagnostics</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.tagPill}>
-            <Text style={styles.tagPillText}>Admin Panel</Text>
-          </View>
-
-          <View style={styles.heroTitleWrap}>
-            <Text style={styles.heroTitlePrimary}>Hardware &</Text>
-            <Text style={styles.heroTitleAccent}>System Config</Text>
-          </View>
-        </View>
-
-        {/* 1. Admin Profile Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Credentials & Role</Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
                 {isDemoMode ? 'EXPO DEMO' : 'FIREBASE SECURE'}
               </Text>
             </View>
           </View>
+        </View>
 
+        {/* 2. Admin Credentials Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Administrator Session</Text>
           {isAuthenticated && user ? (
             <View style={styles.profileBox}>
               <View style={styles.profileRow}>
@@ -104,12 +107,12 @@ export default function AdminScreen() {
                 <Text style={styles.profileValue}>{user.maskedPhone}</Text>
               </View>
               <View style={styles.profileRow}>
-                <Text style={styles.profileLabel}>Role</Text>
-                <Text style={styles.profileValueHighlight}>ADMINISTRATOR</Text>
+                <Text style={styles.profileLabel}>Access Tier</Text>
+                <Text style={styles.profileValueHighlight}>PRIVILEGED ADMIN</Text>
               </View>
               <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
                 <Ionicons name="log-out-outline" size={13} color="#FFFFFF" />
-                <Text style={styles.logoutBtnText}>Logout</Text>
+                <Text style={styles.logoutBtnText}>End Session</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -118,17 +121,20 @@ export default function AdminScreen() {
               onPress={() => router.push('/login')}
             >
               <Ionicons name="shield-checkmark-outline" size={14} color="#FFFFFF" />
-              <Text style={styles.loginBtnText}>Administrator Login</Text>
+              <Text style={styles.loginBtnText}>Administrator Sign In</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* 2. Detection Parameters & Thresholds */}
+        {/* 3. Detection Thresholds */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Detection Thresholds</Text>
+          <Text style={styles.cardTitle}>Leak Detection Parameters</Text>
+          <Text style={styles.cardSubtitle}>
+            Configure persistence intervals and minimum volumetric deficit
+          </Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Mismatch Deficit (L/min)</Text>
+            <Text style={styles.inputLabel}>Mismatch Threshold (L/min)</Text>
             <TextInput
               style={styles.textInput}
               value={mismatchInput}
@@ -166,10 +172,81 @@ export default function AdminScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 3. MQTT Broker Connection */}
+        {/* 4. Night-Time Monitoring Schedule */}
+        <View style={styles.card}>
+          <View style={styles.switchRow}>
+            <View>
+              <Text style={styles.cardTitle}>Night-Time Quiescent Flow</Text>
+              <Text style={styles.cardSubtitle}>Continuous flow detection during off-peak hours</Text>
+            </View>
+            <Switch
+              value={isNightScheduleEnabled}
+              onValueChange={setIsNightScheduleEnabled}
+              trackColor={{ false: '#E2E8F0', true: '#0F172A' }}
+            />
+          </View>
+
+          <View style={styles.timeScheduleRow}>
+            <View style={styles.scheduleItem}>
+              <Text style={styles.scheduleLabel}>Start Window</Text>
+              <TextInput
+                style={styles.scheduleInput}
+                value={nightStart}
+                onChangeText={setNightStart}
+                placeholder="23:00"
+              />
+            </View>
+            <View style={styles.scheduleDivider} />
+            <View style={styles.scheduleItem}>
+              <Text style={styles.scheduleLabel}>End Window</Text>
+              <TextInput
+                style={styles.scheduleInput}
+                value={nightEnd}
+                onChangeText={setNightEnd}
+                placeholder="05:00"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* 5. Notification & Buzzer Preferences */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Notification & Alarm Experience</Text>
+
+          <View style={styles.switchRow}>
+            <View>
+              <Text style={styles.switchTitle}>Acoustic Buzzer Chime</Text>
+              <Text style={styles.switchSub}>Plays foreground two-tone alert upon suspected leak</Text>
+            </View>
+            <Switch
+              value={isBuzzerEnabled}
+              onValueChange={toggleBuzzer}
+              trackColor={{ false: '#E2E8F0', true: '#0F172A' }}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.testChimeBtn} onPress={playTestBuzzer}>
+            <Ionicons name="volume-high-outline" size={13} color="#0F172A" />
+            <Text style={styles.testChimeText}>Test Buzzer Sound</Text>
+          </TouchableOpacity>
+
+          <View style={[styles.switchRow, { marginTop: 12 }]}>
+            <View>
+              <Text style={styles.switchTitle}>In-App Push Dispatch</Text>
+              <Text style={styles.switchSub}>Immediate notification banners</Text>
+            </View>
+            <Switch
+              value={pushEnabled}
+              onValueChange={setPushEnabled}
+              trackColor={{ false: '#E2E8F0', true: '#0F172A' }}
+            />
+          </View>
+        </View>
+
+        {/* 6. MQTT Hardware & Diagnostic Bridge */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>MQTT Broker</Text>
+            <Text style={styles.cardTitle}>Device Diagnostics & MQTT</Text>
             <View
               style={[
                 styles.mqttDot,
@@ -198,30 +275,10 @@ export default function AdminScreen() {
               style={styles.outlineBtn}
               onPress={() => router.push('/wokwi-guide')}
             >
-              <Ionicons name="hardware-chip-outline" size={13} color={COLORS.textPrimary} />
+              <Ionicons name="hardware-chip-outline" size={13} color="#0F172A" />
               <Text style={styles.outlineBtnText}>Wokwi Guide</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* 4. Audio Alert Controls */}
-        <View style={styles.card}>
-          <View style={styles.switchRow}>
-            <View>
-              <Text style={styles.switchTitle}>Acoustic Alarm</Text>
-              <Text style={styles.switchSub}>Audible chime on critical leaks</Text>
-            </View>
-            <Switch
-              value={isBuzzerEnabled}
-              onValueChange={toggleBuzzer}
-              trackColor={{ false: '#E2DFD8', true: COLORS.darkCharcoal }}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.testChimeBtn} onPress={playTestBuzzer}>
-            <Ionicons name="volume-high-outline" size={13} color={COLORS.textPrimary} />
-            <Text style={styles.testChimeText}>Test Acoustic Alarm</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -231,7 +288,7 @@ export default function AdminScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.canvasBg,
+    backgroundColor: '#F8F9FA',
   },
   scroll: {
     flex: 1,
@@ -243,64 +300,53 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
   },
-  metaRow: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
   },
-  metaLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  indexPill: {
-    backgroundColor: '#E2DFD8',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  badge: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: RADIUS.sm,
   },
-  indexPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  tagPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E2DFD8',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: RADIUS.sm,
-    marginBottom: 10,
-  },
-  tagPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  heroTitleWrap: {
-    marginTop: 2,
-    marginBottom: 4,
-  },
-  heroTitlePrimary: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#111215',
-    lineHeight: 36,
-    letterSpacing: -1.2,
-  },
-  heroTitleAccent: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: COLORS.accentOrange,
-    lineHeight: 36,
-    letterSpacing: -1.2,
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#475569',
   },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.lg,
     padding: 16,
     marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -311,27 +357,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   cardTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#111215',
+    color: '#0F172A',
     letterSpacing: -0.2,
   },
-  badge: {
-    backgroundColor: '#F3F2EC',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: RADIUS.sm,
-  },
-  badgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
+  cardSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+    marginBottom: 10,
   },
   profileBox: {
-    gap: 8,
+    gap: 6,
+    marginTop: 6,
   },
   profileRow: {
     flexDirection: 'row',
@@ -341,25 +383,25 @@ const styles = StyleSheet.create({
   },
   profileLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#64748B',
     fontWeight: '600',
   },
   profileValue: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111215',
+    color: '#0F172A',
   },
   profileValueHighlight: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.accentOrange,
+    color: '#0284C7',
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.darkCharcoal,
+    backgroundColor: '#0F172A',
     paddingVertical: 9,
     borderRadius: RADIUS.md,
     marginTop: 8,
@@ -374,9 +416,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.darkCharcoal,
+    backgroundColor: '#0F172A',
     paddingVertical: 10,
     borderRadius: RADIUS.md,
+    marginTop: 6,
   },
   loginBtnText: {
     color: '#FFFFFF',
@@ -389,24 +432,26 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: '#64748B',
     marginBottom: 4,
   },
   textInput: {
-    backgroundColor: '#F7F6F2',
+    backgroundColor: '#F8FAFC',
     borderRadius: RADIUS.md,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
-    color: '#111215',
+    color: '#0F172A',
     fontWeight: '600',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.darkCharcoal,
+    backgroundColor: '#0F172A',
     paddingVertical: 10,
     borderRadius: RADIUS.md,
     marginTop: 6,
@@ -415,6 +460,69 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800',
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  switchTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  switchSub: {
+    fontSize: 10,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  timeScheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+  },
+  scheduleItem: {
+    flex: 1,
+  },
+  scheduleLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 2,
+  },
+  scheduleInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    textAlign: 'center',
+  },
+  scheduleDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E2E8F0',
+  },
+  testChimeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 8,
+    borderRadius: RADIUS.md,
+    marginTop: 6,
+  },
+  testChimeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0F172A',
   },
   mqttDot: {
     width: 8,
@@ -428,7 +536,7 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: {
     flex: 1,
-    backgroundColor: '#F3F2EC',
+    backgroundColor: '#F1F5F9',
     paddingVertical: 9,
     borderRadius: RADIUS.md,
     alignItems: 'center',
@@ -436,7 +544,7 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#0F172A',
   },
   outlineBtn: {
     flexDirection: 'row',
@@ -444,7 +552,7 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2DFD8',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 10,
     paddingVertical: 9,
     borderRadius: RADIUS.md,
@@ -452,36 +560,6 @@ const styles = StyleSheet.create({
   outlineBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  switchTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#111215',
-  },
-  switchSub: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    marginTop: 1,
-  },
-  testChimeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#F3F2EC',
-    paddingVertical: 8,
-    borderRadius: RADIUS.md,
-  },
-  testChimeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#0F172A',
   },
 });
