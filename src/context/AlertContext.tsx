@@ -1,0 +1,197 @@
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { AlertEvent, AlertCategory } from '../types/alert';
+import { LeakDetectionEngine } from '../utils/leakDetection';
+import { AlertDeduplicator } from '../utils/alertDedup';
+import { buzzerService } from '../utils/sound';
+import { useSensor } from './SensorContext';
+import { useAuth } from './AuthContext';
+
+interface AlertContextType {
+  alerts: AlertEvent[];
+  activeAlert: AlertEvent | null;
+  activeCount: number;
+  diagnosticNotes: string[];
+  isBuzzerEnabled: boolean;
+  toggleBuzzer: () => void;
+  playTestBuzzer: () => void;
+  acknowledgeAlert: (alertId: string) => void;
+  resolveAlert: (alertId: string) => void;
+  clearAllAlerts: () => void;
+  triggerDemoAlert: (category?: AlertCategory) => void;
+}
+
+const AlertContext = createContext<AlertContextType | undefined>(undefined);
+
+export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentReading, thresholds } = useSensor();
+  const { user } = useAuth();
+
+  const [alerts, setAlerts] = useState<AlertEvent[]>([]);
+  const [activeAlert, setActiveAlert] = useState<AlertEvent | null>(null);
+  const [diagnosticNotes, setDiagnosticNotes] = useState<string[]>([]);
+  const [isBuzzerEnabled, setIsBuzzerEnabled] = useState<boolean>(true);
+
+  const engineRef = useRef<LeakDetectionEngine>(new LeakDetectionEngine());
+  const dedupRef = useRef<AlertDeduplicator>(new AlertDeduplicator(30));
+
+  // Process every new reading through the leak detection engine
+  useEffect(() => {
+    if (!currentReading) return;
+
+    const evalResult = engineRef.current.processReading(
+      currentReading,
+      thresholds,
+      currentReading.timestamp
+    );
+
+    setDiagnosticNotes(evalResult.diagnosticNotes);
+
+    if (evalResult.hasAlert && evalResult.alertCandidate) {
+      const processed = dedupRef.current.processCandidate(
+        evalResult.alertCandidate,
+        currentReading,
+        Date.now()
+      );
+
+      if (processed) {
+        const { isNew, event } = processed;
+        
+        setAlerts((prev) => {
+          const index = prev.findIndex((a) => a.id === event.id);
+          if (index >= 0) {
+            const updated = [...prev];
+            updated[index] = event;
+            return updated;
+          }
+          return [event, ...prev.slice(0, 49)];
+        });
+
+        if (event.status === 'ACTIVE') {
+          setActiveAlert(event);
+
+          // Play buzzer on brand new active alert
+          if (isNew && event.severity === 'CRITICAL' && isBuzzerEnabled) {
+            buzzerService.playAlarm();
+          }
+        }
+      }
+    } else {
+      // If system cleared condition and no alert candidate exists
+      if (activeAlert && activeAlert.status === 'ACTIVE') {
+        // Condition self-resolved
+        const resolved = dedupRef.current.resolveCategory(activeAlert.category);
+        if (resolved) {
+          setAlerts((prev) =>
+            prev.map((a) => (a.id === resolved.id ? { ...a, status: 'RESOLVED', resolvedAt: Date.now() } : a))
+          );
+        }
+        setActiveAlert(null);
+      }
+    }
+  }, [currentReading, thresholds, isBuzzerEnabled, activeAlert]);
+
+  const acknowledgeAlert = useCallback((alertId: string) => {
+    // Silence audio immediately
+    buzzerService.stop();
+
+    const ackName = user?.displayName || 'Administrator';
+    const acked = dedupRef.current.acknowledgeAlert(alertId, ackName);
+
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.id === alertId
+          ? { ...a, status: 'ACKNOWLEDGED', acknowledgedAt: Date.now(), acknowledgedBy: ackName }
+          : a
+      )
+    );
+
+    setActiveAlert((prev) => (prev?.id === alertId ? { ...prev, status: 'ACKNOWLEDGED' } : prev));
+  }, [user]);
+
+  const resolveAlert = useCallback((alertId: string) => {
+    buzzerService.stop();
+    setAlerts((prev) =>
+      prev.map((a) => (a.id === alertId ? { ...a, status: 'RESOLVED', resolvedAt: Date.now() } : a))
+    );
+    setActiveAlert((prev) => (prev?.id === alertId ? null : prev));
+  }, []);
+
+  const clearAllAlerts = useCallback(() => {
+    buzzerService.stop();
+    dedupRef.current.clear();
+    engineRef.current.reset();
+    setAlerts([]);
+    setActiveAlert(null);
+  }, []);
+
+  const toggleBuzzer = useCallback(() => {
+    setIsBuzzerEnabled((prev) => {
+      const next = !prev;
+      buzzerService.setSoundEnabled(next);
+      return next;
+    });
+  }, []);
+
+  const playTestBuzzer = useCallback(() => {
+    buzzerService.playAlarm();
+  }, []);
+
+  const triggerDemoAlert = useCallback((category: AlertCategory = 'SUSPECTED_LEAK') => {
+    const now = Date.now();
+    const demoEvent: AlertEvent = {
+      id: `DEMO-${category}-${now}`,
+      category,
+      severity: category === 'SUSPECTED_LEAK' ? 'CRITICAL' : 'WARNING',
+      status: 'ACTIVE',
+      title: category === 'SUSPECTED_LEAK'
+        ? '[DEMO] Suspected Water Leakage Detected'
+        : '[DEMO] Simulated System Alert',
+      explanation: 'Manual demonstration alert triggered via Admin Alert Center for expo testing.',
+      timestamp: now,
+      inletFlow: 18.5,
+      outletFlow: 11.2,
+      flowDifference: 7.3,
+      durationSec: 12,
+      isSimulated: true,
+      source: 'demo',
+      occurrenceCount: 1,
+    };
+
+    setAlerts((prev) => [demoEvent, ...prev]);
+    setActiveAlert(demoEvent);
+
+    if (isBuzzerEnabled) {
+      buzzerService.playAlarm();
+    }
+  }, [isBuzzerEnabled]);
+
+  const activeCount = alerts.filter((a) => a.status === 'ACTIVE').length;
+
+  return (
+    <AlertContext.Provider
+      value={{
+        alerts,
+        activeAlert,
+        activeCount,
+        diagnosticNotes,
+        isBuzzerEnabled,
+        toggleBuzzer,
+        playTestBuzzer,
+        acknowledgeAlert,
+        resolveAlert,
+        clearAllAlerts,
+        triggerDemoAlert,
+      }}
+    >
+      {children}
+    </AlertContext.Provider>
+  );
+};
+
+export const useAlerts = () => {
+  const context = useContext(AlertContext);
+  if (!context) {
+    throw new Error('useAlerts must be used within an AlertProvider');
+  }
+  return context;
+};
