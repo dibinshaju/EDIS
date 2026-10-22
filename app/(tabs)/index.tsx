@@ -113,229 +113,250 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. TOP ENGAGEPRO MODULAR CARD (Matching Reference Image media_1792696244517.jpg) */}
-      <View style={styles.topModularCard}>
-        {/* Header: AquaGuard® on left, = MENU + Quick Nav on right */}
-        <View style={styles.headerBar}>
-          <View style={styles.brandGroup}>
-            <View style={styles.brandIconCircle}>
+      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image media_1792694621347.jpg) */}
+      <View style={styles.topHeroCard}>
+        {/* Top Header Bar: Clean title on left, Nav Symbols & Index on right */}
+        <View style={styles.heroTopBar}>
+          <View style={styles.brandRow}>
+            <View style={styles.logoCircle}>
               <Ionicons name="water" size={14} color="#0D0E11" />
             </View>
-            <Text style={styles.brandTitleText}>AquaGuard®</Text>
+            <Text style={styles.brandLogoText}>AquaGuard</Text>
           </View>
 
-          <View style={styles.headerRightGroup}>
-            {/* Nav symbols */}
-            <TouchableOpacity onPress={() => router.push('/')} style={[styles.miniNavBtn, styles.miniNavBtnActive]}>
-              <Ionicons name="home" size={13} color="#0D0E11" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/scenarios')} style={styles.miniNavBtn}>
-              <Ionicons name="construct-outline" size={13} color="#0D0E11" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/alerts')} style={styles.miniNavBtn}>
-              <Ionicons name="notifications-outline" size={13} color="#0D0E11" />
-              {activeCount > 0 && <View style={styles.miniDotAlert} />}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/admin')} style={styles.miniNavBtn}>
-              <Ionicons name="shield-checkmark-outline" size={13} color="#0D0E11" />
+          {/* Nav Symbols (Home, Tools, Alerts, Admin) */}
+          <View style={styles.topNavSymbolsRow}>
+            <TouchableOpacity
+              onPress={() => router.push('/')}
+              style={[styles.topNavIconBtn, styles.topNavIconBtnActive]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="home" size={15} color="#0D0E11" />
             </TouchableOpacity>
 
-            {/* "= MENU" button from reference */}
-            <TouchableOpacity onPress={() => router.push('/admin')} style={styles.menuBtn} activeOpacity={0.8}>
-              <View style={styles.menuLines}>
-                <View style={styles.menuLine} />
-                <View style={styles.menuLine} />
-              </View>
-              <Text style={styles.menuText}>MENU</Text>
+            <TouchableOpacity
+              onPress={() => router.push('/scenarios')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="construct-outline" size={15} color="#0D0E11" />
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/alerts')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="notifications-outline" size={15} color="#0D0E11" />
+              {activeCount > 0 && <View style={styles.topNavDotBadge} />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/admin')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="shield-checkmark-outline" size={15} color="#0D0E11" />
+            </TouchableOpacity>
+
+            <View style={styles.heroPagePill}>
+              <Text style={styles.heroPagePillBold}>01</Text>
+              <Text style={styles.heroPagePillLight}>/04</Text>
+            </View>
           </View>
         </View>
 
-        {/* Hero Category Title Row with Circular Arrow Button (Exact match to Screen 1: "Social media Management ( ↗ )") */}
-        <View style={styles.categoryActionRow}>
-          <View style={styles.categoryTitleGroup}>
-            <Text style={styles.categoryTitleBold}>Water pipeline</Text>
-            <Text style={styles.categoryTitleItalic}>Monitoring</Text>
+        {/* Category Pill Tag (matching "Resources" tag in reference) */}
+        <View style={styles.categoryPill}>
+          <Text style={styles.categoryPillText}>Telemetry Engine</Text>
+        </View>
+
+        {/* Massive Headline (matching "Best Google fonts for tech websites") */}
+        <View style={styles.heroTitleBlock}>
+          <Text style={styles.heroTitleGiant}>Smart Water</Text>
+          <Text style={styles.heroTitleGiant}>monitor for</Text>
+          <View style={styles.heroTitleLastRow}>
+            <Text style={styles.heroTitleGiant}>pipelines</Text>
+            {/* Violet starburst sticker right beside/over headline */}
+            <View style={styles.starburstInline}>
+              <Svg width="54" height="54" viewBox="0 0 100 100">
+                <Path
+                  d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
+                  fill={COLORS.accentPurple}
+                />
+              </Svg>
+              <View style={styles.starburstTextWrap}>
+                <Text style={styles.starburstNumber}>IOT</Text>
+                <Text style={styles.starburstSub}>LIVE</Text>
+              </View>
+            </View>
           </View>
+        </View>
+
+        {/* Floating Black Cursor Pill (matching "Inayat Naqvi" cursor badge in reference) */}
+        <View style={styles.floatingCursorBadge}>
+          <View style={styles.cursorAvatar}>
+            <Ionicons name="hardware-chip" size={12} color="#FFFFFF" />
+          </View>
+          <Text style={styles.cursorBadgeText}>Virtual ESP32 Bridge</Text>
+          <Ionicons name="navigate" size={11} color="#FFFFFF" style={styles.cursorArrow} />
+        </View>
+
+        {/* Slanted Floating Tags Row */}
+        <View style={styles.slantedTagsWrap}>
+          <View style={[styles.slantedTag, { transform: [{ rotate: '-3deg' }] }]}>
+            <Text style={styles.slantedTagText}>Inlet S1: {formatFlow(inFlow)} L/m</Text>
+          </View>
+
+          <View style={[styles.slantedTag, { transform: [{ rotate: '2deg' }], marginTop: 6 }]}>
+            <Text style={styles.slantedTagText}>Outlet S2: {formatFlow(outFlow)} L/m</Text>
+          </View>
+
+          <View style={[styles.slantedTag, { transform: [{ rotate: '-2deg' }] }]}>
+            <Text style={styles.slantedTagText}>Delta: {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)} L/m</Text>
+          </View>
+        </View>
+
+        {/* Bottom Hero Meta Bar (matching "@ui.inayat" and "Save for later" in reference) */}
+        <View style={styles.heroFooterMetaRow}>
+          <View>
+            <Text style={styles.heroAuthorHandle}>@aquaguard.telemetry</Text>
+            <Text style={styles.heroAuthorSub}>Municipal Pipeline Telemetry</Text>
+          </View>
+
           <TouchableOpacity
-            style={styles.circleArrowBtn}
-            onPress={() => router.push('/history')}
+            style={styles.saveForLaterPill}
+            onPress={() => router.push('/wokwi-guide')}
             activeOpacity={0.8}
           >
-            <Ionicons name="arrow-up-outline" size={18} color="#0D0E11" style={{ transform: [{ rotate: '45deg' }] }} />
+            <Text style={styles.saveForLaterText}>Wokwi Bridge &rarr;</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Hero Big Display Headline (Screen 2: "Easily boost your social media engagement") */}
-        <View style={styles.headlineBlock}>
-          <Text style={styles.displayHeading}>Easily detect</Text>
-          <Text style={styles.displayHeading}>pipeline leaks &</Text>
-          <Text style={styles.displayHeading}>consumption</Text>
-          <Text style={styles.headlineSubtitle}>
-            Autonomous IoT telemetry & deficit persistence analytics
-          </Text>
-        </View>
-
-        {/* 3-COLUMN METRIC ROW (Exact match to Screen 1: User Growth 56.3% | RIO 75% | Engagement 30%) */}
-        <View style={styles.threeColMetricCard}>
-          <View style={styles.colMetricItem}>
-            <Text style={styles.colMetricLabel}>Inlet Flow</Text>
-            <View style={styles.colMetricValRow}>
-              <Text style={styles.colMetricValue}>{formatFlow(inFlow)}</Text>
-              <Text style={styles.colMetricUnit}>L/m</Text>
+        {/* Bottom Overhanging Lime-Yellow Simulation Control Bar */}
+        <View style={styles.heroBottomRow}>
+          <View style={styles.overhangingPill}>
+            <Text style={styles.overhangingPillLabel}>Simulate State</Text>
+            <View style={styles.miniDotRow}>
+              <TouchableOpacity
+                onPress={() => setScenario('normal')}
+                style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
+              >
+                <Ionicons name="checkmark" size={11} color="#0D0E11" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setScenario('suspected_leak')}
+                style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
+              >
+                <Ionicons name="alert" size={11} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setScenario('abnormal_consumption')}
+                style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
+              >
+                <Ionicons name="speedometer" size={11} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={styles.colMetricDivider} />
-
-          <View style={styles.colMetricItem}>
-            <Text style={styles.colMetricLabel}>Outlet Flow</Text>
-            <View style={styles.colMetricValRow}>
-              <Text style={styles.colMetricValue}>{formatFlow(outFlow)}</Text>
-              <Text style={styles.colMetricUnit}>L/m</Text>
-            </View>
-          </View>
-
-          <View style={styles.colMetricDivider} />
-
-          <View style={[styles.colMetricItem, flowDifference > 1.5 && { backgroundColor: 'rgba(239, 68, 68, 0.08)' }]}>
-            <Text style={[styles.colMetricLabel, flowDifference > 1.5 && { color: COLORS.danger }]}>Flow Delta</Text>
-            <View style={styles.colMetricValRow}>
-              <Text style={[styles.colMetricValue, flowDifference > 1.5 && { color: COLORS.danger }]}>
-                {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)}
-              </Text>
-              <Text style={[styles.colMetricUnit, flowDifference > 1.5 && { color: COLORS.danger }]}>L/m</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* STACKED STEP STRIP CARDS WITH GIANT MONOGRAM (Exact match to Screen 1: Step 1, Step 2, Step 3 over giant letterform) */}
-        <View style={styles.stepStripsContainer}>
-          {/* Giant Background Monogram ("W" for Water) */}
-          <View style={styles.monogramBackdrop} pointerEvents="none">
-            <Text style={styles.monogramText}>W</Text>
-          </View>
-
-          <View style={styles.stepStripRow}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>Step 1</Text>
-            </View>
-            <View style={styles.stepContentWrap}>
-              <Text style={styles.stepTitle}>Municipal Intake Baseline</Text>
-              <Text style={styles.stepDesc}>S1 Ultrasonic metering: {formatFlow(inFlow)} L/min baseline</Text>
-            </View>
-            <Ionicons name="checkmark-circle" size={16} color={COLORS.accentYellow} />
-          </View>
-
-          <View style={styles.stepStripDivider} />
-
-          <View style={styles.stepStripRow}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>Step 2</Text>
-            </View>
-            <View style={styles.stepContentWrap}>
-              <Text style={styles.stepTitle}>Deficit Persistence Evaluation</Text>
-              <Text style={styles.stepDesc}>
-                {flowDifference > 1.5 ? 'Deficit persistence exceeded (>1.5 L/min)' : 'Real-time 3.0s window: Certified Normal'}
-              </Text>
-            </View>
-            <Ionicons
-              name={flowDifference > 1.5 ? 'alert-circle' : 'checkmark-circle'}
-              size={16}
-              color={flowDifference > 1.5 ? COLORS.danger : COLORS.accentYellow}
-            />
-          </View>
-
-          <View style={styles.stepStripDivider} />
-
-          <View style={styles.stepStripRow}>
-            <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>Step 3</Text>
-            </View>
-            <View style={styles.stepContentWrap}>
-              <Text style={styles.stepTitle}>Autonomous Solenoid Isolation</Text>
-              <Text style={styles.stepDesc}>Valve State: Open • Pipeline Health 100%</Text>
-            </View>
-            <Ionicons name="shield-checkmark" size={16} color={COLORS.accentYellow} />
-          </View>
-        </View>
-
-        {/* SPLIT 2-BLOCK METRIC CARDS (Exact match to Screen 2: Left Yellow "Audience Reach 56.3%", Right "Audience Online 86.5%") */}
-        <View style={styles.splitBlockContainer}>
-          {/* Left Block: Electric Canary Yellow */}
-          <TouchableOpacity
-            style={styles.splitBlockYellow}
-            onPress={() => router.push('/history')}
-            activeOpacity={0.88}
-          >
-            <Text style={styles.splitBlockLabelDark}>Audience Reach • Today's Volume</Text>
-            <View style={styles.splitValueRow}>
-              <Text style={styles.splitValueDark}>{totalVolumeLiters.toFixed(1)}</Text>
-              <Text style={styles.splitUnitDark}>L</Text>
-            </View>
-            <Text style={styles.splitSubDark}>Metered municipal consumption</Text>
-          </TouchableOpacity>
-
-          {/* Right Block: Paper White Technical Surface */}
-          <TouchableOpacity
-            style={styles.splitBlockWhite}
-            onPress={() => router.push('/alerts')}
-            activeOpacity={0.88}
-          >
-            <Text style={styles.splitBlockLabelLight}>System Integrity • Telemetry</Text>
-            <View style={styles.splitValueRow}>
-              <Text style={[styles.splitValueLight, statusState === 'leak' && { color: COLORS.danger }]}>
-                {statusState === 'leak' ? 'DEFICIT' : '98.5%'}
-              </Text>
-            </View>
-            <Text style={styles.splitSubLight}>
-              {statusState === 'leak' ? 'Suspected Leak Active' : 'Dual-node calibrated'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* BOTTOM FULL-WIDTH ACTION BANNER (Exact match to Screen 2: "Details ▶") */}
-        <TouchableOpacity
-          style={styles.detailsActionBanner}
-          onPress={() => router.push('/wokwi-guide')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.detailsBannerLeft}>
-            <Ionicons name="hardware-chip-outline" size={16} color={COLORS.accentYellow} />
-            <Text style={styles.detailsBannerText}>Details • Wokwi Virtual Hardware Suite</Text>
-          </View>
-          <View style={styles.playTriangleWrap}>
-            <Ionicons name="play" size={14} color={COLORS.accentYellow} />
-          </View>
-        </TouchableOpacity>
-
-        {/* Simulation Scenario Pill */}
-        <View style={styles.heroSimulateRow}>
-          <Text style={styles.heroSimulateLabel}>Quick Scenario Test:</Text>
-          <View style={styles.miniDotRow}>
-            <TouchableOpacity
-              onPress={() => setScenario('normal')}
-              style={[styles.scenarioDotBtn, activeScenario === 'normal' && styles.scenarioDotBtnActive]}
-            >
-              <Ionicons name="checkmark" size={11} color="#0D0E11" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setScenario('suspected_leak')}
-              style={[styles.scenarioDotBtn, activeScenario === 'suspected_leak' && { backgroundColor: COLORS.danger }]}
-            >
-              <Ionicons name="alert" size={11} color={activeScenario === 'suspected_leak' ? '#FFFFFF' : '#0D0E11'} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setScenario('abnormal_consumption')}
-              style={[styles.scenarioDotBtn, activeScenario === 'abnormal_consumption' && { backgroundColor: '#F59E0B' }]}
-            >
-              <Ionicons name="speedometer" size={11} color={activeScenario === 'abnormal_consumption' ? '#FFFFFF' : '#0D0E11'} />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
 
+      {/* 2. MANIFESTO HEADLINE SECTION (On Dark Canvas) */}
+      <View style={styles.manifestoSection}>
+        {/* Centered Small Starburst Icon */}
+        <View style={styles.miniStarburstWrap}>
+          <Svg width="28" height="28" viewBox="0 0 100 100">
+            <Path
+              d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
+              fill={COLORS.accentPurple}
+            />
+          </Svg>
+        </View>
+
+        <Text style={styles.manifestoHeadline}>
+          PRECISION WATER TELEMETRY ENGINE. REAL-TIME PERSISTENCE FILTERING FOR PIPELINE INTEGRITY.
+        </Text>
+      </View>
+
       <View style={styles.bodyContent}>
+        {/* 3. SIGNATURE 2x2 CUT-CORNER GRID BOXES (Exact match to Reference 01, 02, 03, 04) */}
+        <View style={styles.gridContainer}>
+          {/* BOX 01: SIGNATURE ELECTRIC LIME-YELLOW CARD WITH CUT CORNER */}
+          <TouchableOpacity
+            style={[styles.gridCard, styles.gridCardYellow]}
+            onPress={() => router.push('/history')}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.gridNumberDark}>01</Text>
+            <Text style={styles.gridTitleDark}>Inlet Flow (S1)</Text>
+            <Text style={styles.gridValueDark}>
+              {formatFlow(inFlow)} <Text style={styles.gridUnitDark}>L/MIN</Text>
+            </Text>
+            <Text style={styles.gridSubDark}>
+              Municipal supply entry baseline.
+            </Text>
+            <View style={styles.gridActionPillDark}>
+              <Text style={styles.gridActionTextDark}>Details &rarr;</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* BOX 02: WHITE CARD WITH CUT CORNER */}
+          <TouchableOpacity
+            style={[styles.gridCard, styles.gridCardWhite]}
+            onPress={() => router.push('/history')}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.gridNumberLight}>02</Text>
+            <Text style={styles.gridTitleLight}>Outlet Flow (S2)</Text>
+            <Text style={styles.gridValueLight}>
+              {formatFlow(outFlow)} <Text style={styles.gridUnitLight}>L/MIN</Text>
+            </Text>
+            <Text style={styles.gridSubLight}>
+              Distribution point discharge rate.
+            </Text>
+            <View style={styles.gridActionPillLight}>
+              <Text style={styles.gridActionTextLight}>Inspect &rarr;</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* BOX 03: WHITE CARD WITH CUT CORNER */}
+          <TouchableOpacity
+            style={[styles.gridCard, styles.gridCardWhite]}
+            onPress={() => router.push('/alerts')}
+            activeOpacity={0.9}
+          >
+            <Text style={[styles.gridNumberLight, flowDifference > 1.5 && { color: COLORS.danger }]}>03</Text>
+            <Text style={styles.gridTitleLight}>Flow Delta</Text>
+            <Text style={[styles.gridValueLight, flowDifference > 1.5 && { color: COLORS.danger }]}>
+              {flowDifference >= 0 ? '+' : ''}{formatFlow(flowDifference)} <Text style={styles.gridUnitLight}>L/MIN</Text>
+            </Text>
+            <Text style={styles.gridSubLight}>
+              {flowDifference > 1.5 ? 'Deficit deficit detected.' : 'Balanced stream.'}
+            </Text>
+            <View style={styles.gridActionPillLight}>
+              <Text style={styles.gridActionTextLight}>Audit &rarr;</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* BOX 04: WHITE CARD WITH CUT CORNER */}
+          <TouchableOpacity
+            style={[styles.gridCard, styles.gridCardWhite]}
+            onPress={() => router.push('/history')}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.gridNumberLight}>04</Text>
+            <Text style={styles.gridTitleLight}>Cumulative Usage</Text>
+            <Text style={styles.gridValueLight}>
+              {totalVolumeLiters.toFixed(1)} <Text style={styles.gridUnitLight}>LITERS</Text>
+            </Text>
+            <Text style={styles.gridSubLight}>
+              Metered volume recorded today.
+            </Text>
+            <View style={styles.gridActionPillLight}>
+              <Text style={styles.gridActionTextLight}>Analytics &rarr;</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* 4. SYSTEM STATUS BANNER */}
         <View style={styles.statusCard}>
@@ -630,28 +651,28 @@ const styles = StyleSheet.create({
     paddingBottom: 110, // Clearance for bottom dock
   },
 
-  /* 1. TOP ENGAGEPRO MODULAR CARD */
-  topModularCard: {
+  /* 1. TOP ASYMMETRICAL WHITE HERO CARD */
+  topHeroCard: {
     backgroundColor: '#F3F2EB',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     paddingTop: 16,
-    paddingBottom: 20,
-    paddingHorizontal: 18,
-    marginBottom: 14,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
+    position: 'relative',
   },
-  headerBar: {
+  heroTopBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  brandGroup: {
+  brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  brandIconCircle: {
+  logoCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -659,363 +680,399 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandTitleText: {
+  brandLogoText: {
     fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: 0.2,
   },
-  headerRightGroup: {
+  topNavSymbolsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  miniNavBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  topNavIconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#EAE8DE',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  miniNavBtnActive: {
+  topNavIconBtnActive: {
     backgroundColor: COLORS.accentYellow,
     borderWidth: 1,
     borderColor: '#E2EA00',
   },
-  miniDotAlert: {
+  topNavDotBadge: {
     position: 'absolute',
-    top: 3,
-    right: 3,
+    top: 4,
+    right: 4,
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: COLORS.danger,
   },
-  menuBtn: {
+  heroPagePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#0D0E11',
-    paddingHorizontal: 9,
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 12,
-    marginLeft: 2,
   },
-  menuLines: {
-    gap: 3,
-  },
-  menuLine: {
-    width: 10,
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-  },
-  menuText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-
-  /* Hero Category Title Row with Circular Arrow Button */
-  categoryActionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  categoryTitleGroup: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-  },
-  categoryTitleBold: {
-    fontSize: 20,
+  heroPagePillBold: {
+    fontSize: 12,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -0.4,
   },
-  categoryTitleItalic: {
-    fontSize: 13,
+  heroPagePillLight: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#66655E',
-    fontStyle: 'italic',
-  },
-  circleArrowBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.accentYellow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E2EA00',
   },
 
-  /* Big Headline Block */
-  headlineBlock: {
-    marginBottom: 16,
+  /* Category Tag Pill (matching "Resources" in reference) */
+  categoryPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginBottom: 12,
   },
-  displayHeading: {
+  categoryPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D0E11',
+    letterSpacing: 0.3,
+  },
+
+  /* Massive Headline Block (matching "Best Google fonts for tech websites") */
+  heroTitleBlock: {
+    marginBottom: 12,
+  },
+  heroTitleGiant: {
     fontSize: 48,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -2,
     lineHeight: 48,
   },
-  headlineSubtitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#66655E',
-    marginTop: 8,
-    lineHeight: 18,
-  },
-
-  /* 3-Column Metric Row */
-  threeColMetricCard: {
+  heroTitleLastRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-    marginBottom: 12,
-  },
-  colMetricItem: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 2,
+    gap: 12,
   },
-  colMetricDivider: {
-    width: 1,
-    height: '80%',
-    backgroundColor: '#EAE8DE',
-    alignSelf: 'center',
+  starburstInline: {
+    width: 54,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  colMetricLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#66655E',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+  starburstTextWrap: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  colMetricValRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 2,
-  },
-  colMetricValue: {
-    fontSize: 22,
+  starburstNumber: {
+    fontSize: 13,
     fontWeight: '900',
-    color: '#0D0E11',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-  colMetricUnit: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#66655E',
+  starburstSub: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 
-  /* Stacked Step Strips with Giant Monogram Backdrop */
-  stepStripsContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  monogramBackdrop: {
-    position: 'absolute',
-    right: -10,
-    bottom: -35,
-    opacity: 0.06,
-  },
-  monogramText: {
-    fontSize: 180,
-    fontWeight: '900',
-    color: '#0D0E11',
-    lineHeight: 180,
-  },
-  stepStripRow: {
+  /* Floating Black Cursor Badge (matching "Inayat Naqvi" badge in reference) */
+  floatingCursorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    gap: 10,
+    alignSelf: 'flex-start',
+    backgroundColor: '#0D0E11',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    gap: 6,
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  stepBadge: {
-    backgroundColor: '#EAE8DE',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+  cursorAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#282A30',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cursorBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  cursorArrow: {
+    transform: [{ rotate: '-45deg' }],
+  },
+
+  /* Slanted Tags */
+  slantedTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+    paddingVertical: 2,
+  },
+  slantedTag: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  stepBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
+  slantedTagText: {
+    fontSize: 12,
+    fontWeight: '800',
     color: '#0D0E11',
+    letterSpacing: 0.2,
   },
-  stepContentWrap: {
-    flex: 1,
+
+  /* Bottom Hero Meta Row (matching "@ui.inayat" and "Save for later" in reference) */
+  heroFooterMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 6,
+    marginBottom: 12,
   },
-  stepTitle: {
-    fontSize: 13,
+  heroAuthorHandle: {
+    fontSize: 14,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.2,
   },
-  stepDesc: {
-    fontSize: 11,
+  heroAuthorSub: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#66655E',
-    marginTop: 1,
+    marginTop: 2,
   },
-  stepStripDivider: {
-    height: 1,
-    backgroundColor: '#F3F2EB',
-    marginVertical: 4,
+  saveForLaterPill: {
+    backgroundColor: '#EAE8DE',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  saveForLaterText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0D0E11',
   },
 
-  /* Split 2-Block Cards */
-  splitBlockContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-  },
-  splitBlockYellow: {
-    flex: 1,
-    backgroundColor: COLORS.accentYellow,
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E2EA00',
-  },
-  splitBlockWhite: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
-  },
-  splitBlockLabelDark: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#333333',
-    marginBottom: 6,
-  },
-  splitBlockLabelLight: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#66655E',
-    marginBottom: 6,
-  },
-  splitValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 3,
-  },
-  splitValueDark: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -1,
-  },
-  splitValueLight: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#0D0E11',
-    letterSpacing: -1,
-  },
-  splitUnitDark: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0D0E11',
-  },
-  splitSubDark: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#333333',
-    marginTop: 4,
-  },
-  splitSubLight: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#66655E',
-    marginTop: 4,
-  },
-
-  /* Bottom Full-Width Action Banner */
-  detailsActionBanner: {
+  /* Bottom Hero Row (Simulation pills) */
+  heroBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0D0E11',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 10,
+    marginTop: 4,
   },
-  detailsBannerLeft: {
+  overhangingPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    backgroundColor: COLORS.accentYellow, // Bright canary yellow
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2EA00',
   },
-  detailsBannerText: {
-    fontSize: 13,
+  overhangingPillLabel: {
+    fontSize: 12,
     fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  playTriangleWrap: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  /* Scenario Test Row */
-  heroSimulateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 4,
-  },
-  heroSimulateLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#66655E',
+    color: '#0D0E11',
+    letterSpacing: 0.2,
   },
   miniDotRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   scenarioDotBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#D8D6CE',
   },
   scenarioDotBtnActive: {
-    backgroundColor: COLORS.accentYellow,
-    borderColor: '#0D0E11',
+    backgroundColor: '#0D0E11',
+  },
+
+  /* 2. MANIFESTO HEADLINE SECTION */
+  manifestoSection: {
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  miniStarburstWrap: {
+    marginBottom: 12,
+  },
+  manifestoHeadline: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    lineHeight: 28,
   },
 
   /* Body Content */
   bodyContent: {
     paddingHorizontal: 16,
+  },
+
+  /* 3. SIGNATURE 2x2 CUT-CORNER GRID BOXES */
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 14,
+  },
+  gridCard: {
+    width: '48%',
+    padding: 16,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 4, // Stylized cut-corner shape from reference!
+    minHeight: 180,
+    justifyContent: 'space-between',
+  },
+  gridCardYellow: {
+    backgroundColor: COLORS.accentYellow, // #F7FF00 electric canary yellow
+    borderWidth: 1,
+    borderColor: '#E2EA00',
+  },
+  gridCardWhite: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
+  },
+
+  /* Dark text styles for Card 01 */
+  gridNumberDark: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -2,
+  },
+  gridTitleDark: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.4,
+    marginTop: 2,
+  },
+  gridValueDark: {
+    fontSize: 30,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.8,
+    marginTop: 4,
+  },
+  gridUnitDark: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#333333',
+  },
+  gridSubDark: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333333',
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  gridActionPillDark: {
+    borderWidth: 1,
+    borderColor: '#0D0E11',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+  },
+  gridActionTextDark: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0D0E11',
+  },
+
+  /* Light text styles for Cards 02, 03, 04 */
+  gridNumberLight: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -2,
+  },
+  gridTitleLight: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.4,
+    marginTop: 2,
+  },
+  gridValueLight: {
+    fontSize: 30,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.8,
+    marginTop: 4,
+  },
+  gridUnitLight: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#66655E',
+  },
+  gridSubLight: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#66655E',
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  gridActionPillLight: {
+    borderWidth: 1,
+    borderColor: '#D8D6CE',
+    backgroundColor: '#F3F2EB',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+  },
+  gridActionTextLight: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0D0E11',
   },
 
   /* 4. System Status Card */
