@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   darkCardTag: {
-    backgroundColor: 'rgba(216, 250, 30, 0.15)',
+    backgroundColor: 'rgba(255, 85, 34, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   darkCardTagText: {
     fontSize: 10,
     fontWeight: '900',
-    color: COLORS.accentLime, // Neon yellow-lime
+    color: COLORS.accentOrange, // Vibrant tech orange (#FF5522)
     letterSpacing: 0.3,
   },
   darkCardTagSubtle: {
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: COLORS.accentLime,
+    backgroundColor: COLORS.accentOrange,
     alignItems: 'center',
     justifyContent: 'center',
   },
