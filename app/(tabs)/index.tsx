@@ -115,7 +115,7 @@ export default function DashboardScreen() {
     >
       {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image media_1792694621347.jpg) */}
       <View style={styles.topHeroCard}>
-        {/* Top Header Bar: Clean title on left, "01 of 04" pill on right */}
+        {/* Top Header Bar: Clean title on left, Nav Symbols & Index on right */}
         <View style={styles.heroTopBar}>
           <View style={styles.brandRow}>
             <View style={styles.logoCircle}>
@@ -124,9 +124,45 @@ export default function DashboardScreen() {
             <Text style={styles.brandLogoText}>AquaGuard</Text>
           </View>
 
-          <View style={styles.heroPagePill}>
-            <Text style={styles.heroPagePillBold}>01</Text>
-            <Text style={styles.heroPagePillLight}> of 04</Text>
+          {/* Nav Symbols (Home, Tools, Alerts, Admin) */}
+          <View style={styles.topNavSymbolsRow}>
+            <TouchableOpacity
+              onPress={() => router.push('/')}
+              style={[styles.topNavIconBtn, styles.topNavIconBtnActive]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="home" size={15} color="#0D0E11" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/scenarios')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="construct-outline" size={15} color="#0D0E11" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/alerts')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="notifications-outline" size={15} color="#0D0E11" />
+              {activeCount > 0 && <View style={styles.topNavDotBadge} />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/admin')}
+              style={styles.topNavIconBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="shield-checkmark-outline" size={15} color="#0D0E11" />
+            </TouchableOpacity>
+
+            <View style={styles.heroPagePill}>
+              <Text style={styles.heroPagePillBold}>01</Text>
+              <Text style={styles.heroPagePillLight}>/04</Text>
+            </View>
           </View>
         </View>
 
@@ -650,21 +686,49 @@ const styles = StyleSheet.create({
     color: '#0D0E11',
     letterSpacing: 0.2,
   },
+  topNavSymbolsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  topNavIconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#EAE8DE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  topNavIconBtnActive: {
+    backgroundColor: COLORS.accentYellow,
+    borderWidth: 1,
+    borderColor: '#E2EA00',
+  },
+  topNavDotBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.danger,
+  },
   heroPagePill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EAE8DE',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 12,
   },
   heroPagePillBold: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '900',
     color: '#0D0E11',
   },
   heroPagePillLight: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#66655E',
   },
