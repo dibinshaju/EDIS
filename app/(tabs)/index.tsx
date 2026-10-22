@@ -11,310 +11,502 @@ import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
 import { useMqtt } from '../../src/context/MqttContext';
 import { useAlerts } from '../../src/context/AlertContext';
-import { FlowGauge } from '../../src/components/FlowGauge';
-import { FlowChart } from '../../src/components/FlowChart';
-import { StatCard } from '../../src/components/StatCard';
-import { StatusDot } from '../../src/components/StatusDot';
-import { DemoBadge } from '../../src/components/DemoBadge';
+import { WaveformChart } from '../../src/components/WaveformChart';
+import { TimelineBranch } from '../../src/components/TimelineBranch';
 import { AlertBanner } from '../../src/components/AlertBanner';
-import { formatFlow, formatVolume } from '../../src/utils/format';
+import { formatFlow } from '../../src/utils/format';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { currentReading, history, totalVolumeLiters, isSimulated, activeScenario, setScenario, dataSource } = useSensor();
+  const { currentReading, activeScenario, setScenario, dataSource } = useSensor();
   const { status: mqttStatus } = useMqtt();
-  const { diagnosticNotes, activeAlert } = useAlerts();
+  const { activeAlert } = useAlerts();
 
   const isLeak = activeAlert?.category === 'SUSPECTED_LEAK';
   const flowDiff = currentReading.flowDifference;
 
   return (
-    <View style={styles.screen}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.titleRow}>
-            <Ionicons name="water" size={22} color={COLORS.tealPrimary} />
-            <Text style={styles.appTitle}>Smart Water Monitor</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
+      {/* 1. Header Bar matching "Cardiology" top contour */}
+      <View style={styles.topBar}>
+        <View style={styles.topBarLeft}>
+          <View style={styles.closeCircle}>
+            <Ionicons name="close" size={16} color={COLORS.textPrimary} />
           </View>
-          <Text style={styles.appSubtitle}>Dual-Sensor IoT Leakage Detection</Text>
+          <Text style={styles.brandTitle}>Telemetry Dynamics</Text>
         </View>
 
-        <View style={styles.headerRight}>
+        {/* Horizontal Navigation Pills (from top right of photo) */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.topPillsScroll}
+        >
+          <TouchableOpacity style={[styles.topPill, styles.topPillActive]}>
+            <Ionicons name="search" size={12} color={COLORS.textPrimary} />
+            <Text style={styles.topPillTextActive}>Flow Dynamics</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
-            style={styles.connectionBadge}
+            style={styles.topPill}
+            onPress={() => router.push('/(tabs)/history')}
+          >
+            <Ionicons name="document-text-outline" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.topPillText}>Readings</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.topPill}
+            onPress={() => router.push('/(tabs)/scenarios')}
+          >
+            <Ionicons name="git-branch-outline" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.topPillText}>Sensors</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.topPill}
             onPress={() => router.push('/wokwi-guide')}
           >
-            <StatusDot status={mqttStatus} size={8} />
-            <Text style={styles.connectionText}>
-              {mqttStatus === 'connected' ? 'Wokwi Live' : 'Demo Sim'}
-            </Text>
-            <Ionicons name="information-circle-outline" size={13} color="#94A3B8" />
+            <Ionicons name="hardware-chip-outline" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.topPillText}>Wokwi ESP32</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.topPill}
+            onPress={() => router.push('/(tabs)/admin')}
+          >
+            <Ionicons name="settings-outline" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.topPillText}>Config</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Active Alert Notification Banner if active */}
+      <AlertBanner />
+
+      {/* 2. Top Summary Card (Matching the huge white rounded card in photo) */}
+      <View style={styles.mainSummaryCard}>
+        <View style={styles.summaryTopRow}>
+          {/* Station Avatar Box (left side of photo) */}
+          <View style={styles.stationAvatarBox}>
+            <View style={styles.avatarIconCircle}>
+              <Ionicons name="business-outline" size={20} color={COLORS.textPrimary} />
+            </View>
+            <View style={styles.avatarTextCol}>
+              <Text style={styles.avatarSub}>Node 01</Text>
+              <Text style={styles.avatarName}>Primary Intake</Text>
+            </View>
+          </View>
+
+          {/* Metric Columns (Diagnosis, Heart Rate, Pressure in photo) */}
+          <View style={styles.metricColumnsWrap}>
+            <View style={styles.metricCol}>
+              <Text style={styles.metricColLabel}>System State</Text>
+              <Text
+                style={[
+                  styles.metricColValueLarge,
+                  isLeak && { color: COLORS.danger },
+                ]}
+              >
+                {isLeak ? 'Suspected Leak' : activeScenario === 'abnormal_consumption' ? 'High Demand' : 'Normal Flow'}
+              </Text>
+            </View>
+
+            <View style={styles.metricCol}>
+              <Text style={styles.metricColLabel}>Inlet (S1)</Text>
+              <Text style={styles.metricColValue}>
+                {formatFlow(currentReading.inletFlow)} <Text style={styles.metricUnit}>L/m</Text>
+              </Text>
+            </View>
+
+            <View style={styles.metricCol}>
+              <Text style={styles.metricColLabel}>Outlet (S2)</Text>
+              <Text style={styles.metricColValue}>
+                {formatFlow(currentReading.outletFlow)} <Text style={styles.metricUnit}>L/m</Text>
+              </Text>
+            </View>
+
+            <View style={styles.metricCol}>
+              <Text style={styles.metricColLabel}>Deficit</Text>
+              <Text
+                style={[
+                  styles.metricColValue,
+                  flowDiff > 1.5 && { color: COLORS.danger },
+                ]}
+              >
+                {flowDiff >= 0 ? '+' : ''}{formatFlow(flowDiff)} <Text style={styles.metricUnit}>L/m</Text>
+              </Text>
+            </View>
+
+            <View style={styles.metricCol}>
+              <Text style={styles.metricColLabel}>Pressure</Text>
+              <Text style={styles.metricColValue}>
+                4.2 <Text style={styles.metricUnit}>bar</Text>
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Sub-Pills Filter Row (bottom of top card in photo) */}
+        <View style={styles.summaryBottomRow}>
+          <View style={styles.gridIconCircle}>
+            <Ionicons name="grid-outline" size={14} color={COLORS.textSecondary} />
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subPillsScroll}>
+            <TouchableOpacity style={[styles.subPill, styles.subPillActive]}>
+              <Text style={styles.subPillTextActive}>All Meters</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.subPill} onPress={() => setScenario('normal')}>
+              <Text style={styles.subPillText}>Normal Steady</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.subPill} onPress={() => setScenario('suspected_leak')}>
+              <Text style={styles.subPillText}>Leak Incident</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.subPill} onPress={() => setScenario('abnormal_consumption')}>
+              <Text style={styles.subPillText}>High Draw</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.subPill} onPress={() => setScenario('sensor_anomaly')}>
+              <Text style={styles.subPillText}>Reversed Check</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.subPill} onPress={() => setScenario('recovery')}>
+              <Text style={styles.subPillText}>Recovery</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Active Alert Banner */}
-        <AlertBanner />
+      {/* 3. Horizontal Timeline Canvas with Branching Nodes (from middle of photo) */}
+      <View style={styles.timelineSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timelineScroll}>
+          {/* Branch 1: Inflow Telemetry */}
+          <View style={styles.timelineColumn}>
+            <TimelineBranch
+              monthOrLabel="Intake Pipeline"
+              sublabel="Telemetry Block 1"
+              inletFlow={currentReading.inletFlow}
+              outletFlow={currentReading.outletFlow}
+            />
 
-        {/* Mode / Demo Ticker */}
-        <View style={styles.demoTickerRow}>
-          <DemoBadge isSimulated={isSimulated} label={isSimulated ? 'DEMO SIMULATION' : 'WOKWI HARDWARE STREAM'} />
-          <TouchableOpacity
-            style={styles.scenarioPill}
-            onPress={() => router.push('/(tabs)/scenarios')}
-          >
-            <Text style={styles.scenarioPillText}>
-              Scenario: <Text style={styles.scenarioPillBold}>{activeScenario.toUpperCase()}</Text>
-            </Text>
-            <Ionicons name="chevron-forward" size={12} color={COLORS.tealPrimary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Dual Flow Gauges */}
-        <View style={styles.gaugeRow}>
-          <FlowGauge
-            label="Inlet Sensor (S1)"
-            flowValue={currentReading.inletFlow}
-            color={COLORS.tealPrimary}
-            subtitle="Main municipal inflow"
-          />
-          <FlowGauge
-            label="Outlet Sensor (S2)"
-            flowValue={currentReading.outletFlow}
-            color="#84CC16"
-            subtitle="Distribution downstream"
-          />
-        </View>
-
-        {/* Key Metrics Grid */}
-        <View style={styles.statsGrid}>
-          <StatCard
-            title="Flow Mismatch"
-            value={`${flowDiff >= 0 ? '+' : ''}${formatFlow(flowDiff)}`}
-            unit="L/min"
-            subtitle={
-              flowDiff > 1.5
-                ? 'Possible deficit between sensors'
-                : flowDiff < -1.5
-                ? 'Outlet > Inlet (Calibration check)'
-                : 'Balanced flow within tolerance'
-            }
-            iconName="git-compare-outline"
-            iconColor={isLeak ? COLORS.danger : COLORS.tealPrimary}
-            accentColor={isLeak ? COLORS.danger : undefined}
-            isWarning={isLeak}
-          />
-          <StatCard
-            title="Total Volume"
-            value={formatVolume(totalVolumeLiters)}
-            subtitle="Cumulative water drawn"
-            iconName="bar-chart-outline"
-            iconColor="#3B82F6"
-          />
-        </View>
-
-        {/* Real-Time Dual Sensor Telemetry Line Chart */}
-        <View style={styles.chartSection}>
-          <FlowChart data={history} height={170} />
-        </View>
-
-        {/* Diagnostics & Sensor Health Card */}
-        <View style={styles.diagnosticsCard}>
-          <View style={styles.diagHeader}>
-            <View style={styles.diagTitleRow}>
-              <Ionicons name="hardware-chip-outline" size={16} color={COLORS.textDark} />
-              <Text style={styles.diagTitle}>Telemetry & Diagnostic Stream</Text>
-            </View>
-            <View style={styles.devicePill}>
-              <Text style={styles.devicePillText}>{currentReading.deviceId}</Text>
+            {/* Waveform Card 1 (Blood Pressure style from image) */}
+            <View style={styles.waveCardWrap}>
+              <WaveformChart
+                title="Inlet Flow Waveform"
+                currentValue={currentReading.inletFlow}
+                averageValue={12.4}
+                deltaValue={flowDiff}
+                isAlert={isLeak}
+              />
             </View>
           </View>
 
-          <View style={styles.diagBody}>
-            <View style={styles.diagRow}>
-              <Text style={styles.diagLabel}>Telemetry Source:</Text>
-              <Text style={styles.diagValue}>
-                {dataSource === 'wokwi' && mqttStatus === 'connected'
-                  ? 'Virtual ESP32 via MQTT'
-                  : 'Deterministic Academic Simulator'}
-              </Text>
-            </View>
-            <View style={styles.diagRow}>
-              <Text style={styles.diagLabel}>Sensor Readings Valid:</Text>
-              <Text style={[styles.diagValue, { color: currentReading.isValid ? COLORS.success : COLORS.danger }]}>
-                {currentReading.isValid ? 'YES (Numeric OK)' : 'NO (Stale / Corrupt)'}
-              </Text>
-            </View>
-            <View style={styles.diagRow}>
-              <Text style={styles.diagLabel}>Pipeline Notes:</Text>
-              <Text style={styles.diagValue} numberOfLines={1}>
-                {currentReading.notes || 'Normal steady state'}
-              </Text>
+          {/* Branch 2: Distribution Outflow */}
+          <View style={styles.timelineColumn}>
+            <TimelineBranch
+              monthOrLabel="Distribution"
+              sublabel="Telemetry Block 2"
+              inletFlow={currentReading.inletFlow}
+              outletFlow={currentReading.outletFlow}
+            />
+
+            {/* Waveform Card 2 (Blood Pressure style from image) */}
+            <View style={styles.waveCardWrap}>
+              <WaveformChart
+                title="Outlet Flow Waveform"
+                currentValue={currentReading.outletFlow}
+                averageValue={12.1}
+                deltaValue={-flowDiff}
+              />
             </View>
           </View>
 
-          {diagnosticNotes.length > 0 && (
-            <View style={styles.activeNotesBox}>
-              <Ionicons name="information-circle" size={14} color={COLORS.info} />
-              <Text style={styles.activeNotesText}>{diagnosticNotes[0]}</Text>
+          {/* Branch 3: Pipeline Diagnostic Card (Symptoms style from image) */}
+          <View style={styles.timelineColumn}>
+            <View style={styles.nodeHeaderSimple}>
+              <View style={styles.yellowCircleNode}>
+                <Ionicons name="pulse-outline" size={14} color={COLORS.darkCharcoal} />
+              </View>
+              <View style={styles.axisLine} />
             </View>
-          )}
-        </View>
 
-        {/* Quick Demo Scenarios Shortcut Bar */}
-        <View style={styles.quickBar}>
-          <Text style={styles.quickBarTitle}>Quick Expo Test Actions:</Text>
-          <View style={styles.quickButtons}>
-            <TouchableOpacity
-              style={[styles.quickBtn, activeScenario === 'normal' && styles.quickBtnActive]}
-              onPress={() => setScenario('normal')}
-            >
-              <Text style={styles.quickBtnText}>Normal</Text>
-            </TouchableOpacity>
+            <View style={styles.diagnosticCard}>
+              <View style={styles.diagHeader}>
+                <Text style={styles.diagTitle}>Pipeline State Analysis</Text>
+                <View style={[styles.statusDot, { backgroundColor: isLeak ? COLORS.danger : COLORS.success }]} />
+              </View>
 
-            <TouchableOpacity
-              style={[styles.quickBtn, styles.quickBtnDanger, activeScenario === 'suspected_leak' && styles.quickBtnDangerActive]}
-              onPress={() => setScenario('suspected_leak')}
-            >
-              <Text style={[styles.quickBtnText, { color: COLORS.dangerText }]}>Leak Demo</Text>
-            </TouchableOpacity>
+              <Text style={styles.diagBody}>
+                {isLeak
+                  ? 'Sustained positive deficit observed. Possible pipe breach or unmetered fixture loss.'
+                  : 'Flow velocity and volumetric balance within certified operational boundaries.'}
+              </Text>
 
-            <TouchableOpacity
-              style={[styles.quickBtn, styles.quickBtnWarning, activeScenario === 'abnormal_consumption' && styles.quickBtnWarningActive]}
-              onPress={() => setScenario('abnormal_consumption')}
-            >
-              <Text style={[styles.quickBtnText, { color: COLORS.warningText }]}>High Draw</Text>
-            </TouchableOpacity>
+              <View style={styles.diagMetaRow}>
+                <Text style={styles.diagMetaLabel}>Source Mode</Text>
+                <Text style={styles.diagMetaVal}>
+                  {dataSource === 'wokwi' && mqttStatus === 'connected' ? 'Wokwi ESP32' : 'Deterministic Demo'}
+                </Text>
+              </View>
 
-            <TouchableOpacity
-              style={[styles.quickBtn, styles.quickBtnSuccess]}
-              onPress={() => setScenario('recovery')}
-            >
-              <Text style={[styles.quickBtnText, { color: COLORS.successText }]}>Recover</Text>
-            </TouchableOpacity>
+              <View style={styles.diagMetaRow}>
+                <Text style={styles.diagMetaLabel}>MQTT Bridge</Text>
+                <Text style={styles.diagMetaVal}>{mqttStatus.toUpperCase()}</Text>
+              </View>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.canvasBg, // Soft warm stone/putty grey
   },
-  header: {
+  scrollContent: {
+    paddingBottom: 80, // room for floating dock
+  },
+  // Top Header Bar
+  topBar: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: COLORS.canvasBg,
+  },
+  topBarLeft: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingTop: 12,
-    paddingBottom: 10,
+    gap: 8,
+    marginBottom: 8,
+  },
+  closeCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  appTitle: {
-    fontSize: 17,
+  brandTitle: {
+    fontSize: 20,
     fontWeight: '800',
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.4,
   },
-  appSubtitle: {
-    fontSize: 10,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  headerRight: {
+  topPillsScroll: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 6,
+    paddingBottom: 2,
   },
-  connectionBadge: {
+  topPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: COLORS.bgLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(0, 0, 0, 0.06)',
   },
-  connectionText: {
+  topPillActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.textPrimary,
+  },
+  topPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  topPillTextActive: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
-  scroll: {
+  // Main Summary Card (matching large card in photo)
+  mainSummaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.xl,
+    padding: 16,
+    marginHorizontal: 14,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
+  },
+  summaryTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  stationAvatarBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.cardSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  avatarIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarTextCol: {
+    paddingRight: 4,
+  },
+  avatarSub: {
+    fontSize: 9,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  avatarName: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  metricColumnsWrap: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingVertical: SPACING.md,
-  },
-  demoTickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+    alignItems: 'flex-start',
+    paddingLeft: 4,
   },
-  scenarioPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+  metricCol: {
+    alignItems: 'flex-start',
   },
-  scenarioPillText: {
+  metricColLabel: {
     fontSize: 10,
-    color: COLORS.navyDark,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+    marginBottom: 2,
   },
-  scenarioPillBold: {
+  metricColValueLarge: {
+    fontSize: 16,
     fontWeight: '800',
-    color: COLORS.tealDark,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.3,
   },
-  gaugeRow: {
+  metricColValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  metricUnit: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  // Sub-Pill Filter Row
+  summaryBottomRow: {
     flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+    alignItems: 'center',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    paddingTop: 10,
   },
-  statsGrid: {
+  gridIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: COLORS.cardSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subPillsScroll: {
     flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+    gap: 6,
   },
-  chartSection: {
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+  subPill: {
+    backgroundColor: COLORS.cardSubtle,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 16,
   },
-  diagnosticsCard: {
+  subPillActive: {
+    backgroundColor: COLORS.darkCharcoal,
+  },
+  subPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  subPillTextActive: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Timeline Canvas
+  timelineSection: {
+    paddingLeft: 14,
+    marginBottom: 24,
+  },
+  timelineScroll: {
+    flexDirection: 'row',
+    paddingRight: 24,
+    gap: 16,
+  },
+  timelineColumn: {
+    width: 260,
+  },
+  waveCardWrap: {
+    marginTop: 10,
+  },
+  nodeHeaderSimple: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  yellowCircleNode: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.accentLime,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C2E012',
+  },
+  axisLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: '#D1CABE',
+    marginLeft: 8,
+  },
+  diagnosticCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    marginHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+    padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   diagHeader: {
     flexDirection: 'row',
@@ -322,113 +514,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  diagTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   diagTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
-  devicePill: {
-    backgroundColor: COLORS.bgLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+  statusDot: {
+    width: 8,
+    height: 8,
     borderRadius: 4,
   },
-  devicePillText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
   diagBody: {
-    gap: 4,
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    lineHeight: 16,
+    marginBottom: 12,
   },
-  diagRow: {
+  diagMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingVertical: 3,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.04)',
   },
-  diagLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
+  diagMetaLabel: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
   },
-  diagValue: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textDark,
-  },
-  activeNotesBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.infoBg,
-    padding: 8,
-    borderRadius: RADIUS.sm,
-    marginTop: 8,
-  },
-  activeNotesText: {
-    fontSize: 11,
-    color: COLORS.infoText,
-    flex: 1,
-  },
-  quickBar: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    marginHorizontal: SPACING.md,
-    marginBottom: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  quickBarTitle: {
-    fontSize: 11,
+  diagMetaVal: {
+    fontSize: 10,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  quickButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  quickBtn: {
-    flex: 1,
-    backgroundColor: COLORS.bgLight,
-    paddingVertical: 8,
-    borderRadius: RADIUS.sm,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  quickBtnActive: {
-    borderColor: COLORS.tealPrimary,
-    backgroundColor: '#E0F2FE',
-  },
-  quickBtnDanger: {
-    backgroundColor: COLORS.dangerBg,
-    borderColor: '#FECACA',
-  },
-  quickBtnDangerActive: {
-    borderColor: COLORS.danger,
-    borderWidth: 1.5,
-  },
-  quickBtnWarning: {
-    backgroundColor: COLORS.warningBg,
-    borderColor: '#FDE68A',
-  },
-  quickBtnWarningActive: {
-    borderColor: COLORS.warning,
-    borderWidth: 1.5,
-  },
-  quickBtnSuccess: {
-    backgroundColor: COLORS.successBg,
-    borderColor: '#A7F3D0',
-  },
-  quickBtnText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
 });
