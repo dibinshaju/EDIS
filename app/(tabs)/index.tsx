@@ -116,6 +116,36 @@ export default function DashboardScreen() {
             />
           </View>
 
+          {/* Card Telemetry Strip showcasing 01 values */}
+          <View style={styles.cardTelemetryRow}>
+            <View style={styles.cardTelemetryItem}>
+              <Text style={styles.cardTelemetryLabel}>Inlet S1</Text>
+              <Text style={styles.cardTelemetryValue}>
+                {formatFlow(inFlow)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
+              </Text>
+            </View>
+            <View style={styles.cardTelemetryDivider} />
+            <View style={styles.cardTelemetryItem}>
+              <Text style={styles.cardTelemetryLabel}>Outlet S2</Text>
+              <Text style={styles.cardTelemetryValue}>
+                {formatFlow(outFlow)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
+              </Text>
+            </View>
+            <View style={styles.cardTelemetryDivider} />
+            <View style={styles.cardTelemetryItem}>
+              <Text style={styles.cardTelemetryLabel}>Variance</Text>
+              <Text
+                style={[
+                  styles.cardTelemetryValue,
+                  flowDifference > 1.5 && { color: COLORS.danger },
+                ]}
+              >
+                {flowDifference >= 0 ? '+' : ''}
+                {formatFlow(flowDifference)} <Text style={styles.cardTelemetryUnit}>L/m</Text>
+              </Text>
+            </View>
+          </View>
+
           {/* Card Footer (matching "@ui.inayat" and "Save for later" in image) */}
           <View style={styles.cardFooterRow}>
             <View>
