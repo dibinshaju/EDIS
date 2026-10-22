@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
     fontSize: 50,
     lineHeight: 50,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 3.5,
   },
   p1TitleFlowRow: {
     flexDirection: 'row',
@@ -894,13 +894,13 @@ const styles = StyleSheet.create({
     fontSize: 50,
     lineHeight: 50,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 3.5,
   },
   p1TitleSubGreen: {
     fontFamily: FONTS.body,
     fontSize: 14,
     color: '#8E9F88',
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
   roundActionLimeBtn: {
     width: 32,
@@ -916,19 +916,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
-    paddingTop: 12,
-    marginBottom: 6,
+    paddingTop: 10,
+    marginBottom: 4,
   },
   p1StatCol: {
     flex: 1,
     alignItems: 'flex-start',
+    overflow: 'visible',
   },
   p1StatLabel: {
     fontFamily: FONTS.heading,
-    fontSize: 9.5,
+    fontSize: 9,
     color: '#8E9F88',
-    marginBottom: 4,
-    letterSpacing: 0.2,
+    marginBottom: 2,
+    letterSpacing: 1,
   },
   p1StatValueRow: {
     flexDirection: 'row',
@@ -936,20 +937,22 @@ const styles = StyleSheet.create({
   },
   p1StatValueLime: {
     fontFamily: FONTS.body,
-    fontSize: 38,
+    fontSize: 62,
+    lineHeight: 62,
     color: '#D4FF32',
-    letterSpacing: 0.5,
+    letterSpacing: 3.5,
   },
   p1StatUnitLime: {
     fontFamily: FONTS.body,
-    fontSize: 16,
+    fontSize: 20,
     color: '#D4FF32',
     marginLeft: 2,
+    letterSpacing: 1,
   },
   p1StatDivider: {
     width: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginHorizontal: 10,
+    marginHorizontal: 5,
   },
 
   // Phone 1 Bottom: Neon Lime Green (50%)
