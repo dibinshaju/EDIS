@@ -12,23 +12,26 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      const fontId = 'google-font-industrial-editorial';
+      const fontId = 'google-font-bungee-bebas';
       if (!document.getElementById(fontId)) {
         const link = document.createElement('link');
         link.id = fontId;
         link.rel = 'stylesheet';
         link.href =
-          'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,800&family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap';
+          'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap';
         document.head.appendChild(link);
 
         const style = document.createElement('style');
         style.id = 'font-override-style';
         style.textContent = `
           * {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Bebas Neue', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           }
-          .font-display-condensed {
-            font-family: 'Barlow Condensed', 'Bebas Neue', 'Impact', sans-serif !important;
+          .font-heading {
+            font-family: 'Bungee', cursive, sans-serif !important;
+          }
+          .font-content {
+            font-family: 'Bebas Neue', sans-serif !important;
           }
         `;
         document.head.appendChild(style);
