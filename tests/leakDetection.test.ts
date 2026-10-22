@@ -113,7 +113,8 @@ describe('LeakDetectionEngine Unit Tests', () => {
 
   test('7. Recovery transition emits RECOVERED alert when flow normalizes', () => {
     const engine = new LeakDetectionEngine();
-    const t0 = 1700000000000;
+    // Use explicit daytime timestamp (2:00 PM) to isolate daytime leak recovery
+    const t0 = new Date('2026-10-22T14:00:00Z').getTime();
 
     // Step 1: Induce leak for 6 seconds
     engine.processReading(makeReading(15.0, 10.0, t0), testThresholds, t0);
