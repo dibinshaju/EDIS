@@ -11,7 +11,7 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS } from '../../src/constants/theme';
+import { COLORS, FONTS } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
 import { useMqtt } from '../../src/context/MqttContext';
 import { useAlerts } from '../../src/context/AlertContext';
@@ -198,7 +198,7 @@ export default function DashboardScreen() {
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
           {/* Top Half: Deep Forest Charcoal (#0F1A12) */}
           <View style={styles.p1TopDark}>
-            {/* iOS Status Bar Row (Light items on dark) */}
+            {/* iOS Status Bar Row */}
             <View style={styles.iosStatusBarRow}>
               <Text style={styles.statusTimeLight}>9:41</Text>
               <View style={styles.dynamicIslandNotch} />
@@ -312,7 +312,7 @@ export default function DashboardScreen() {
               pointerEvents="none"
             />
 
-            {/* Stacked Step 1, Step 2, Step 3 (Tall, evenly spaced) */}
+            {/* Stacked Step 1, Step 2, Step 3 */}
             <View style={styles.stepsContainer}>
               {/* Step 1 */}
               <View style={styles.p1StepRow}>
@@ -377,7 +377,7 @@ export default function DashboardScreen() {
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
           {/* Top Section: Light Warm Taupe (#DDD8D5) */}
           <View style={styles.p2TopTaupe}>
-            {/* iOS Status Bar Row (Dark items on taupe) */}
+            {/* iOS Status Bar Row */}
             <View style={styles.iosStatusBarRow}>
               <Text style={styles.statusTimeDark}>9:41</Text>
               <View style={styles.dynamicIslandNotch} />
@@ -476,7 +476,7 @@ export default function DashboardScreen() {
         <View style={[styles.pageWrapper, { width: containerSize.width }]}>
           {/* Top Section: Neon Lime (#D4FF32) with Giant 'O' */}
           <View style={styles.p3TopLime}>
-            {/* iOS Status Bar Row (Dark items on lime) */}
+            {/* iOS Status Bar Row */}
             <View style={styles.iosStatusBarRow}>
               <Text style={styles.statusTimeDark}>9:41</Text>
               <View style={styles.dynamicIslandNotch} />
@@ -758,16 +758,16 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   statusTimeLight: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 16,
     color: '#FFFFFF',
-    letterSpacing: -0.2,
+    letterSpacing: 0.5,
   },
   statusTimeDark: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 16,
     color: '#1C1918',
-    letterSpacing: -0.2,
+    letterSpacing: 0.5,
   },
   dynamicIslandNotch: {
     width: 96,
@@ -797,20 +797,20 @@ const styles = StyleSheet.create({
   },
   pageTab: {
     paddingHorizontal: 14,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 18,
   },
   pageTabActive: {
     backgroundColor: '#D4FF32',
   },
   pageTabText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 14,
     color: '#A0A4AB',
+    letterSpacing: 0.5,
   },
   pageTabTextActive: {
     color: '#0F1A12',
-    fontWeight: '900',
   },
 
   pagerScrollView: {
@@ -838,10 +838,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   brandTitleWhite: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontFamily: FONTS.heading,
+    fontSize: 16,
     color: '#FFFFFF',
-    letterSpacing: -0.4,
+    letterSpacing: 0.5,
   },
   menuBtnLight: {
     flexDirection: 'row',
@@ -858,10 +858,10 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   menuTextWhite: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 10,
     color: '#FFFFFF',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
 
   p1TitleRow: {
@@ -876,15 +876,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   p1TitleWhite: {
-    fontSize: 27,
-    fontWeight: '400',
+    fontFamily: FONTS.heading,
+    fontSize: 20,
     color: '#FFFFFF',
-    letterSpacing: -0.6,
+    letterSpacing: 0.2,
   },
   p1TitleSubGreen: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontFamily: FONTS.body,
+    fontSize: 13,
     color: '#8E9F88',
+    letterSpacing: 0.5,
   },
   roundActionLimeBtn: {
     width: 32,
@@ -908,26 +909,27 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   p1StatLabel: {
-    fontSize: 10,
-    fontWeight: '500',
+    fontFamily: FONTS.heading,
+    fontSize: 9.5,
     color: '#8E9F88',
     marginBottom: 4,
+    letterSpacing: 0.2,
   },
   p1StatValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   p1StatValueLime: {
-    fontSize: 34,
-    fontWeight: '800',
+    fontFamily: FONTS.body,
+    fontSize: 38,
     color: '#D4FF32',
-    letterSpacing: -1.2,
+    letterSpacing: 0.5,
   },
   p1StatUnitLime: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 16,
     color: '#D4FF32',
-    marginLeft: 1,
+    marginLeft: 2,
   },
   p1StatDivider: {
     width: 1,
@@ -955,8 +957,8 @@ const styles = StyleSheet.create({
     opacity: 0.22,
   },
   giantWatermarkG: {
+    fontFamily: FONTS.heading,
     fontSize: 250,
-    fontWeight: '900',
     color: '#0F1A12',
     lineHeight: 250,
   },
@@ -979,9 +981,10 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   stepNumText: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 12,
     color: '#0F1A12',
+    letterSpacing: 0.3,
   },
   stepRightIndicatorGroup: {
     flexDirection: 'row',
@@ -989,15 +992,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   stepMinusDash: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 18,
     color: '#0F1A12',
     opacity: 0.6,
   },
   stepMetricText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 16,
     color: '#0F1A12',
+    letterSpacing: 0.5,
   },
   stepHairlineDivider: {
     height: 1,
@@ -1019,8 +1023,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4FF32',
   },
   stepBadgeText: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontFamily: FONTS.heading,
+    fontSize: 9.5,
     color: '#D4FF32',
     letterSpacing: 0.5,
   },
@@ -1032,10 +1036,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   p1FooterText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 13,
     color: '#2A3626',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   p1FooterDot: {
     width: 6,
@@ -1061,10 +1065,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   brandTitleDark: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontFamily: FONTS.heading,
+    fontSize: 16,
     color: '#1C1918',
-    letterSpacing: -0.4,
+    letterSpacing: 0.5,
   },
   menuBtnDark: {
     flexDirection: 'row',
@@ -1081,27 +1085,28 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   menuTextDark: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 10,
     color: '#1C1918',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
 
   p2HeadlineWrap: {
     marginTop: 6,
   },
   p2GiantHeadline: {
-    fontSize: 33,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 23,
     color: '#544E4C',
-    lineHeight: 35,
-    letterSpacing: -1.4,
+    lineHeight: 27,
+    letterSpacing: 0.2,
   },
   p2Subtitle: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FONTS.body,
+    fontSize: 14,
     color: '#7C7571',
-    marginTop: 8,
+    marginTop: 6,
+    letterSpacing: 0.3,
   },
 
   p2RightFloatText: {
@@ -1110,16 +1115,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   p2FloatLine: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: FONTS.body,
+    fontSize: 15,
     color: '#544E4C',
-    lineHeight: 16,
+    lineHeight: 18,
+    letterSpacing: 0.5,
   },
   p2FloatLineBold: {
+    fontFamily: FONTS.heading,
     fontSize: 13,
-    fontWeight: '800',
     color: '#1C1918',
-    lineHeight: 16,
+    lineHeight: 18,
+    letterSpacing: 0.3,
   },
 
   // Phone 2 Bottom Section
@@ -1139,20 +1146,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   p2BlockLabelDark: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.heading,
+    fontSize: 10,
     color: '#0F1A12',
-    marginBottom: 6,
+    marginBottom: 4,
+    letterSpacing: 0.2,
   },
   p2BlockValueDark: {
-    fontSize: 36,
-    fontWeight: '900',
+    fontFamily: FONTS.body,
+    fontSize: 40,
     color: '#0F1A12',
-    letterSpacing: -1.2,
+    letterSpacing: 0.5,
   },
   p2BlockUnitDark: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FONTS.body,
+    fontSize: 22,
   },
 
   p2BlockDark: {
@@ -1162,16 +1170,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   p2BlockLabelLight: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FONTS.heading,
+    fontSize: 10,
     color: '#C4BCB8',
-    marginBottom: 6,
+    marginBottom: 4,
+    letterSpacing: 0.2,
   },
   p2BlockValueLight: {
-    fontSize: 36,
-    fontWeight: '900',
+    fontFamily: FONTS.body,
+    fontSize: 40,
     color: '#FFFFFF',
-    letterSpacing: -1.2,
+    letterSpacing: 0.5,
   },
 
   p2FooterBar: {
@@ -1183,9 +1192,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
   },
   p2DetailsText: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontFamily: FONTS.body,
+    fontSize: 17,
     color: '#D4FF32',
+    letterSpacing: 0.8,
   },
   p2PlayBtn: {
     width: 28,
@@ -1221,11 +1231,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   giantLetterO: {
+    fontFamily: FONTS.heading,
     fontSize: 210,
-    fontWeight: '900',
     color: '#0F1A12',
     lineHeight: 210,
-    letterSpacing: -8,
   },
 
   p3BottomTaupe: {
@@ -1237,24 +1246,25 @@ const styles = StyleSheet.create({
     padding: 22,
   },
   p3SubLabel: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 9.5,
     color: '#706B66',
-    letterSpacing: 1.5,
+    letterSpacing: 1,
     marginBottom: 6,
   },
   p3PlanTitle: {
-    fontSize: 36,
-    fontWeight: '900',
+    fontFamily: FONTS.heading,
+    fontSize: 27,
     color: '#1C1918',
-    letterSpacing: -1.5,
-    marginBottom: 8,
+    letterSpacing: 0.3,
+    marginBottom: 6,
   },
   p3BottomNote: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontFamily: FONTS.body,
+    fontSize: 13,
     color: '#706B66',
-    marginTop: 8,
+    marginTop: 6,
+    letterSpacing: 0.3,
   },
 
   p3FooterBar: {
@@ -1265,9 +1275,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
   },
   p3DetailsText: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontFamily: FONTS.body,
+    fontSize: 17,
     color: '#D4FF32',
+    letterSpacing: 0.8,
   },
 
   // =============================================================
@@ -1304,17 +1315,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   modalTitle: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 14,
     color: COLORS.darkCharcoal,
   },
   modalCloseBtn: {
     padding: 4,
   },
   modalSubtitle: {
-    fontSize: 13,
+    fontFamily: FONTS.body,
+    fontSize: 14,
     color: COLORS.textSecondary,
     marginBottom: 16,
+    letterSpacing: 0.3,
   },
   scenarioList: {
     gap: 10,
@@ -1345,19 +1358,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scenarioNumber: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontFamily: FONTS.heading,
+    fontSize: 14,
     color: COLORS.darkCharcoal,
   },
   scenarioName: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontFamily: FONTS.heading,
+    fontSize: 11,
     color: COLORS.darkCharcoal,
   },
   scenarioDesc: {
-    fontSize: 11,
+    fontFamily: FONTS.body,
+    fontSize: 13,
     color: COLORS.textSecondary,
     marginTop: 2,
+    letterSpacing: 0.2,
   },
 
   // Quick navigation buttons inside modal
@@ -1377,9 +1392,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   quickNavText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontFamily: FONTS.body,
+    fontSize: 13,
     color: '#0D140D',
+    letterSpacing: 0.3,
   },
 
   modalResetBtn: {
@@ -1389,8 +1405,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalResetText: {
+    fontFamily: FONTS.body,
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 0.5,
   },
 });
