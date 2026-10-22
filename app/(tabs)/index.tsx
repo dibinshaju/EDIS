@@ -502,11 +502,18 @@ const styles = StyleSheet.create({
      ======================================================== */
   topCard: {
     backgroundColor: '#F3F2EB', // Off-white card surface
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    borderRadius: 36,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 14,
     paddingHorizontal: 22,
-    paddingTop: 18,
+    paddingTop: 22,
     paddingBottom: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
   },
   headerRow: {
     flexDirection: 'row',
@@ -528,10 +535,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandText: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#0D0E11',
-    letterSpacing: 0.2,
+    letterSpacing: -0.2,
   },
   headerRightRow: {
     flexDirection: 'row',
@@ -542,18 +549,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EAE8DE',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   pageIndexBold: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '900',
     color: '#0D0E11',
   },
   pageIndexLight: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
     color: '#66655E',
   },
   menuBtn: {
@@ -562,8 +569,8 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: '#EAE8DE',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   menuLinesWrap: {
     gap: 3,
@@ -585,13 +592,13 @@ const styles = StyleSheet.create({
   categoryPill: {
     alignSelf: 'flex-start',
     backgroundColor: '#EAE8DE',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 8,
     marginBottom: 14,
   },
   categoryPillText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '800',
     color: '#0D0E11',
     letterSpacing: 0.3,
@@ -599,22 +606,22 @@ const styles = StyleSheet.create({
 
   /* Massive Display Headline (matching "Best Google fonts for tech websites") */
   headlineBlock: {
-    marginBottom: 8,
+    marginBottom: 10,
   },
   giantHeadline: {
-    fontSize: 48,
+    fontSize: 54,
     fontWeight: '900',
     color: '#0D0E11',
-    letterSpacing: -2,
-    lineHeight: 48,
+    letterSpacing: -2.5,
+    lineHeight: 52,
   },
   headlineSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#66655E',
-    marginTop: 6,
+    marginTop: 4,
     marginBottom: 16,
-    lineHeight: 18,
+    lineHeight: 20,
   },
 
   /* Floating Cursor Badge (matching "Inayat Naqvi" badge in image) */
@@ -623,8 +630,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     backgroundColor: '#0D0E11',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 10,
     gap: 6,
     marginBottom: 18,
@@ -643,7 +650,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cursorBadgeText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.2,
@@ -652,35 +659,75 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
 
+  /* Card Telemetry Row */
+  cardTelemetryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E1DA',
+    marginBottom: 18,
+  },
+  cardTelemetryItem: {
+    flex: 1,
+  },
+  cardTelemetryLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#8F959E',
+    marginBottom: 2,
+  },
+  cardTelemetryValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0D0E11',
+    letterSpacing: -0.5,
+  },
+  cardTelemetryUnit: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#8F959E',
+  },
+  cardTelemetryDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#E2E1DA',
+    marginHorizontal: 8,
+  },
+
   /* Card Footer (matching "@ui.inayat" and "Save for later" in image) */
   cardFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingTop: 8,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(13, 14, 17, 0.08)',
   },
   footerHandle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '900',
     color: '#0D0E11',
     letterSpacing: -0.2,
   },
   footerSub: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
     color: '#66655E',
     marginTop: 2,
   },
   actionBtnPill: {
     backgroundColor: '#EAE8DE',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   actionBtnText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '800',
     color: '#0D0E11',
   },
