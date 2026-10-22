@@ -1,9 +1,9 @@
 export const COLORS = {
-  // Exact palette extracted from uploaded design
-  canvasBg: '#E9E7E1',        // Soft warm stone / putty grey background
+  // Clean minimal studio palette matching latest uploaded design
+  canvasBg: '#F8F9FA',        // Clean light grey canvas
   cardBg: '#FFFFFF',          // Crisp white rounded cards
-  cardSubtle: '#F2F0EA',      // Soft tinted card secondary
-  cardBorder: '#D8D5CC',      // Subtle muted border
+  cardSubtle: '#F1F3F5',      // Soft tinted card secondary
+  cardBorder: '#E5E7EB',      // Subtle muted border
   
   // Signature Acid / Neon Lime Accent
   accentLime: '#D8FA1E',      // Neon yellow-green accent circles & badges
@@ -11,50 +11,42 @@ export const COLORS = {
   accentLimeDark: '#869F06',
   
   // Charcoal / Dark accents
-  darkCharcoal: '#1E2125',    // Dark charcoal for pills and frames
-  darkSurface: '#2B2E34',     // Dark pill surfaces
+  darkCharcoal: '#16181B',    // Deep dark charcoal for curved headers and pills
+  darkSurface: '#26292E',     // Dark pill surfaces
   darkPillText: '#FFFFFF',
   
   // Backward-compatible color aliases
-  tealPrimary: '#1E2125',
+  tealPrimary: '#16181B',
   tealDark: '#121417',
   textDark: '#1A1C20',
-  textLight: '#94979E',
-  textMuted: '#6E727A',
+  textLight: '#9CA3AF',
+  textMuted: '#6B7280',
   
   // Pills & Badges
-  pillBgLight: '#DAD7CE',
-  pillBorder: '#CBC7BD',
+  pillBgLight: '#EDF1F5',
+  pillBorder: '#E5E7EB',
   
   // Demo badge colors
-  demoBadgeBg: '#F2F0EA',
-  demoBadgeBorder: '#CBC7BD',
-  demoBadgeText: '#1E2125',
+  demoBadgeBg: '#F1F3F5',
+  demoBadgeBorder: '#E5E7EB',
+  demoBadgeText: '#16181B',
   
   // Typography
   textPrimary: '#1A1C20',     // Dark charcoal text
-  textSecondary: '#6E727A',   // Mid grey text
+  textSecondary: '#6B7280',   // Mid grey text
   
   // Status Colors (stylized to match palette)
   danger: '#EF4444',
   dangerBg: '#FEE2E2',
   dangerText: '#991B1B',
   
-  warning: '#F59E0B',
-  warningBg: '#FEF3C7',
-  warningText: '#92400E',
-  
-  success: '#10B981',
-  successBg: '#D1FAE5',
-  successText: '#065F46',
-  
-  // Graphic Tech Accent (from uploaded reference image)
-  accentOrange: '#FF5500',    // Punchy tech orange from "tech websites" headline
+  // Graphic Tech Accent
+  accentOrange: '#FF5500',    // Punchy tech orange
   accentOrangeLight: '#FFE8DF',
 
   // Desktop Outer Canvas Presentation Background (from photo)
-  presentationBackdrop: '#D4FB0A', // Bright electric lime background
-  deviceBezel: '#2C2E33',          // Tablet/phone dark bezel
+  presentationBackdrop: '#DDE3EA', // Soft slate studio presentation background
+  deviceBezel: '#212429',          // Clean device bezel
 };
 
 export const FONTS = {
