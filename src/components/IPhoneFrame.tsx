@@ -14,7 +14,6 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
   const { status: mqttStatus } = useMqtt();
   const { dataSource } = useSensor();
 
-  // If not web, or screen width is mobile sized (< 768px), render native full-screen directly
   const screenWidth = Dimensions.get('window').width;
   const isWebDesktop = Platform.OS === 'web' && screenWidth >= 768;
 
@@ -27,8 +26,8 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
             onPress={() => setIsFrameEnabled(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="phone-portrait-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.toggleBtnText}>Show iPhone Frame</Text>
+            <Ionicons name="phone-portrait-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.toggleBtnText}>Show Device Frame</Text>
           </TouchableOpacity>
         )}
         {children}
@@ -38,18 +37,19 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
 
   return (
     <View style={styles.deskWrapper}>
-      {/* Top Presentation Bar */}
+      {/* Top Floating Control Bar */}
       <View style={styles.presentationBar}>
         <View style={styles.presentationLeft}>
-          <Ionicons name="water" size={20} color={COLORS.tealPrimary} />
+          <View style={styles.brandCircle}>
+            <Ionicons name="water" size={16} color={COLORS.darkCharcoal} />
+          </View>
           <Text style={styles.presentationTitle}>
-            Smart Water Monitor <Text style={styles.presentationSubtitle}>• Academic Project Expo Presentation Mode</Text>
+            Smart Water Monitor <Text style={styles.presentationSubtitle}>• System Telemetry UI</Text>
           </Text>
         </View>
 
         <View style={styles.presentationRight}>
-          {/* Status Indicator */}
-          <View style={styles.statusBadge}>
+          <View style={styles.statusPill}>
             <View
               style={[
                 styles.statusDot,
@@ -58,54 +58,48 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
                     mqttStatus === 'connected'
                       ? COLORS.success
                       : dataSource === 'demo'
-                      ? COLORS.warning
+                      ? COLORS.accentLimeDark
                       : COLORS.danger,
                 },
               ]}
             />
             <Text style={styles.statusText}>
-              {mqttStatus === 'connected' ? 'Wokwi MQTT Live' : dataSource === 'demo' ? 'Deterministic Demo' : 'Disconnected'}
+              {mqttStatus === 'connected' ? 'Wokwi Live' : 'Demo Simulation'}
             </Text>
           </View>
 
-          {/* Toggle Fullscreen / Frame */}
           <TouchableOpacity
             style={styles.frameToggleBtn}
             onPress={() => setIsFrameEnabled(false)}
           >
-            <Ionicons name="expand-outline" size={16} color={COLORS.textDark} />
+            <Ionicons name="expand-outline" size={14} color={COLORS.darkCharcoal} />
             <Text style={styles.frameToggleText}>Full View</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* iPhone 15 Pro Physical Frame Styling */}
-      <View style={styles.iphoneBezel}>
+      {/* Device Bezel matching the tablet/device frame in uploaded image */}
+      <View style={styles.deviceBezel}>
         <View style={styles.screenContainer}>
-          {/* Dynamic Island / Notch */}
-          <View style={styles.dynamicIslandContainer}>
-            <View style={styles.dynamicIsland}>
-              <View style={styles.cameraLens} />
-              <View style={styles.speakerGrill} />
-            </View>
-          </View>
-
-          {/* iOS Status Bar */}
+          {/* iOS Top Bar */}
           <View style={styles.iosStatusBar}>
             <Text style={styles.statusTime}>
               {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
+            <View style={styles.dynamicPill}>
+              <View style={styles.dynamicDot} />
+              <Text style={styles.dynamicText}>WATER SENSORS</Text>
+            </View>
             <View style={styles.statusIcons}>
-              <Ionicons name="cellular" size={12} color="#0F172A" style={{ marginRight: 4 }} />
-              <Ionicons name="wifi" size={12} color="#0F172A" style={{ marginRight: 4 }} />
-              <Ionicons name="battery-full" size={14} color="#0F172A" />
+              <Ionicons name="wifi" size={14} color={COLORS.textPrimary} style={{ marginRight: 6 }} />
+              <Ionicons name="battery-full" size={16} color={COLORS.textPrimary} />
             </View>
           </View>
 
           {/* App Body Content */}
           <View style={styles.appBody}>{children}</View>
 
-          {/* iOS Home Indicator Bar */}
+          {/* iOS Bottom Home Bar */}
           <View style={styles.homeIndicatorContainer}>
             <View style={styles.homeIndicator} />
           </View>
@@ -118,80 +112,89 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
 const styles = StyleSheet.create({
   nativeContainer: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.canvasBg,
   },
   toggleFloatingBtn: {
     position: 'absolute',
-    top: 12,
-    right: 16,
+    top: 14,
+    right: 18,
     zIndex: 9999,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 20,
     gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   toggleBtnText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   deskWrapper: {
     flex: 1,
     minHeight: '100%' as any,
-    backgroundColor: '#0A1120', // Dark sleek expo backdrop
+    // EXACT neon acid yellow background from the uploaded photo!
+    backgroundColor: COLORS.presentationBackdrop,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
   presentationBar: {
     width: '100%',
-    maxWidth: 960,
+    maxWidth: 900,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     marginBottom: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    borderRadius: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   presentationLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+  },
+  brandCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   presentationTitle: {
-    color: '#F8FAFC',
+    color: COLORS.darkCharcoal,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   presentationSubtitle: {
-    color: '#94A3B8',
+    color: '#4B5563',
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
   },
   presentationRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
-  statusBadge: {
+  statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 16,
+    borderRadius: 20,
     gap: 6,
   },
   statusDot: {
@@ -200,92 +203,80 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   statusText: {
-    color: '#E2E8F0',
-    fontSize: 12,
-    fontWeight: '500',
+    color: COLORS.darkCharcoal,
+    fontSize: 11,
+    fontWeight: '700',
   },
   frameToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: COLORS.darkCharcoal,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
     gap: 4,
   },
   frameToggleText: {
-    color: COLORS.textDark,
-    fontSize: 12,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
-  iphoneBezel: {
-    width: 395,
-    height: 820,
-    backgroundColor: '#1E293B',
-    borderRadius: 54,
-    padding: 11,
-    shadowColor: '#00B4D8',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
+  // Dark rounded bezel like tablet/phone in image
+  deviceBezel: {
+    width: 410,
+    height: 840,
+    backgroundColor: COLORS.deviceBezel,
+    borderRadius: 48,
+    padding: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.28,
     shadowRadius: 36,
     borderWidth: 3,
-    borderColor: '#334155',
+    borderColor: '#3F4248',
   },
   screenContainer: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
-    borderRadius: 43,
+    backgroundColor: COLORS.canvasBg, // Warm putty grey canvas
+    borderRadius: 38,
     overflow: 'hidden',
     position: 'relative',
   },
-  dynamicIslandContainer: {
-    position: 'absolute',
-    top: 8,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 9999,
-    pointerEvents: 'none',
-  },
-  dynamicIsland: {
-    width: 108,
-    height: 28,
-    backgroundColor: '#000000',
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: 10,
-  },
-  cameraLens: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#1E293B',
-    borderWidth: 1.5,
-    borderColor: '#38BDF8',
-  },
-  speakerGrill: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#0F172A',
-    marginLeft: 6,
-  },
   iosStatusBar: {
-    height: 44,
+    height: 42,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 22,
-    paddingTop: 10,
-    backgroundColor: 'transparent',
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    backgroundColor: COLORS.canvasBg,
     zIndex: 10,
   },
   statusTime: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  dynamicPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  dynamicDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.accentLimeDark,
+  },
+  dynamicText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    letterSpacing: 0.5,
   },
   statusIcons: {
     flexDirection: 'row',
@@ -295,16 +286,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   homeIndicatorContainer: {
-    height: 20,
+    height: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: COLORS.canvasBg,
   },
   homeIndicator: {
-    width: 134,
+    width: 120,
     height: 4,
-    backgroundColor: '#0F172A',
+    backgroundColor: COLORS.darkCharcoal,
     borderRadius: 2,
-    opacity: 0.4,
+    opacity: 0.35,
   },
 });
