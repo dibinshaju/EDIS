@@ -113,50 +113,60 @@ export default function DashboardScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image) */}
+      {/* 1. TOP ASYMMETRICAL WHITE HERO CARD (Matching Reference Image media_1792694621347.jpg) */}
       <View style={styles.topHeroCard}>
-        {/* Top Header Bar: Logo on left, sub-navigation on right */}
+        {/* Top Header Bar: Clean title on left, "01 of 04" pill on right */}
         <View style={styles.heroTopBar}>
           <View style={styles.brandRow}>
             <View style={styles.logoCircle}>
               <Ionicons name="water" size={14} color="#0D0E11" />
             </View>
-            <Text style={styles.brandLogoText}>AQUAGUARD</Text>
+            <Text style={styles.brandLogoText}>AquaGuard</Text>
           </View>
 
-          <View style={styles.heroNavRow}>
-            <Text style={styles.heroNavItem}>PIPELINE</Text>
-            <Text style={styles.heroNavItem}>NODES</Text>
-            <Text style={styles.heroNavItem}>TELEMETRY</Text>
+          <View style={styles.heroPagePill}>
+            <Text style={styles.heroPagePillBold}>01</Text>
+            <Text style={styles.heroPagePillLight}> of 04</Text>
           </View>
         </View>
 
-        {/* Hero Title and Purple Starburst Badge Row */}
-        <View style={styles.heroTitleRow}>
-          <View style={styles.heroTitleLeft}>
-            <Text style={styles.heroTitleBig}>AQUAGUARD</Text>
-            <Text style={styles.heroTitleBig}>MONITOR</Text>
-            <Text style={styles.heroSubtitle}>
-              Real-time municipal pipeline intake, distribution metering, and autonomous deficit detection.
-            </Text>
-          </View>
+        {/* Category Pill Tag (matching "Resources" tag in reference) */}
+        <View style={styles.categoryPill}>
+          <Text style={styles.categoryPillText}>Telemetry Engine</Text>
+        </View>
 
-          {/* Signature Purple Starburst Sticker (Matching "Q2" starburst in reference) */}
-          <View style={styles.starburstWrapper}>
-            <Svg width="88" height="88" viewBox="0 0 100 100">
-              <Path
-                d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
-                fill={COLORS.accentPurple}
-              />
-            </Svg>
-            <View style={styles.starburstTextWrap}>
-              <Text style={styles.starburstNumber}>IOT</Text>
-              <Text style={styles.starburstSub}>LIVE</Text>
+        {/* Massive Headline (matching "Best Google fonts for tech websites") */}
+        <View style={styles.heroTitleBlock}>
+          <Text style={styles.heroTitleGiant}>Smart Water</Text>
+          <Text style={styles.heroTitleGiant}>monitor for</Text>
+          <View style={styles.heroTitleLastRow}>
+            <Text style={styles.heroTitleGiant}>pipelines</Text>
+            {/* Violet starburst sticker right beside/over headline */}
+            <View style={styles.starburstInline}>
+              <Svg width="54" height="54" viewBox="0 0 100 100">
+                <Path
+                  d="M 50 0 L 61 14 L 79 7 L 82 25 L 98 29 L 91 46 L 100 61 L 86 69 L 88 87 L 70 85 L 61 99 L 46 91 L 31 99 L 29 82 L 11 81 L 16 64 L 0 53 L 12 40 L 4 23 L 22 22 L 27 5 L 43 14 Z"
+                  fill={COLORS.accentPurple}
+                />
+              </Svg>
+              <View style={styles.starburstTextWrap}>
+                <Text style={styles.starburstNumber}>IOT</Text>
+                <Text style={styles.starburstSub}>LIVE</Text>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Slanted Floating Tags Row (Matching "Исследования", "Digital", "Кейсы") */}
+        {/* Floating Black Cursor Pill (matching "Inayat Naqvi" cursor badge in reference) */}
+        <View style={styles.floatingCursorBadge}>
+          <View style={styles.cursorAvatar}>
+            <Ionicons name="hardware-chip" size={12} color="#FFFFFF" />
+          </View>
+          <Text style={styles.cursorBadgeText}>Virtual ESP32 Bridge</Text>
+          <Ionicons name="navigate" size={11} color="#FFFFFF" style={styles.cursorArrow} />
+        </View>
+
+        {/* Slanted Floating Tags Row */}
         <View style={styles.slantedTagsWrap}>
           <View style={[styles.slantedTag, { transform: [{ rotate: '-3deg' }] }]}>
             <Text style={styles.slantedTagText}>Inlet S1: {formatFlow(inFlow)} L/m</Text>
@@ -171,9 +181,24 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Bottom Hero Action Bar: Overlapping Lime-Yellow Pill & Wokwi Link */}
+        {/* Bottom Hero Meta Bar (matching "@ui.inayat" and "Save for later" in reference) */}
+        <View style={styles.heroFooterMetaRow}>
+          <View>
+            <Text style={styles.heroAuthorHandle}>@aquaguard.telemetry</Text>
+            <Text style={styles.heroAuthorSub}>Municipal Pipeline Telemetry</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.saveForLaterPill}
+            onPress={() => router.push('/wokwi-guide')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.saveForLaterText}>Wokwi Bridge &rarr;</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Bottom Overhanging Lime-Yellow Simulation Control Bar */}
         <View style={styles.heroBottomRow}>
-          {/* Overhanging Lime-Yellow Pill */}
           <View style={styles.overhangingPill}>
             <Text style={styles.overhangingPillLabel}>Simulate State</Text>
             <View style={styles.miniDotRow}>
@@ -197,16 +222,6 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Right Arrow Link */}
-          <TouchableOpacity
-            style={styles.heroRightAction}
-            onPress={() => router.push('/wokwi-guide')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.heroRightActionText}>Wokwi Bridge</Text>
-            <Ionicons name="arrow-forward" size={13} color="#0D0E11" />
-          </TouchableOpacity>
         </View>
       </View>
 
