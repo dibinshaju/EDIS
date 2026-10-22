@@ -37,7 +37,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
               size={20}
-              color={color}
+              color={focused ? '#0F172A' : '#94A3B8'}
             />
           ),
         }}
@@ -52,7 +52,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? 'bar-chart' : 'bar-chart-outline'}
               size={20}
-              color={color}
+              color={focused ? '#0F172A' : '#94A3B8'}
             />
           ),
         }}
@@ -87,7 +87,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? 'notifications' : 'notifications-outline'}
               size={20}
-              color={color}
+              color={focused ? '#0F172A' : '#94A3B8'}
             />
           ),
         }}
@@ -102,7 +102,7 @@ export default function TabsLayout() {
             <Ionicons
               name={focused ? 'settings' : 'settings-outline'}
               size={20}
-              color={color}
+              color={focused ? '#0F172A' : '#94A3B8'}
             />
           ),
         }}
