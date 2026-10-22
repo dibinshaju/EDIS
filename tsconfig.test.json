@@ -6,7 +6,8 @@
     "outDir": "dist-test",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src/**/*", "tests/**/*"]
 }
