@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Switch,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
@@ -15,7 +14,6 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useMqtt } from '../../src/context/MqttContext';
 import { useSensor } from '../../src/context/SensorContext';
 import { useAlerts } from '../../src/context/AlertContext';
-import { StatusDot } from '../../src/components/StatusDot';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AdminScreen() {
@@ -64,25 +62,22 @@ export default function AdminScreen() {
     <View style={styles.screen}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="shield-checkmark" size={20} color={COLORS.tealPrimary} />
-          <Text style={styles.headerTitle}>Admin Center & System Config</Text>
+          <View style={styles.iconCircle}>
+            <Ionicons name="settings-outline" size={16} color={COLORS.textPrimary} />
+          </View>
+          <Text style={styles.headerTitle}>System Configuration</Text>
         </View>
-        <Text style={styles.headerSubtitle}>
-          Authorized administrator controls and hardware telemetry settings
-        </Text>
+        <Text style={styles.headerSubtitle}>Hardware telemetry parameters & administrator controls</Text>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Administrator Profile Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderLeft}>
-              <Ionicons name="person-circle-outline" size={20} color={COLORS.navyDark} />
-              <Text style={styles.cardTitle}>Registered Administrator</Text>
-            </View>
+            <Text style={styles.cardTitle}>Administrator Credentials</Text>
             <View style={[styles.badge, isDemoMode ? styles.badgeDemo : styles.badgeProd]}>
               <Text style={[styles.badgeText, isDemoMode ? styles.badgeTextDemo : styles.badgeTextProd]}>
-                {isDemoMode ? 'DEMO SESSION' : 'FIREBASE AUTH'}
+                {isDemoMode ? 'EXPO DEMO MODE' : 'FIREBASE SECURE'}
               </Text>
             </View>
           </View>
@@ -90,19 +85,19 @@ export default function AdminScreen() {
           {isAuthenticated && user ? (
             <View style={styles.profileBox}>
               <View style={styles.profileRow}>
-                <Text style={styles.profileLabel}>Admin Phone:</Text>
+                <Text style={styles.profileLabel}>Verified Number</Text>
                 <Text style={styles.profileValue}>{user.maskedPhone}</Text>
               </View>
               <View style={styles.profileRow}>
-                <Text style={styles.profileLabel}>Role Level:</Text>
-                <Text style={[styles.profileValue, { color: COLORS.tealDark, fontWeight: '700' }]}>
+                <Text style={styles.profileLabel}>Access Level</Text>
+                <Text style={[styles.profileValue, { fontWeight: '800' }]}>
                   {user.role.toUpperCase()} (Privileged)
                 </Text>
               </View>
               <View style={styles.profileRow}>
-                <Text style={styles.profileLabel}>Device Notification Token:</Text>
+                <Text style={styles.profileLabel}>Push Dispatch Token</Text>
                 <Text style={styles.profileValue}>
-                  {isDemoMode ? 'Simulated Local Token (Expo Go)' : 'APNs / FCM Registered'}
+                  {isDemoMode ? 'Local Notification Dispatch' : 'FCM Registered'}
                 </Text>
               </View>
 
@@ -111,11 +106,11 @@ export default function AdminScreen() {
                   style={styles.switchLoginBtn}
                   onPress={() => router.push('/login')}
                 >
-                  <Text style={styles.switchLoginText}>Switch / Re-login</Text>
+                  <Text style={styles.switchLoginText}>Switch Session</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
-                  <Ionicons name="log-out-outline" size={14} color={COLORS.danger} />
+                  <Ionicons name="log-out-outline" size={13} color={COLORS.danger} />
                   <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
               </View>
@@ -123,7 +118,7 @@ export default function AdminScreen() {
           ) : (
             <View style={styles.unauthBox}>
               <Text style={styles.unauthText}>
-                No active administrator session. Log in to manage notification tokens and hardware controls.
+                No authenticated admin session. Sign in to edit telemetry settings.
               </Text>
               <TouchableOpacity
                 style={styles.loginNowBtn}
@@ -135,64 +130,51 @@ export default function AdminScreen() {
           )}
         </View>
 
-        {/* Audio Buzzer & Notification Controls */}
+        {/* Audio Annunciator Settings */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderLeft}>
-              <Ionicons name="volume-high-outline" size={20} color={COLORS.navyDark} />
-              <Text style={styles.cardTitle}>Audio Alarm & Notification</Text>
-            </View>
+            <Text style={styles.cardTitle}>Alert Annunciator</Text>
           </View>
 
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingLabel}>In-App Audio Buzzer</Text>
+              <Text style={styles.settingLabel}>Audio Buzzer Alarm</Text>
               <Text style={styles.settingDesc}>
-                Plays distinctive 2-tone alarm on new CRITICAL leak events
+                Audible 2-tone alarm on new critical flow discrepancy
               </Text>
             </View>
             <Switch
               value={isBuzzerEnabled}
               onValueChange={toggleBuzzer}
-              trackColor={{ false: '#CBD5E1', true: COLORS.tealPrimary }}
+              trackColor={{ false: '#CBD5E1', true: COLORS.accentLimeDark }}
             />
           </View>
 
           <View style={styles.buzzerActionRow}>
             <TouchableOpacity style={styles.testBuzzerBtn} onPress={playTestBuzzer}>
-              <Ionicons name="play" size={14} color="#FFFFFF" />
-              <Text style={styles.testBuzzerText}>Test Buzzer Sound</Text>
+              <Ionicons name="volume-high-outline" size={13} color="#FFFFFF" />
+              <Text style={styles.testBuzzerText}>Test Audio Buzzer</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.testNotificationBtn}
               onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}
             >
-              <Ionicons name="notifications-outline" size={14} color={COLORS.navyDark} />
-              <Text style={styles.testNotificationText}>Trigger Test Alert</Text>
+              <Ionicons name="notifications-outline" size={13} color={COLORS.textPrimary} />
+              <Text style={styles.testNotificationText}>Trigger Test Event</Text>
             </TouchableOpacity>
-          </View>
-
-          <View style={styles.noteBox}>
-            <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
-            <Text style={styles.noteText}>
-              iOS Audio Restriction: In-app JavaScript audio only plays when app is foregrounded. Background alerts require Apple APNs / FCM push notification payload.
-            </Text>
           </View>
         </View>
 
-        {/* Configurable Leak & Consumption Thresholds */}
+        {/* Detection Thresholds */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderLeft}>
-              <Ionicons name="options-outline" size={20} color={COLORS.navyDark} />
-              <Text style={styles.cardTitle}>Detection Threshold Parameters</Text>
-            </View>
+            <Text style={styles.cardTitle}>Detection Parameters</Text>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Mismatch Threshold (L/min)</Text>
-            <Text style={styles.inputHelp}>Positive flow deficit (Inlet - Outlet) to trigger leak inspection</Text>
+            <Text style={styles.inputHelp}>Flow deficit required to initiate persistence filter</Text>
             <TextInput
               style={styles.textInput}
               value={mismatchInput}
@@ -203,7 +185,7 @@ export default function AdminScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Persistence Duration Filter (Seconds)</Text>
-            <Text style={styles.inputHelp}>Duration mismatch must continuously persist to reject transient spikes</Text>
+            <Text style={styles.inputHelp}>Duration deficit must continuously persist to confirm leak</Text>
             <TextInput
               style={styles.textInput}
               value={persistenceInput}
@@ -213,8 +195,8 @@ export default function AdminScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>High Consumption Threshold (L/min)</Text>
-            <Text style={styles.inputHelp}>Maximum continuous draw rate before triggering abnormal consumption</Text>
+            <Text style={styles.inputLabel}>High Consumption Ceiling (L/min)</Text>
+            <Text style={styles.inputHelp}>Maximum continuous draw rate before high-demand warning</Text>
             <TextInput
               style={styles.textInput}
               value={highConsumpInput}
@@ -224,25 +206,30 @@ export default function AdminScreen() {
           </View>
 
           <TouchableOpacity style={styles.saveBtn} onPress={handleSaveThresholds}>
-            <Text style={styles.saveBtnText}>Save Threshold Settings</Text>
+            <Text style={styles.saveBtnText}>Save Parameters</Text>
           </TouchableOpacity>
         </View>
 
-        {/* MQTT Broker Configuration */}
+        {/* MQTT Broker Settings */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderLeft}>
-              <Ionicons name="wifi-outline" size={20} color={COLORS.navyDark} />
-              <Text style={styles.cardTitle}>MQTT-over-WebSocket Broker</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <StatusDot status={mqttStatus} size={8} />
-              <Text style={styles.statusLabel}>{mqttStatus.toUpperCase()}</Text>
+            <Text style={styles.cardTitle}>MQTT WebSocket Bridge</Text>
+            <View style={styles.statusPill}>
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor:
+                      mqttStatus === 'connected' ? COLORS.success : COLORS.danger,
+                  },
+                ]}
+              />
+              <Text style={styles.statusText}>{mqttStatus.toUpperCase()}</Text>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>WebSocket Broker Endpoint URL</Text>
+            <Text style={styles.inputLabel}>Broker WebSocket URL</Text>
             <TextInput
               style={styles.textInput}
               value={inputBroker}
@@ -254,7 +241,7 @@ export default function AdminScreen() {
 
           <View style={styles.mqttBtnRow}>
             <TouchableOpacity style={styles.mqttConnectBtn} onPress={handleUpdateBroker}>
-              <Text style={styles.mqttConnectText}>Connect / Reconnect</Text>
+              <Text style={styles.mqttConnectText}>Connect Bridge</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.mqttDisconnectBtn} onPress={disconnect}>
@@ -263,22 +250,22 @@ export default function AdminScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.wokwiGuideLink}
+            style={styles.wokwiLink}
             onPress={() => router.push('/wokwi-guide')}
           >
-            <Ionicons name="hardware-chip-outline" size={16} color={COLORS.tealDark} />
-            <Text style={styles.wokwiGuideLinkText}>
-              Open Wokwi Virtual ESP32 Setup & Telemetry Inspector →
+            <Ionicons name="hardware-chip-outline" size={14} color={COLORS.textPrimary} />
+            <Text style={styles.wokwiLinkText}>
+              Open Wokwi Virtual ESP32 Circuit & Setup Guide →
             </Text>
           </TouchableOpacity>
 
-          {/* Diagnostic Log Terminal */}
-          <Text style={styles.logsHeading}>Recent Telemetry / MQTT Logs:</Text>
+          {/* Diagnostic Log */}
+          <Text style={styles.logsHeading}>Telemetry Communication Log</Text>
           <View style={styles.logBox}>
             {logs.length === 0 ? (
-              <Text style={styles.logEmpty}>No connection events yet.</Text>
+              <Text style={styles.logEmpty}>No connection events logged.</Text>
             ) : (
-              logs.slice(0, 6).map((log, i) => (
+              logs.slice(0, 5).map((log, i) => (
                 <Text key={i} style={styles.logLine} numberOfLines={2}>
                   {log}
                 </Text>
@@ -294,44 +281,55 @@ export default function AdminScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.canvasBg,
   },
   header: {
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingBottom: 8,
+    backgroundColor: COLORS.canvasBg,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  iconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   scroll: {
     flex: 1,
   },
   content: {
-    padding: SPACING.md,
+    padding: 14,
+    paddingBottom: 80,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    marginBottom: SPACING.md,
+    borderRadius: RADIUS.xl,
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -339,33 +337,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  cardHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   cardTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
   },
   badge: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
   },
   badgeDemo: {
-    backgroundColor: COLORS.warningBg,
+    backgroundColor: COLORS.cardSubtle,
   },
   badgeProd: {
     backgroundColor: COLORS.successBg,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
   },
   badgeTextDemo: {
-    color: COLORS.warningText,
+    color: COLORS.textSecondary,
   },
   badgeTextProd: {
     color: COLORS.successText,
@@ -376,36 +369,36 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   profileLabel: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
   },
   profileValue: {
     fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textDark,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
   profileBtnRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: 10,
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: 'rgba(0, 0, 0, 0.04)',
     paddingTop: 8,
   },
   switchLoginBtn: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 6,
-    backgroundColor: COLORS.bgLight,
+    borderRadius: 12,
+    backgroundColor: COLORS.cardSubtle,
   },
   switchLoginText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.navyDark,
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
   logoutBtn: {
     flexDirection: 'row',
@@ -413,11 +406,11 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 6,
+    borderRadius: 12,
     backgroundColor: COLORS.dangerBg,
   },
   logoutText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: COLORS.dangerText,
   },
@@ -427,19 +420,19 @@ const styles = StyleSheet.create({
   },
   unauthText: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     textAlign: 'center',
     marginBottom: 10,
   },
   loginNowBtn: {
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    borderRadius: 16,
   },
   loginNowText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   settingRow: {
@@ -449,19 +442,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   settingLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
   settingDesc: {
     fontSize: 10,
-    color: COLORS.textMuted,
-    marginTop: 2,
+    color: COLORS.textSecondary,
+    marginTop: 1,
   },
   buzzerActionRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    gap: 8,
   },
   testBuzzerBtn: {
     flex: 1,
@@ -469,9 +461,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.tealPrimary,
+    backgroundColor: COLORS.darkCharcoal,
     paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    borderRadius: 14,
   },
   testBuzzerText: {
     color: '#FFFFFF',
@@ -484,28 +476,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: COLORS.cardSubtle,
     paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    borderRadius: 14,
   },
   testNotificationText: {
-    color: COLORS.navyDark,
+    color: COLORS.textPrimary,
     fontSize: 11,
     fontWeight: '700',
-  },
-  noteBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    backgroundColor: COLORS.bgLight,
-    padding: 8,
-    borderRadius: RADIUS.sm,
-  },
-  noteText: {
-    fontSize: 10,
-    color: COLORS.textMuted,
-    flex: 1,
-    lineHeight: 14,
   },
   inputGroup: {
     marginBottom: 10,
@@ -513,50 +491,64 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
   },
   inputHelp: {
-    fontSize: 10,
-    color: COLORS.textMuted,
+    fontSize: 9,
+    color: COLORS.textSecondary,
     marginBottom: 4,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderColor: '#D8D5CC',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     fontSize: 12,
-    color: COLORS.textDark,
-    backgroundColor: '#F8FAFC',
+    color: COLORS.textPrimary,
+    backgroundColor: COLORS.cardSubtle,
   },
   saveBtn: {
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingVertical: 10,
-    borderRadius: RADIUS.sm,
+    borderRadius: 16,
     alignItems: 'center',
     marginTop: 6,
   },
   saveBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
-  statusLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.cardSubtle,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
   },
   mqttBtnRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    gap: 8,
+    marginBottom: 10,
   },
   mqttConnectBtn: {
     flex: 1,
-    backgroundColor: COLORS.navyDark,
+    backgroundColor: COLORS.darkCharcoal,
     paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    borderRadius: 14,
     alignItems: 'center',
   },
   mqttConnectText: {
@@ -565,55 +557,51 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   mqttDisconnectBtn: {
-    paddingHorizontal: 14,
-    backgroundColor: COLORS.bgLight,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+    paddingHorizontal: 12,
+    backgroundColor: COLORS.cardSubtle,
     paddingVertical: 8,
-    borderRadius: RADIUS.sm,
+    borderRadius: 14,
     alignItems: 'center',
   },
   mqttDisconnectText: {
-    color: COLORS.textDark,
+    color: COLORS.textPrimary,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  wokwiGuideLink: {
+  wokwiLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0FDF4',
-    borderColor: '#86EFAC',
-    borderWidth: 1,
+    backgroundColor: COLORS.cardSubtle,
     padding: 10,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     marginBottom: 12,
   },
-  wokwiGuideLinkText: {
+  wokwiLinkText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#15803D',
+    color: COLORS.textPrimary,
     flex: 1,
   },
   logsHeading: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textSecondary,
     marginBottom: 4,
+    textTransform: 'uppercase',
   },
   logBox: {
-    backgroundColor: '#0F172A',
-    borderRadius: RADIUS.sm,
-    padding: 8,
-    minHeight: 60,
+    backgroundColor: COLORS.darkCharcoal,
+    borderRadius: RADIUS.md,
+    padding: 10,
   },
   logEmpty: {
-    color: '#64748B',
+    color: '#94A3B8',
     fontSize: 10,
     fontFamily: 'monospace',
   },
   logLine: {
-    color: '#38BDF8',
+    color: COLORS.accentLime,
     fontSize: 9,
     fontFamily: 'monospace',
     marginBottom: 2,
