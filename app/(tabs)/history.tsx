@@ -4,12 +4,11 @@ import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useSensor } from '../../src/context/SensorContext';
 import { WaveformChart } from '../../src/components/WaveformChart';
 import { formatFlow, formatTime } from '../../src/utils/format';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function HistoryScreen() {
   const { history, totalVolumeLiters, currentReading } = useSensor();
 
-  const samplePoints = history.slice(-30);
+  const samplePoints = history.slice(-20);
   const peakFlow = samplePoints.reduce((max, d) => Math.max(max, d.inletFlow), 0);
   const avgFlow =
     samplePoints.length > 0
@@ -19,37 +18,51 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="bar-chart-outline" size={16} color={COLORS.textPrimary} />
-          </View>
-          <Text style={styles.headerTitle}>Readings & Analytics</Text>
-        </View>
-        <Text style={styles.headerSubtitle}>Historical dual-sensor telemetry archive</Text>
-      </View>
-
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* Metric Summary Pill Strip */}
+        {/* Editorial Header */}
+        <View style={styles.header}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Telemetry Log</Text>
+            <View style={styles.indexPill}>
+              <Text style={styles.indexPillText}>03 of 04</Text>
+            </View>
+          </View>
+
+          <View style={styles.tagPill}>
+            <Text style={styles.tagPillText}>Historical Trends</Text>
+          </View>
+
+          <View style={styles.heroTitleWrap}>
+            <Text style={styles.heroTitlePrimary}>Sensor Data &</Text>
+            <Text style={styles.heroTitleAccent}>Flow Analytics</Text>
+          </View>
+        </View>
+
+        {/* 4 Summary Metric Pills */}
         <View style={styles.summaryCard}>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Avg Inflow</Text>
-            <Text style={styles.metricVal}>{formatFlow(avgFlow)} <Text style={styles.unit}>L/m</Text></Text>
+            <Text style={styles.metricLabel}>Average</Text>
+            <Text style={styles.metricVal}>
+              {formatFlow(avgFlow)} <Text style={styles.unit}>L/m</Text>
+            </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Peak Inflow</Text>
-            <Text style={styles.metricVal}>{formatFlow(peakFlow)} <Text style={styles.unit}>L/m</Text></Text>
+            <Text style={styles.metricLabel}>Peak</Text>
+            <Text style={styles.metricVal}>
+              {formatFlow(peakFlow)} <Text style={styles.unit}>L/m</Text>
+            </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Total Metered</Text>
-            <Text style={styles.metricVal}>{formatFlow(totalVolumeLiters)} <Text style={styles.unit}>L</Text></Text>
+            <Text style={styles.metricLabel}>Volume</Text>
+            <Text style={styles.metricVal}>
+              {formatFlow(totalVolumeLiters)} <Text style={styles.unit}>L</Text>
+            </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Discrepancies</Text>
+            <Text style={styles.metricLabel}>Deficits</Text>
             <Text style={[styles.metricVal, mismatchCount > 0 && { color: COLORS.danger }]}>
               {mismatchCount}
             </Text>
@@ -59,7 +72,7 @@ export default function HistoryScreen() {
         {/* Waveform Visualization */}
         <View style={styles.chartWrap}>
           <WaveformChart
-            title="Intake vs Distribution Waveform"
+            title="Intake vs Distribution Curve"
             currentValue={currentReading.inletFlow}
             averageValue={avgFlow}
             deltaValue={currentReading.flowDifference}
@@ -69,23 +82,24 @@ export default function HistoryScreen() {
         {/* Chronological Table Card */}
         <View style={styles.tableCard}>
           <View style={styles.tableHeaderRow}>
-            <Text style={styles.tableTitle}>Recent Sensor Samples</Text>
-            <Text style={styles.tableSubtitle}>{samplePoints.length} packets</Text>
+            <Text style={styles.tableTitle}>Recent Telemetry Packets</Text>
+            <Text style={styles.tableSubtitle}>{samplePoints.length} records</Text>
           </View>
 
           {/* Table Column Headers */}
           <View style={styles.tableColHeader}>
-            <Text style={[styles.th, { flex: 1.2 }]}>Timestamp</Text>
-            <Text style={[styles.th, { flex: 1 }]}>Inlet S1</Text>
-            <Text style={[styles.th, { flex: 1 }]}>Outlet S2</Text>
-            <Text style={[styles.th, { flex: 1.2 }]}>Difference</Text>
-            <Text style={[styles.th, { flex: 0.9 }]}>Audit</Text>
+            <Text style={[styles.th, { flex: 1.2 }]}>Time</Text>
+            <Text style={[styles.th, { flex: 1 }]}>Inlet</Text>
+            <Text style={[styles.th, { flex: 1 }]}>Outlet</Text>
+            <Text style={[styles.th, { flex: 1.2 }]}>Delta</Text>
+            <Text style={[styles.th, { flex: 0.9 }]}>State</Text>
           </View>
 
           {/* Rows */}
           {samplePoints
             .slice()
             .reverse()
+            .slice(0, 10)
             .map((row, idx) => {
               const hasDeficit = row.flowDifference > 1.5;
               const hasReversed = row.flowDifference < -1.5;
@@ -100,7 +114,12 @@ export default function HistoryScreen() {
                   <Text style={[styles.td, { flex: 1, fontWeight: '700' }]}>
                     {formatFlow(row.inletFlow)}
                   </Text>
-                  <Text style={[styles.td, { flex: 1, fontWeight: '700', color: COLORS.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.td,
+                      { flex: 1, fontWeight: '700', color: COLORS.textSecondary },
+                    ]}
+                  >
                     {formatFlow(row.outletFlow)}
                   </Text>
                   <Text
@@ -119,25 +138,25 @@ export default function HistoryScreen() {
                   <View style={{ flex: 0.9 }}>
                     <View
                       style={[
-                        styles.badge,
+                        styles.statusTag,
                         hasDeficit
-                          ? styles.badgeDanger
+                          ? styles.statusTagLeak
                           : hasReversed
-                          ? styles.badgeWarn
-                          : styles.badgeOk,
+                          ? styles.statusTagDiag
+                          : styles.statusTagOk,
                       ]}
                     >
                       <Text
                         style={[
-                          styles.badgeText,
+                          styles.statusTagText,
                           hasDeficit
-                            ? styles.badgeTextDanger
+                            ? styles.statusTagTextLeak
                             : hasReversed
-                            ? styles.badgeTextWarn
-                            : styles.badgeTextOk,
+                            ? styles.statusTagTextDiag
+                            : styles.statusTagTextOk,
                         ]}
                       >
-                        {hasDeficit ? 'DEFICIT' : hasReversed ? 'REVERSED' : 'MATCH'}
+                        {hasDeficit ? 'LEAK' : hasReversed ? 'REV' : 'OK'}
                       </Text>
                     </View>
                   </View>
@@ -155,164 +174,197 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.canvasBg,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: COLORS.canvasBg,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
   scroll: {
     flex: 1,
   },
   content: {
-    padding: 14,
-    paddingBottom: 80,
+    padding: 16,
+    paddingBottom: 90,
   },
-  summaryCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: 14,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+  header: {
+    marginBottom: 16,
   },
-  metricItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  divider: {
-    width: 1,
-    height: 24,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-  },
-  metricLabel: {
-    fontSize: 9,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  metricVal: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  unit: {
-    fontSize: 9,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  chartWrap: {
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  tableCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  tableHeaderRow: {
+  metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  tableTitle: {
+  metaLabel: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  indexPill: {
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  indexPillText: {
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textPrimary,
   },
-  tableSubtitle: {
+  tagPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
+    marginBottom: 10,
+  },
+  tagPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  heroTitleWrap: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  heroTitlePrimary: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#111215',
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  heroTitleAccent: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: COLORS.accentOrange,
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 14,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  metricItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  metricLabel: {
     fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  metricVal: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#111215',
+  },
+  unit: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  divider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#EDEBE4',
+  },
+  chartWrap: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  tableCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  tableTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111215',
+    letterSpacing: -0.2,
+  },
+  tableSubtitle: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
   },
   tableColHeader: {
     flexDirection: 'row',
-    paddingVertical: 6,
+    paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.06)',
+    borderBottomColor: '#EDEBE4',
     marginBottom: 4,
   },
   th: {
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textSecondary,
     textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.03)',
+    paddingVertical: 7,
   },
   tableRowAlt: {
-    backgroundColor: COLORS.cardSubtle,
+    backgroundColor: '#FBFBFA',
   },
   td: {
-    fontSize: 10,
-    color: COLORS.textPrimary,
+    fontSize: 11,
+    color: '#111215',
   },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
+  statusTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+    alignItems: 'center',
   },
-  badgeOk: {
-    backgroundColor: COLORS.cardSubtle,
+  statusTagOk: {
+    backgroundColor: '#ECFDF5',
   },
-  badgeDanger: {
-    backgroundColor: COLORS.dangerBg,
+  statusTagLeak: {
+    backgroundColor: '#FEF2F2',
   },
-  badgeWarn: {
-    backgroundColor: COLORS.warningBg,
+  statusTagDiag: {
+    backgroundColor: '#F0FDFA',
   },
-  badgeText: {
-    fontSize: 7,
+  statusTagText: {
+    fontSize: 8,
     fontWeight: '800',
   },
-  badgeTextOk: {
-    color: COLORS.textSecondary,
+  statusTagTextOk: {
+    color: '#065F46',
   },
-  badgeTextDanger: {
-    color: COLORS.dangerText,
+  statusTagTextLeak: {
+    color: '#991B1B',
   },
-  badgeTextWarn: {
-    color: COLORS.warningText,
+  statusTagTextDiag: {
+    color: '#0F766E',
   },
 });

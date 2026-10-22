@@ -19,62 +19,71 @@ export default function AlertsScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.titleRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="alert-circle-outline" size={16} color={COLORS.textPrimary} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Editorial Header */}
+        <View style={styles.header}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Alert Dispatch</Text>
+            <View style={styles.indexPill}>
+              <Text style={styles.indexPillText}>04 of 04</Text>
             </View>
-            <Text style={styles.headerTitle}>Incident Log</Text>
           </View>
-          <Text style={styles.headerSubtitle}>
-            {activeCount > 0 ? `${activeCount} active incident requiring attention` : 'All telemetry operating within verified margins'}
-          </Text>
+
+          <View style={styles.tagPill}>
+            <Text style={styles.tagPillText}>Safety Monitor</Text>
+          </View>
+
+          <View style={styles.heroTitleWrap}>
+            <Text style={styles.heroTitlePrimary}>Real-Time Alerts &</Text>
+            <Text style={styles.heroTitleAccent}>Incident Logs</Text>
+          </View>
         </View>
 
-        <TouchableOpacity style={styles.demoBtn} onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}>
-          <Ionicons name="flash-outline" size={12} color="#FFFFFF" />
-          <Text style={styles.demoBtnText}>Test Event</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Action / Trigger Row */}
+        <View style={styles.topActionsRow}>
+          <View style={styles.countBox}>
+            <Text style={styles.countNumber}>{activeCount}</Text>
+            <Text style={styles.countLabel}>Active</Text>
+          </View>
 
-      {/* Filter Pill Tabs */}
-      <View style={styles.filterRow}>
-        {(['ALL', 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'] as const).map((tab) => {
-          const isActive = filter === tab;
-          return (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.filterTab, isActive && styles.filterTabActive]}
-              onPress={() => setFilter(tab)}
-            >
-              <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+          <TouchableOpacity
+            style={styles.triggerTestBtn}
+            onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}
+          >
+            <Ionicons name="flash-outline" size={13} color="#FFFFFF" />
+            <Text style={styles.triggerTestBtnText}>Simulate Alert</Text>
+          </TouchableOpacity>
+        </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Filter Pill Tabs */}
+        <View style={styles.filterRow}>
+          {(['ALL', 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'] as const).map((tab) => {
+            const isActive = filter === tab;
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.filterTab, isActive && styles.filterTabActive]}
+                onPress={() => setFilter(tab)}
+              >
+                <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {filteredAlerts.length === 0 ? (
           <View style={styles.emptyBox}>
             <View style={styles.emptyIconCircle}>
-              <Ionicons name="checkmark-done" size={28} color={COLORS.darkCharcoal} />
+              <Ionicons name="checkmark-done" size={24} color={COLORS.darkCharcoal} />
             </View>
-            <Text style={styles.emptyTitle}>No Recorded Incidents</Text>
+            <Text style={styles.emptyTitle}>System Secure</Text>
             <Text style={styles.emptySubtitle}>
               {filter === 'ALL'
                 ? 'All sensors reporting steady balance. No anomalies detected.'
                 : `No events in ${filter} category.`}
             </Text>
-            <TouchableOpacity
-              style={styles.triggerTestBtn}
-              onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}
-            >
-              <Text style={styles.triggerTestText}>Trigger Test Leak Incident</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           filteredAlerts.map((alert) => (
@@ -89,8 +98,8 @@ export default function AlertsScreen() {
 
         {alerts.length > 0 && (
           <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllAlerts}>
-            <Ionicons name="trash-outline" size={13} color={COLORS.textSecondary} />
-            <Text style={styles.clearAllText}>Clear Event Archive</Text>
+            <Ionicons name="trash-outline" size={12} color={COLORS.textSecondary} />
+            <Text style={styles.clearAllText}>Clear All Alerts</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -103,130 +112,160 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.canvasBg,
   },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 90,
+  },
   header: {
+    marginBottom: 16,
+  },
+  metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: COLORS.canvasBg,
+    marginBottom: 10,
   },
-  headerLeft: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerSubtitle: {
-    fontSize: 11,
+  metaLabel: {
+    fontSize: 12,
+    fontWeight: '600',
     color: COLORS.textSecondary,
-    marginTop: 2,
   },
-  demoBtn: {
+  indexPill: {
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  indexPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  tagPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2DFD8',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
+    marginBottom: 10,
+  },
+  tagPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  heroTitleWrap: {
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  heroTitlePrimary: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#111215',
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  heroTitleAccent: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: COLORS.accentOrange,
+    lineHeight: 36,
+    letterSpacing: -1.2,
+  },
+  topActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.darkCharcoal,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 10,
   },
-  demoBtnText: {
-    color: '#FFFFFF',
-    fontSize: 10,
+  countBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: RADIUS.md,
+  },
+  countNumber: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: COLORS.accentOrange,
+  },
+  countLabel: {
+    fontSize: 11,
     fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  triggerTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.darkCharcoal,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: RADIUS.md,
+  },
+  triggerTestBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
   },
   filterRow: {
     flexDirection: 'row',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    gap: 6,
+    backgroundColor: '#FFFFFF',
+    padding: 4,
+    borderRadius: RADIUS.md,
+    marginBottom: 14,
+    gap: 4,
   },
   filterTab: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
   },
   filterTabActive: {
     backgroundColor: COLORS.darkCharcoal,
   },
   filterTabText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     color: COLORS.textSecondary,
   },
   filterTabTextActive: {
     color: '#FFFFFF',
   },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    padding: 14,
-    paddingBottom: 80,
-  },
   emptyBox: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: 24,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    marginTop: 8,
   },
   emptyIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: COLORS.accentLime,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F4F3ED',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   emptyTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: '#111215',
   },
   emptySubtitle: {
     fontSize: 11,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 4,
-    marginBottom: 14,
-  },
-  triggerTestBtn: {
-    backgroundColor: COLORS.darkCharcoal,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 16,
-  },
-  triggerTestText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   clearAllBtn: {
     flexDirection: 'row',
@@ -234,10 +273,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 12,
+    marginTop: 8,
   },
   clearAllText: {
     fontSize: 11,
     color: COLORS.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
