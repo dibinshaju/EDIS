@@ -1,17 +1,23 @@
 export const COLORS = {
-  // Industrial Editorial Blueprint Palette (from latest UI Fundamentals image)
-  canvasBg: '#ECEBE4',        // Warm technical parchment / newsprint paper
-  cardBg: '#FFFFFF',          // Paper white
-  cardSubtle: '#DFDED6',      // Technical muted grey tint
-  cardBorder: '#D0CEC4',      // Crisp technical border
+  // Editorial Trendbook Dark Canvas Palette (from latest reference image)
+  canvasBg: '#121316',        // Deep sleek black canvas from reference image
+  cardBg: '#FFFFFF',          // Crisp white hero card & metric cards
+  cardDark: '#1C1D22',        // Elevated dark card surface
+  cardSubtle: '#F0EFEA',      // Soft off-white tint
+  cardBorder: '#282A30',      // Muted technical border on dark
+  cardBorderLight: '#E2E1DA', // Light card border
   
-  // Signature Electric Canary Highlighter Yellow (#F7FF00 / #FAFF00)
-  accentYellow: '#F7FF00',    // Electric highlighter canary yellow from reference
+  // Signature Electric Canary / Neon Lime Accent
+  accentYellow: '#F7FF00',    // Bright electric yellow from Card 01 & highlights
   accentYellowHover: '#E5EE00',
-  accentOrange: '#F7FF00',    // Map primary highlight to canary yellow
-  accentLime: '#F7FF00',      // Map lime to canary yellow
+  accentOrange: '#F7FF00',
+  accentLime: '#F7FF00',
   accentLimeLight: '#FBFF80',
-  accentLimeDark: '#0D0E11',  // High-contrast pitch black on yellow
+  accentLimeDark: '#0D0E11',
+
+  // Trendbook Starburst Violet Accent (from Q2 starburst in reference)
+  accentPurple: '#7C3AED',    // Vibrant violet for starburst sticker
+  accentPurpleLight: '#EDE9FE',
 
   // Deep Ink Black (Heavy grotesque headline black)
   darkCharcoal: '#0D0E11',    // Deep pitch ink black
