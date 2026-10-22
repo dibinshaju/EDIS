@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the caller is an existing verified administrator
+    function isExistingAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Admins Collection:
+    // CRITICAL SECURITY ENFORCEMENT:
+    // A regular user CANNOT grant themselves an admin role.
+    // Creating or modifying an admin document requires an existing authenticated admin,
+    // or must be provisioned via trusted server-side Firebase Admin SDK.
+    match /admins/{adminId} {
+      // Admins can read their own profile, or existing admins can view admin list
+      allow read: if request.auth != null && (request.auth.uid == adminId || isExistingAdmin());
+      
+      // Creating a new admin document is ONLY permitted by an existing verified admin
+      // Users cannot elevate their own role simply by writing to /admins/{their_uid}
+      allow create: if isExistingAdmin() &&
+        request.resource.data.role in ['admin', 'viewer'] &&
+        request.resource.data.phoneNumber is string;
+
+      // Updating admin document is ONLY permitted by an existing admin
+      allow update: if isExistingAdmin();
+
+      // Deleting admin privileges requires existing admin
+      allow delete: if isExistingAdmin();
+    }
+
+    // Alerts Collection:
+    // Public read for authenticated users, but write only allowed by trusted backend functions
+    match /alerts/{alertId} {
+      allow read: if request.auth != null;
+      // Normal clients cannot fabricate alert records directly
+      // Only trusted server/Cloud Function or verified admin can acknowledge
+      allow update: if isExistingAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acknowledgedAt', 'acknowledgedBy']);
+      allow create, delete: if isExistingAdmin();
+    }
+
+    // Telemetry Archive Collection
+    match /telemetry/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isExistingAdmin();
+    }
+  }
+}
