@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS } from '../../src/constants/theme';
 import { useAlerts } from '../../src/context/AlertContext';
@@ -23,9 +23,9 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.1,
-          shadowRadius: 16,
-          elevation: 6,
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 5,
           paddingHorizontal: 6,
           paddingBottom: 6,
           paddingTop: 6,
@@ -41,12 +41,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dynamics',
+          title: 'Monitor',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
               <Ionicons
                 name={focused ? 'pulse' : 'pulse-outline'}
-                size={18}
+                size={17}
                 color={focused ? '#FFFFFF' : String(color)}
               />
             </View>
@@ -61,7 +61,7 @@ export default function TabsLayout() {
             <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
               <Ionicons
                 name={focused ? 'flask' : 'flask-outline'}
-                size={18}
+                size={17}
                 color={focused ? '#FFFFFF' : String(color)}
               />
             </View>
@@ -71,12 +71,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Readings',
+          title: 'Analytics',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
               <Ionicons
                 name={focused ? 'bar-chart' : 'bar-chart-outline'}
-                size={18}
+                size={17}
                 color={focused ? '#FFFFFF' : String(color)}
               />
             </View>
@@ -89,16 +89,16 @@ export default function TabsLayout() {
           title: 'Alerts',
           tabBarBadge: activeCount > 0 ? activeCount : undefined,
           tabBarBadgeStyle: {
-            backgroundColor: COLORS.accentLime,
-            color: COLORS.darkCharcoal,
-            fontSize: 10,
+            backgroundColor: COLORS.accentOrange,
+            color: '#FFFFFF',
+            fontSize: 9,
             fontWeight: '900',
           },
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
               <Ionicons
                 name={focused ? 'alert-circle' : 'alert-circle-outline'}
-                size={18}
+                size={17}
                 color={focused ? '#FFFFFF' : String(color)}
               />
             </View>
@@ -108,12 +108,12 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="admin"
         options={{
-          title: 'Config',
+          title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIconBox, focused && styles.tabIconBoxActive]}>
               <Ionicons
-                name={focused ? 'options' : 'options-outline'}
-                size={18}
+                name={focused ? 'settings' : 'settings-outline'}
+                size={17}
                 color={focused ? '#FFFFFF' : String(color)}
               />
             </View>
@@ -126,9 +126,9 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
