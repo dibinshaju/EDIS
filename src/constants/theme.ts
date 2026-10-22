@@ -1,39 +1,44 @@
 export const COLORS = {
-  // Clean minimal studio palette matching latest uploaded design
-  canvasBg: '#E9E7E1',        // Warm soft putty / oatmeal stone grey canvas
+  // Editorial Warm Tech Palette (from latest design reference)
+  canvasBg: '#EFECE6',        // Warm ivory / stone canvas from the image
   cardBg: '#FFFFFF',          // Crisp white rounded cards
-  cardSubtle: '#DFDDD7',      // Soft tinted card secondary
-  cardBorder: '#D8D5CD',      // Subtle muted border
+  cardSubtle: '#E5E2DA',      // Warm muted pill background ("Resources", "Save for later")
+  cardBorder: '#DDD9D0',      // Subtle muted border
   
-  // Signature Acid / Neon Lime Accent
-  accentLime: '#D8FA1E',      // Neon yellow-green accent circles & badges
-  accentLimeLight: '#EEFFA3', // Light lime tint
-  accentLimeDark: '#869F06',
+  // Signature Electric Tech Vermillion / Warm Orange Accent ("tech websites")
+  accentOrange: '#FF5522',    // Bold vibrant tech vermillion / warm orange
+  accentOrangeLight: '#FFE8DF',
+  accentOrangeDark: '#CC3A0C',
+
+  // Accent mapping
+  accentLime: '#FF5522',      // Map to the bold tech orange accent
+  accentLimeLight: '#FFE8DF',
+  accentLimeDark: '#FF5522',
   
-  // Charcoal / Dark accents
-  darkCharcoal: '#16181B',    // Deep dark charcoal for curved headers and pills
-  darkSurface: '#26292E',     // Dark pill surfaces
+  // Charcoal / Jet Black accents
+  darkCharcoal: '#111215',    // Jet black from the bold headline
+  darkSurface: '#1E1F24',     // Dark pill surfaces
   darkPillText: '#FFFFFF',
   
   // Backward-compatible color aliases
-  tealPrimary: '#16181B',
-  tealDark: '#121417',
-  textDark: '#1A1C20',
-  textLight: '#9CA3AF',
-  textMuted: '#6B7280',
+  tealPrimary: '#111215',
+  tealDark: '#0A0A0C',
+  textDark: '#111215',
+  textLight: '#9A9790',
+  textMuted: '#787670',
   
   // Pills & Badges
-  pillBgLight: '#EDF1F5',
-  pillBorder: '#E5E7EB',
+  pillBgLight: '#E5E2DA',
+  pillBorder: '#DDD9D0',
   
   // Demo badge colors
-  demoBadgeBg: '#F1F3F5',
-  demoBadgeBorder: '#E5E7EB',
-  demoBadgeText: '#16181B',
+  demoBadgeBg: '#E5E2DA',
+  demoBadgeBorder: '#DDD9D0',
+  demoBadgeText: '#111215',
   
-  // Typography
-  textPrimary: '#1A1C20',     // Dark charcoal text
-  textSecondary: '#6B7280',   // Mid grey text
+  // Typography (Plus Jakarta Sans high contrast)
+  textPrimary: '#111215',     // Heavy black text
+  textSecondary: '#787670',   // Warm mid-grey text from subheadings
   
   // Status Colors (stylized to match palette)
   danger: '#EF4444',
@@ -47,14 +52,9 @@ export const COLORS = {
   success: '#10B981',
   successBg: '#D1FAE5',
   successText: '#065F46',
-  
-  // Graphic Tech Accent
-  accentOrange: '#FF5500',    // Punchy tech orange
-  accentOrangeLight: '#FFE8DF',
 
-
-  // Desktop Outer Canvas Presentation Background (Exact Image 3 neon acid backdrop)
-  presentationBackdrop: '#D4FB0A', // Vibrant electric neon yellow-lime presentation background
+  // Desktop Outer Canvas Presentation Background (Warm editorial studio tone)
+  presentationBackdrop: '#E4E0D6', // Warm studio presentation background
   deviceBezel: '#181A1D',          // Clean device bezel
 };
 
