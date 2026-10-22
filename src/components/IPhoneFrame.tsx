@@ -78,29 +78,14 @@ export const IPhoneFrame: React.FC<IPhoneFrameProps> = ({ children }) => {
         </View>
       </View>
 
-      {/* Device Bezel matching the tablet/device frame in uploaded image */}
+      {/* Device Bezel matching dark titanium frame in uploaded image */}
       <View style={styles.deviceBezel}>
         <View style={styles.screenContainer}>
-          {/* iOS Top Bar */}
-          <View style={styles.iosStatusBar}>
-            <Text style={styles.statusTime}>
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-            <View style={styles.dynamicPill}>
-              <View style={styles.dynamicDot} />
-              <Text style={styles.dynamicText}>WATER SENSORS</Text>
-            </View>
-            <View style={styles.statusIcons}>
-              <Ionicons name="wifi" size={14} color={COLORS.textPrimary} style={{ marginRight: 6 }} />
-              <Ionicons name="battery-full" size={16} color={COLORS.textPrimary} />
-            </View>
-          </View>
-
-          {/* App Body Content */}
+          {/* App Body Content Edge-to-Edge */}
           <View style={styles.appBody}>{children}</View>
 
-          {/* iOS Bottom Home Bar */}
-          <View style={styles.homeIndicatorContainer}>
+          {/* iOS Bottom Floating Home Bar */}
+          <View style={styles.homeIndicatorContainer} pointerEvents="none">
             <View style={styles.homeIndicator} />
           </View>
         </View>
@@ -221,81 +206,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  // iPhone 18 Pro Crimson Titanium / Deep Red metallic frame
+  // iPhone Titanium Graphite metallic frame matching the uploaded photo
   deviceBezel: {
-    width: 420,
-    height: 860,
-    backgroundColor: COLORS.deviceBezel, // #82101E Deep Crimson
-    borderRadius: 50,
-    padding: 12,
-    shadowColor: '#52060F',
-    shadowOffset: { width: 0, height: 26 },
-    shadowOpacity: 0.38,
-    shadowRadius: 40,
+    width: 412,
+    height: 852,
+    backgroundColor: COLORS.deviceBezel, // #1C1B22 Dark Titanium Graphite
+    borderRadius: 54,
+    padding: 10,
+    shadowColor: '#17161C',
+    shadowOffset: { width: 0, height: 28 },
+    shadowOpacity: 0.35,
+    shadowRadius: 36,
     borderWidth: 3.5,
-    borderColor: '#B82234', // Metallic Crimson edge rim
+    borderColor: COLORS.deviceBezelBorder, // #3A3844 Metallic rim
   },
   screenContainer: {
     flex: 1,
-    backgroundColor: COLORS.canvasBg, // Warm putty grey canvas
-    borderRadius: 38,
+    backgroundColor: '#0F1A12',
+    borderRadius: 44,
     overflow: 'hidden',
     position: 'relative',
-  },
-  iosStatusBar: {
-    height: 42,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingTop: 8,
-    backgroundColor: COLORS.canvasBg,
-    zIndex: 10,
-  },
-  statusTime: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  dynamicPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  dynamicDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.accentLimeDark,
-  },
-  dynamicText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    letterSpacing: 0.5,
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   appBody: {
     flex: 1,
   },
   homeIndicatorContainer: {
-    height: 18,
+    position: 'absolute',
+    bottom: 8,
+    left: 0,
+    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.canvasBg,
+    zIndex: 999,
   },
   homeIndicator: {
-    width: 120,
+    width: 134,
     height: 4,
-    backgroundColor: COLORS.darkCharcoal,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
     borderRadius: 2,
-    opacity: 0.35,
   },
 });
