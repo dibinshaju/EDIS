@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionHeaderTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '900',
     color: COLORS.darkCharcoal,
     letterSpacing: -0.3,
@@ -490,12 +490,12 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   timeTextPrimary: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '900',
     color: COLORS.darkCharcoal,
   },
   timeTextSecondary: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
     color: '#8F959E',
   },
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   darkCardTagText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '900',
     color: COLORS.accentOrange, // Vibrant tech orange (#FF5522)
     letterSpacing: 0.3,
@@ -567,22 +567,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   darkCardTagSubtleText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#FFFFFF',
   },
   darkCardTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.3,
   },
   darkCardSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     color: '#8F959E',
     marginTop: 3,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   darkCardFooter: {
     flexDirection: 'row',
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   darkCardMeta: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   whiteCardTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
     color: COLORS.darkCharcoal,
   },
@@ -635,20 +635,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   whiteCardTagText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '900',
     color: COLORS.darkCharcoal,
   },
   whiteCardValueText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '900',
     color: COLORS.darkCharcoal,
   },
   whiteCardSub: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     color: '#6E737B',
-    lineHeight: 16,
+    lineHeight: 18,
   },
 
   /* 4. Summary Grid */
@@ -667,24 +667,24 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   summaryLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     color: '#8F959E',
     marginBottom: 4,
   },
   summaryVal: {
-    fontSize: 20,
+    fontSize: 23,
     fontWeight: '900',
     color: COLORS.darkCharcoal,
     letterSpacing: -0.5,
   },
   unit: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#8F959E',
   },
   summaryFooter: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     color: '#8F959E',
     marginTop: 4,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   chartSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     color: '#6E737B',
     marginTop: 2,
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   tableSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     color: '#8F959E',
   },
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   th: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
     color: '#8F959E',
     textTransform: 'uppercase',
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   td: {
-    fontSize: 11,
+    fontSize: 13,
     color: COLORS.darkCharcoal,
   },
   statusTag: {
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDFA',
   },
   statusTagText: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: '900',
   },
   statusTagTextOk: {

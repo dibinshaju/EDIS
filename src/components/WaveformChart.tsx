@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   floatingPillText: {
     color: COLORS.accentYellow,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0, 0, 0, 0.04)',
   },
   avgText: {
-    fontSize: 11,
+    fontSize: 13,
     color: COLORS.textSecondary,
   },
   avgValue: {
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   deltaText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
   },
 });
