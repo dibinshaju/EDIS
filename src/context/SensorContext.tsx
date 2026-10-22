@@ -169,12 +169,12 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const timer = setInterval(() => {
       setElapsed((prevElapsed) => {
-        const nextElapsed = prevElapsed + INTERVAL_SECONDS;
+        const inDelta = (inFlow * INTERVAL_SECONDS) / 60;
+        const outDelta = (outFlow * INTERVAL_SECONDS) / 60;
 
         setInVol((prevInVol) => {
-          return setOutVol((prevOutVol) => {
-            const inDelta = (inFlow * INTERVAL_SECONDS) / 60;
-            const outDelta = (outFlow * INTERVAL_SECONDS) / 60;
+          const nextInVol = prevInVol + inDelta;
+          setOutVol((prevOutVol) => {
             const nextInVol = prevInVol + inDelta;
             const nextOutVol = prevOutVol + outDelta;
             const currentMismatch = nextInVol - nextOutVol;
@@ -225,7 +225,9 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
             return Number(nextOutVol.toFixed(2));
           });
+          return Number(nextInVol.toFixed(2));
         });
+        const nextElapsed = prevElapsed + INTERVAL_SECONDS;
 
         // Append to history buffer
         const reading: TelemetryReading = {
