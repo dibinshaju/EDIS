@@ -935,14 +935,14 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   p1StatValueLime: {
-    fontFamily: FONTS.body,
-    fontSize: 38,
+    fontFamily: FONTS.number,
+    fontSize: 27,
     color: '#D4FF32',
-    letterSpacing: 0.5,
+    letterSpacing: -0.5,
   },
   p1StatUnitLime: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
+    fontFamily: FONTS.number,
+    fontSize: 13,
     color: '#D4FF32',
     marginLeft: 2,
   },
@@ -1013,10 +1013,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   stepMetricText: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
+    fontFamily: FONTS.number,
+    fontSize: 12,
     color: '#0F1A12',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   stepHairlineDivider: {
     height: 1,
@@ -1168,14 +1168,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   p2BlockValueDark: {
-    fontFamily: FONTS.body,
-    fontSize: 40,
+    fontFamily: FONTS.number,
+    fontSize: 32,
     color: '#0F1A12',
-    letterSpacing: 0.5,
+    letterSpacing: -0.5,
   },
   p2BlockUnitDark: {
-    fontFamily: FONTS.body,
-    fontSize: 22,
+    fontFamily: FONTS.number,
+    fontSize: 18,
   },
 
   p2BlockDark: {
@@ -1192,10 +1192,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   p2BlockValueLight: {
-    fontFamily: FONTS.body,
-    fontSize: 40,
+    fontFamily: FONTS.number,
+    fontSize: 32,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: -0.5,
   },
 
   p2FooterBar: {
