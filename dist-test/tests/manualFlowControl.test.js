@@ -203,7 +203,7 @@ const testThresholds = {
         strict_1.default.equal(res1.hasAlert, true);
         strict_1.default.equal(res1.alertCandidate?.category, 'SUSPECTED_LEAK');
         strict_1.default.equal(res1.alertCandidate?.severity, 'critical');
-        strict_1.default.match(res1.alertCandidate?.message || '', /5\.0 L\/min/);
+        strict_1.default.match(res1.alertCandidate?.explanation || '', /5\.0 L\/min/);
     });
     (0, node_test_1.test)('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal consumption', () => {
         const engine = new leakDetection_1.LeakDetectionEngine();

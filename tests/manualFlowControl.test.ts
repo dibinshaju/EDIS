@@ -243,7 +243,7 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     assert.equal(res1.hasAlert, true);
     assert.equal(res1.alertCandidate?.category, 'SUSPECTED_LEAK');
     assert.equal(res1.alertCandidate?.severity, 'critical');
-    assert.match(res1.alertCandidate?.message || '', /5\.0 L\/min/);
+    assert.match(res1.alertCandidate?.explanation || '', /5\.0 L\/min/);
   });
 
   test('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal consumption', () => {
