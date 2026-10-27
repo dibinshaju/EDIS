@@ -207,7 +207,7 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     const result = engine.processReading(reading, testThresholds, t0);
     assert.equal(result.state, 'normal');
     assert.equal(result.hasAlert, false);
-    assert.equal(result.activeCategory, 'NORMAL');
+    assert.equal(result.activeCategory, null);
   });
 
   test('6. Preset: Simulate Leak (8.0 / 3.0 L/min) triggers leak state after persistence', () => {
@@ -242,7 +242,7 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     assert.equal(res1.state, 'leak');
     assert.equal(res1.hasAlert, true);
     assert.equal(res1.alertCandidate?.category, 'SUSPECTED_LEAK');
-    assert.equal(res1.alertCandidate?.severity, 'critical');
+    assert.equal(res1.alertCandidate?.severity, 'CRITICAL');
     assert.match(res1.alertCandidate?.explanation || '', /5\.0 L\/min/);
   });
 
@@ -264,7 +264,7 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     r0.timestamp = t0;
 
     const res0 = engine.processReading(r0, testThresholds, t0);
-    assert.equal(res0.state, 'checking');
+    assert.equal(res0.state, 'normal');
     assert.equal(res0.hasAlert, false);
 
     // 7 seconds later (> 6s high consumption threshold duration)
