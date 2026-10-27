@@ -141,7 +141,7 @@ void publishTelemetryNow() {
   }
 
   // Build JSON Telemetry Payload
-  StaticJsonDocument<384> doc;
+  StaticJsonDocument<512> doc;
   doc["deviceId"]    = DEVICE_ID;
   doc["ts"]          = (unsigned long)(millis() / 1000);
   doc["inlet"]       = serialized(String(inletLpm, 2));
@@ -150,17 +150,22 @@ void publishTelemetryNow() {
   doc["isSimulated"] = true;
   doc["notes"]       = statusNote;
   doc["scenario"]    = activeScenario;
+  doc["tank1"]       = serialized(String(tankLevel1, 2));
+  doc["tank2"]       = serialized(String(tankLevel2, 2));
+  doc["valve1"]      = valve1State;
+  doc["valve2"]      = valve2State;
+  doc["scadaMode"]   = scadaMode;
   if (lastRequestId.length() > 0) {
     doc["requestId"] = lastRequestId;
   }
 
-  char buffer[384];
+  char buffer[512];
   serializeJson(doc, buffer);
 
   bool pubOk = mqttClient.publish(TOPIC_TELEMETRY, buffer);
   if (pubOk) {
-    Serial.printf("[TELEMETRY] In: %.1f L/m | Out: %.1f L/m | Diff: %+.1f | Sc: %s | Mqtt: OK\n",
-                  inletLpm, outletLpm, mismatch, activeScenario.c_str());
+    Serial.printf("[TELEMETRY] In: %.1f L/m | Out: %.1f L/m | T1: %.2fm | T2: %.2fm | V1: %s | V2: %s | Mqtt: OK\n",
+                  inletLpm, outletLpm, tankLevel1, tankLevel2, valve1State.c_str(), valve2State.c_str());
   } else {
     Serial.println("[MQTT] Telemetry publish failed!");
   }
