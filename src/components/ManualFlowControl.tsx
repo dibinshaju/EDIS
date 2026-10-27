@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.badgeYellowBg,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: RADIUS.xs,
+    borderRadius: 4,
   },
   badgeText: {
     fontFamily: 'BebasNeue',
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: '#F8F8F6',
-    borderRadius: RADIUS.xs,
+    borderRadius: 4,
     padding: 6,
     borderWidth: 1,
     borderColor: '#ECEBE4',
