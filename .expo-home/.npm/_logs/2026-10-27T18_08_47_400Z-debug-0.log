@@ -31,3 +31,7 @@
 30 timing npm:load Completed in 162ms
 31 timing config:load:flatten Completed in 1ms
 32 silly logfile done cleaning log files
+33 timing command:exec Completed in 30837ms
+34 verbose exit 0
+35 timing npm Completed in 31081ms
+36 info ok
