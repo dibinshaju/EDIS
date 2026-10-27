@@ -165,6 +165,10 @@ export class LeakDetectionEngine {
       const durationSec = (now - this.reversedMismatchStartTime) / 1000;
       if (durationSec >= thresholds.persistenceDurationSec) {
         this.currentActiveIncident = 'SENSOR_ANOMALY';
+        diagnosticNotes.push(
+          'Outlet > Inlet mismatch detected.',
+          'Inspect sensor calibration factors, check-valves, and unmetered auxiliary feeds.'
+        );
         return {
           hasAlert: true,
           alertCandidate: {
@@ -174,10 +178,7 @@ export class LeakDetectionEngine {
             explanation: `Downstream outlet (${outlet.toFixed(1)} L/min) is reading higher than upstream inlet (${inlet.toFixed(1)} L/min) by ${(outlet - inlet).toFixed(1)} L/min. This indicates sensor miscalibration, unmetered auxiliary inlet, or expansion tank release — NOT a pipe leak.`,
             durationSec: Math.round(durationSec),
           },
-          diagnosticNotes: [
-            'Outlet > Inlet mismatch detected.',
-            'Inspect sensor calibration factors, check-valves, and unmetered auxiliary feeds.',
-          ],
+          diagnosticNotes,
           isRecovered: false,
           state: 'datacheck',
           activeCategory: 'SENSOR_ANOMALY',
@@ -212,6 +213,10 @@ export class LeakDetectionEngine {
       const durationSec = (now - this.positiveMismatchStartTime) / 1000;
       if (durationSec >= thresholds.persistenceDurationSec) {
         this.currentActiveIncident = 'SUSPECTED_LEAK';
+        diagnosticNotes.push(
+          `Flow deficit: +${flowDiff.toFixed(1)} L/min loss between metering points.`,
+          'Dual-sensor mismatch indicates suspected loss, pending physical inspection.'
+        );
         return {
           hasAlert: true,
           alertCandidate: {
@@ -221,10 +226,7 @@ export class LeakDetectionEngine {
             explanation: `Inlet flow exceeds outlet flow by ${flowDiff.toFixed(1)} L/min continuously for ${Math.round(durationSec)}s. Possible pipe breach, burst joint, or unmetered fixture loss between monitoring points.`,
             durationSec: Math.round(durationSec),
           },
-          diagnosticNotes: [
-            `Flow deficit: +${flowDiff.toFixed(1)} L/min loss between metering points.`,
-            'Dual-sensor mismatch indicates suspected loss, pending physical inspection.',
-          ],
+          diagnosticNotes,
           isRecovered: false,
           state: 'leak',
           activeCategory: 'SUSPECTED_LEAK',
@@ -260,6 +262,7 @@ export class LeakDetectionEngine {
       const durationSec = (now - this.highConsumptionStartTime) / 1000;
       if (durationSec >= thresholds.highConsumptionDurationSec) {
         this.currentActiveIncident = 'ABNORMAL_CONSUMPTION';
+        diagnosticNotes.push(`High demand: ${inlet.toFixed(1)} L/min sustained with balanced metering.`);
         return {
           hasAlert: true,
           alertCandidate: {
@@ -269,7 +272,7 @@ export class LeakDetectionEngine {
             explanation: `Water draw rate of ${inlet.toFixed(1)} L/min exceeds maximum threshold (${thresholds.highConsumptionThreshold.toFixed(1)} L/min) for ${Math.round(durationSec)}s. Meters remain balanced; check for stuck commercial valves or open taps.`,
             durationSec: Math.round(durationSec),
           },
-          diagnosticNotes: [`High demand: ${inlet.toFixed(1)} L/min sustained with balanced metering.`],
+          diagnosticNotes,
           isRecovered: false,
           state: 'high',
           activeCategory: 'ABNORMAL_CONSUMPTION',
@@ -301,6 +304,7 @@ export class LeakDetectionEngine {
       // Alert after persistence window during night
       if (durationSec >= thresholds.persistenceDurationSec * 1.5) {
         this.currentActiveIncident = 'NIGHT_FLOW';
+        diagnosticNotes.push('Night flow exceeds quiescent baseline.');
         return {
           hasAlert: true,
           alertCandidate: {
@@ -310,7 +314,7 @@ export class LeakDetectionEngine {
             explanation: `Unbroken water flow (${inlet.toFixed(1)} L/min) detected during quiescent night hours (${thresholds.nightTimeStartHour}:00 - ${thresholds.nightTimeEndHour}:00). May indicate running toilet, irrigation leak, or dripping fixtures.`,
             durationSec: Math.round(durationSec),
           },
-          diagnosticNotes: ['Night flow exceeds quiescent baseline.'],
+          diagnosticNotes,
           isRecovered: false,
           state: 'high',
           activeCategory: 'NIGHT_FLOW',
@@ -327,6 +331,7 @@ export class LeakDetectionEngine {
 
     // 7. Check if recovery just took place
     if (isRecovered) {
+      diagnosticNotes.push('Flow stabilized within expected tolerances.');
       return {
         hasAlert: true,
         alertCandidate: {
@@ -336,7 +341,7 @@ export class LeakDetectionEngine {
           explanation: `Telemetry indicates flow mismatch and consumption rates have normalized. Previous incident (${recoveredCategory}) resolved.`,
           durationSec: 0,
         },
-        diagnosticNotes: ['Flow stabilized within expected tolerances.'],
+        diagnosticNotes,
         isRecovered: true,
         recoveredCategory,
         state: 'normal',
