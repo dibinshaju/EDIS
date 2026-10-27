@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { LeakDetectionEngine } from '../src/utils/leakDetection';
+import { AlertDeduplicator } from '../src/utils/alertDedup';
 import { TelemetryReading, ThresholdConfig } from '../src/types/sensor';
 
 const testThresholds: ThresholdConfig = {
@@ -210,5 +211,68 @@ describe('LeakDetectionEngine Unit Tests', () => {
     // Jump forward 25 seconds (exceeding testThresholds.sensorTimeoutSec 10s)
     const res = engine.processReading(makeReading(12.0, 12.0, t0 + 25000), testThresholds, t0 + 25000);
     assert.ok(res.diagnosticNotes.some((note) => note.includes('Data transmission delay detected')));
+  });
+});
+
+describe('AlertDeduplicator Unit Tests', () => {
+  const candidate = {
+    category: 'SUSPECTED_LEAK' as const,
+    severity: 'CRITICAL' as const,
+    title: 'Suspected Leak',
+    explanation: 'Test leak explanation',
+    durationSec: 6,
+  };
+
+  test('1. First alert candidate creates brand-new ACTIVE event (isNew = true)', () => {
+    const dedup = new AlertDeduplicator(30);
+    const reading = makeReading(16.0, 10.0, 1000);
+    const res = dedup.processCandidate(candidate, reading, 1000);
+    
+    assert.notEqual(res, null);
+    assert.equal(res?.isNew, true);
+    assert.equal(res?.event.status, 'ACTIVE');
+    assert.equal(res?.event.occurrenceCount, 1);
+  });
+
+  test('2. Successive telemetry ticks update metrics without creating duplicate alert', () => {
+    const dedup = new AlertDeduplicator(30);
+    const reading1 = makeReading(16.0, 10.0, 1000);
+    const res1 = dedup.processCandidate(candidate, reading1, 1000);
+
+    const reading2 = makeReading(17.5, 9.5, 3000);
+    const res2 = dedup.processCandidate(candidate, reading2, 3000);
+
+    assert.notEqual(res2, null);
+    assert.equal(res2?.isNew, false, 'Must not report as new alert to avoid duplicate buzzer chimes');
+    assert.equal(res2?.event.id, res1?.event.id, 'Alert ID must be preserved');
+    assert.equal(res2?.event.occurrenceCount, 2);
+    assert.equal(res2?.event.inletFlow, 17.5);
+  });
+
+  test('3. Acknowledged alert updates status and silences buzzer on subsequent ticks', () => {
+    const dedup = new AlertDeduplicator(30);
+    const reading1 = makeReading(16.0, 10.0, 1000);
+    const res1 = dedup.processCandidate(candidate, reading1, 1000);
+
+    // Admin acknowledges the alert
+    const acked = dedup.acknowledgeAlert(res1!.event.id, 'Operator_01');
+    assert.equal(acked?.status, 'ACKNOWLEDGED');
+    assert.equal(acked?.acknowledgedBy, 'Operator_01');
+
+    // Next telemetry reading comes in
+    const reading2 = makeReading(16.0, 10.0, 3000);
+    const res2 = dedup.processCandidate(candidate, reading2, 3000);
+    assert.equal(res2?.isNew, false);
+    assert.equal(res2?.event.status, 'ACKNOWLEDGED', 'Status must remain ACKNOWLEDGED');
+  });
+
+  test('4. Resolving category clears active tracking and sets status RESOLVED', () => {
+    const dedup = new AlertDeduplicator(30);
+    const reading = makeReading(16.0, 10.0, 1000);
+    const res = dedup.processCandidate(candidate, reading, 1000);
+
+    const resolved = dedup.resolveCategory('SUSPECTED_LEAK', 5000);
+    assert.equal(resolved?.status, 'RESOLVED');
+    assert.equal(resolved?.resolvedAt, 5000);
   });
 });
