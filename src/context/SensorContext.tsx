@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { TelemetryReading, ThresholdConfig, ScenarioType, DataSource } from '../types/sensor';
 import { DEFAULT_THRESHOLDS } from '../constants/thresholds';
 import { useMqtt } from './MqttContext';
+import { LeakDetectionEngine, DetectionResult, EngineStatusState } from '../utils/leakDetection';
 
 export interface PrototypeEvent {
   id: string;
@@ -9,7 +10,7 @@ export interface PrototypeEvent {
   message: string;
 }
 
-export type PrototypeStatusState = 'normal' | 'checking' | 'leak' | 'high' | 'datacheck';
+export type PrototypeStatusState = EngineStatusState;
 
 interface SensorContextType {
   // HTML Prototype Core Variables
@@ -26,6 +27,9 @@ interface SensorContextType {
   statusDetail: string;
   events: PrototypeEvent[];
   history: TelemetryReading[];
+  
+  // Authoritative Detection Result from LeakDetectionEngine
+  detectionResult: DetectionResult;
   
   // Controls
   setScenario: (s: ScenarioType) => void;
