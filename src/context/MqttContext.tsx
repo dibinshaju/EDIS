@@ -105,9 +105,19 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const raw = payload.toString();
         setLastRawPayload(raw);
         setLastMessageTime(Date.now());
+        console.log('[STAGE 4: DASHBOARD RX MQTT]', topic, raw);
 
         if (topic === MQTT_CONFIG.topics.telemetry) {
           const { reading, error } = parseAndNormalizeTelemetry(raw);
+          console.log('[STAGE 5: DASHBOARD PARSED]', reading ? {
+            inletFlow: reading.inletFlow,
+            outletFlow: reading.outletFlow,
+            difference: reading.flowDifference,
+            source: reading.source,
+            sequence: reading.sequence,
+            scenario: reading.notes
+          } : { error });
+
           if (reading) {
             setLastReading(reading);
             addLog(
@@ -117,6 +127,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
               telemetryCallbackRef.current(reading);
             } else {
               addLog('[Telemetry Warning] Telemetry received but no callback registered.');
+              console.warn('[STAGE 5 WARNING] Telemetry callback is not registered in SensorContext!');
             }
           } else {
             addLog(`[Telemetry Rejected] ${error || 'Unknown parsing error'}`);
@@ -128,6 +139,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
             addLog(
               `[ACK] ESP32 confirmed ${parsedAck.command || 'command'} (${parsedAck.status || 'applied'}) req=${parsedAck.requestId || 'n/a'}`
             );
+            console.log('[STAGE 4 ACK RECEIVED]', parsedAck);
           } catch (e: any) {
             addLog(`[ACK Parse Error] Invalid ACK format: ${raw}`);
           }
