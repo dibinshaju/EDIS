@@ -293,23 +293,11 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(timer);
   }, [dataSource, inFlow, outFlow, activeScenario, needIntervals, addEvent]);
 
-  // Stable handler ref to prevent unbinding / callback drops across re-renders
-  const handleLiveTelemetryRef = useRef<(reading: TelemetryReading) => void>(() => {});
-
   // Handle Live Telemetry received over MQTT (from virtual Wokwi ESP32 or physical devkit)
   const handleLiveTelemetry = useCallback((reading: TelemetryReading) => {
     const now = reading.timestamp || Date.now();
     const lastTime = lastWokwiPacketTimeRef.current;
     lastWokwiPacketTimeRef.current = now;
-
-    console.log('[STAGE 6: SENSOR CONTEXT UPDATING STATE]', {
-      inletFlow: reading.inletFlow,
-      outletFlow: reading.outletFlow,
-      difference: reading.flowDifference,
-      source: reading.source,
-      sequence: reading.sequence,
-      currentDataSource: dataSourceRef.current,
-    });
 
     // Automatically transition to 'wokwi' when live telemetry arrives
     if (dataSourceRef.current !== 'wokwi' && reading.source !== 'demo') {
@@ -360,18 +348,12 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setHistory((prev) => [...prev.slice(-29), reading]);
   }, [elapsed, needIntervals, addEvent]);
 
-  // Keep ref synchronized with latest handleLiveTelemetry closure
-  handleLiveTelemetryRef.current = handleLiveTelemetry;
-
-  // Register permanent listener once on mount
   useEffect(() => {
-    setOnTelemetryReceived((reading) => {
-      handleLiveTelemetryRef.current(reading);
-    });
+    setOnTelemetryReceived(handleLiveTelemetry);
     return () => {
       setOnTelemetryReceived(null);
     };
-  }, [setOnTelemetryReceived]);
+  }, [setOnTelemetryReceived, handleLiveTelemetry]);
 
   const currentReading: TelemetryReading = {
     deviceId: dataSource === 'demo' ? 'SIM_METER_01' : 'ESP32_WOKWI_01',

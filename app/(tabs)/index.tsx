@@ -48,17 +48,6 @@ export default function DashboardScreen() {
   const isAlert =
     statusState === 'leak' || (dataSource === 'wokwi' && mqttStatus === 'disconnected');
 
-  useEffect(() => {
-    console.log('[STAGE 7: DASHBOARD UI RENDER]', {
-      inFlow,
-      outFlow,
-      flowDifference: inFlow - outFlow,
-      statusState,
-      dataSource,
-      mqttStatus,
-    });
-  }, [inFlow, outFlow, statusState, dataSource, mqttStatus]);
-
   const getStatusText = () => {
     if (dataSource === 'wokwi' && mqttStatus === 'disconnected') return 'OFFLINE';
     if (statusState === 'leak') return 'LEAK';
