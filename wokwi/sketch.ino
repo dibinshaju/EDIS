@@ -354,9 +354,17 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
     } else if (strcmp(cmd, "reset") == 0) {
       activeScenario = "hardware";
       lastRequestId = "";
+      manualInlet = 8.0;
+      manualOutlet = 8.0;
+      tankLevel1 = 2.89;
+      tankLevel2 = 2.89;
+      valve1State = "OPEN";
+      valve2State = "OPEN";
+      scadaMode = "REMOTE";
       digitalWrite(PIN_LED_ALERT, LOW);
       noTone(PIN_BUZZER);
-      Serial.println("[COMMAND] Reset to hardware potentiometer tracking");
+      Serial.println("[COMMAND] Reset to baseline / hardware tracking");
+      publishAck(doc["requestId"] | "", "reset_applied", 8.0, 8.0);
       publishTelemetryNow();
     } else if (strcmp(cmd, "ack_alarm") == 0) {
       alarmActive = false;
