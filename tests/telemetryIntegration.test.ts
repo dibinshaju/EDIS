@@ -175,7 +175,11 @@ describe('Telemetry State Isolation & Detection Engine Feeding', () => {
     const { reading } = parseAndNormalizeTelemetry(rawPacket);
     assert.ok(reading !== null);
 
-    // At T+6s: emits SENSOR_ANOMALY with state 'datacheck'
+    // Initial tick at t0 (starts reversed mismatch persistence timer)
+    const r1 = engine.processReading(reading, testThresholds, t0);
+    assert.equal(r1.state, 'checking');
+
+    // At T+6s (exceeding 5s persistence duration): emits SENSOR_ANOMALY with state 'datacheck'
     const t1 = t0 + 6000;
     const res = engine.processReading({ ...reading, timestamp: t1 }, testThresholds, t1);
     assert.equal(res.state, 'datacheck');
