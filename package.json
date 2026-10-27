@@ -29,7 +29,8 @@
     "test": "npx tsc -p tsconfig.test.json && node --test dist-test/tests/leakDetection.test.js && rm -rf dist-test",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo export --platform web"
   },
   "private": true
 }
