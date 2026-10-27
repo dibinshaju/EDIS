@@ -173,7 +173,7 @@ void publishTelemetryNow() {
 }
 
 void publishAck(String reqId, String status, float inVal, float outVal) {
-  StaticJsonDocument<256> ackDoc;
+  StaticJsonDocument<384> ackDoc;
   ackDoc["type"]      = "ack";
   ackDoc["command"]   = "set_flow";
   ackDoc["status"]    = status;
@@ -182,9 +182,14 @@ void publishAck(String reqId, String status, float inVal, float outVal) {
   }
   ackDoc["inlet"]     = serialized(String(inVal, 2));
   ackDoc["outlet"]    = serialized(String(outVal, 2));
+  ackDoc["tank1"]     = serialized(String(tankLevel1, 2));
+  ackDoc["tank2"]     = serialized(String(tankLevel2, 2));
+  ackDoc["valve1"]    = valve1State;
+  ackDoc["valve2"]    = valve2State;
+  ackDoc["mode"]      = scadaMode;
   ackDoc["timestamp"] = (unsigned long)(millis() / 1000);
 
-  char ackBuf[256];
+  char ackBuf[384];
   serializeJson(ackDoc, ackBuf);
   mqttClient.publish(TOPIC_ACK, ackBuf);
   Serial.printf("[ACK] Published to %s: %s\n", TOPIC_ACK, ackBuf);
