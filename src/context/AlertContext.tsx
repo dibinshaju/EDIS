@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { AlertEvent, AlertCategory } from '../types/alert';
-import { LeakDetectionEngine } from '../utils/leakDetection';
 import { AlertDeduplicator } from '../utils/alertDedup';
 import { buzzerService } from '../utils/sound';
 import { useSensor } from './SensorContext';
@@ -23,7 +22,7 @@ interface AlertContextType {
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentReading, thresholds } = useSensor();
+  const { currentReading, detectionResult } = useSensor();
   const { user } = useAuth();
 
   const [alerts, setAlerts] = useState<AlertEvent[]>([]);
@@ -31,26 +30,19 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [diagnosticNotes, setDiagnosticNotes] = useState<string[]>([]);
   const [isBuzzerEnabled, setIsBuzzerEnabled] = useState<boolean>(true);
 
-  const engineRef = useRef<LeakDetectionEngine>(new LeakDetectionEngine());
   const dedupRef = useRef<AlertDeduplicator>(new AlertDeduplicator(30));
 
-  // Process every new reading through the leak detection engine
+  // Process authoritative detection results from the unified engine
   useEffect(() => {
-    if (!currentReading) return;
+    if (!currentReading || !detectionResult) return;
 
-    const evalResult = engineRef.current.processReading(
-      currentReading,
-      thresholds,
-      currentReading.timestamp
-    );
+    setDiagnosticNotes(detectionResult.diagnosticNotes);
 
-    setDiagnosticNotes(evalResult.diagnosticNotes);
-
-    if (evalResult.hasAlert && evalResult.alertCandidate) {
+    if (detectionResult.hasAlert && detectionResult.alertCandidate) {
       const processed = dedupRef.current.processCandidate(
-        evalResult.alertCandidate,
+        detectionResult.alertCandidate,
         currentReading,
-        Date.now()
+        currentReading.timestamp || Date.now()
       );
 
       if (processed) {
@@ -75,10 +67,20 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }
       }
+    } else if (detectionResult.isRecovered) {
+      // Condition recovered
+      if (detectionResult.recoveredCategory) {
+        const resolved = dedupRef.current.resolveCategory(detectionResult.recoveredCategory);
+        if (resolved) {
+          setAlerts((prev) =>
+            prev.map((a) => (a.id === resolved.id ? { ...a, status: 'RESOLVED', resolvedAt: Date.now() } : a))
+          );
+        }
+      }
+      setActiveAlert(null);
     } else {
       // If system cleared condition and no alert candidate exists
       if (activeAlert && activeAlert.status === 'ACTIVE') {
-        // Condition self-resolved
         const resolved = dedupRef.current.resolveCategory(activeAlert.category);
         if (resolved) {
           setAlerts((prev) =>
@@ -88,7 +90,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setActiveAlert(null);
       }
     }
-  }, [currentReading, thresholds, isBuzzerEnabled, activeAlert]);
+  }, [currentReading, detectionResult, isBuzzerEnabled, activeAlert]);
 
   const acknowledgeAlert = useCallback((alertId: string) => {
     // Silence audio immediately

@@ -359,7 +359,6 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     </SensorContext.Provider>
   );
 };
-};
 
 export const useSensor = () => {
   const context = useContext(SensorContext);
