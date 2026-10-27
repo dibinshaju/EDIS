@@ -38,9 +38,10 @@ export default function DashboardScreen() {
     resetDemo,
     activeScenario,
     dataSource,
+    setDataSource,
   } = useSensor();
 
-  const { status: mqttStatus } = useMqtt();
+  const { status: mqttStatus, connect } = useMqtt();
   const { activeCount } = useAlerts();
 
   const flowDifference = inFlow - outFlow;
@@ -212,11 +213,19 @@ export default function DashboardScreen() {
             <View style={styles.p1HeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={styles.brandTitleWhite}>AquaGuard®</Text>
-                <View
+                <TouchableOpacity
+                  onPress={() => {
+                    const nextSource = dataSource === 'wokwi' ? 'demo' : 'wokwi';
+                    setDataSource(nextSource);
+                    if (nextSource === 'wokwi' && mqttStatus !== 'connected') {
+                      connect();
+                    }
+                  }}
+                  activeOpacity={0.7}
                   style={{
                     backgroundColor: dataSource === 'wokwi' ? (mqttStatus === 'connected' ? '#10B981' : '#EF4444') : '#1E293B',
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
                     borderRadius: 4,
                     borderWidth: 1,
                     borderColor: dataSource === 'wokwi' ? '#10B981' : '#334155',
@@ -225,7 +234,7 @@ export default function DashboardScreen() {
                   <Text style={{ fontSize: 8, fontWeight: '800', color: dataSource === 'wokwi' ? '#FFFFFF' : '#94A3B8', letterSpacing: 0.5 }}>
                     {dataSource === 'wokwi' ? (mqttStatus === 'connected' ? 'WOKWI LIVE' : 'WOKWI OFFLINE') : 'DEMO'}
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.menuBtnLight}
