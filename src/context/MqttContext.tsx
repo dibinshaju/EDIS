@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import mqtt, { MqttClient } from 'mqtt';
 import { MQTT_CONFIG } from '../constants/mqtt';
-import { TelemetryReading, SimulatorCommand } from '../types/sensor';
+import { TelemetryReading, SimulatorCommand, CommandAck } from '../types/sensor';
 import { parseAndNormalizeTelemetry } from '../utils/telemetryParser';
 
 export type MqttConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -13,10 +13,16 @@ interface MqttContextType {
   lastMessageTime: number | null;
   lastRawPayload: string | null;
   lastReading: TelemetryReading | null;
+  lastAck: CommandAck | null;
   logs: string[];
   connect: () => void;
   disconnect: () => void;
   publishCommand: (cmd: SimulatorCommand) => boolean;
+  publishFlowCommand: (
+    inlet: number,
+    outlet: number,
+    requestId?: string
+  ) => { success: boolean; error?: string; requestId: string };
   onTelemetryReceived: ((reading: TelemetryReading) => void) | null;
   setOnTelemetryReceived: (cb: ((reading: TelemetryReading) => void) | null) => void;
 }
@@ -29,6 +35,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastMessageTime, setLastMessageTime] = useState<number | null>(null);
   const [lastRawPayload, setLastRawPayload] = useState<string | null>(null);
   const [lastReading, setLastReading] = useState<TelemetryReading | null>(null);
+  const [lastAck, setLastAck] = useState<CommandAck | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   
   const clientRef = useRef<MqttClient | null>(null);
@@ -83,6 +90,15 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
             addLog(`Subscribed to topic: ${MQTT_CONFIG.topics.telemetry}`);
           }
         });
+
+        // Subscribe to command ACK topic
+        client.subscribe(MQTT_CONFIG.topics.ack, { qos: 0 }, (err) => {
+          if (err) {
+            addLog(`Subscription error on ${MQTT_CONFIG.topics.ack}: ${err.message}`);
+          } else {
+            addLog(`Subscribed to topic: ${MQTT_CONFIG.topics.ack}`);
+          }
+        });
       });
 
       client.on('message', (topic, payload) => {
@@ -104,6 +120,16 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } else {
             addLog(`[Telemetry Rejected] ${error || 'Unknown parsing error'}`);
+          }
+        } else if (topic === MQTT_CONFIG.topics.ack) {
+          try {
+            const parsedAck = JSON.parse(raw) as CommandAck;
+            setLastAck(parsedAck);
+            addLog(
+              `[ACK] ESP32 confirmed ${parsedAck.command || 'command'} (${parsedAck.status || 'applied'}) req=${parsedAck.requestId || 'n/a'}`
+            );
+          } catch (e: any) {
+            addLog(`[ACK Parse Error] Invalid ACK format: ${raw}`);
           }
         }
       });
@@ -147,6 +173,65 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [status, addLog]);
 
+  const publishFlowCommand = useCallback(
+    (
+      inlet: number,
+      outlet: number,
+      reqId?: string
+    ): { success: boolean; error?: string; requestId: string } => {
+      if (
+        typeof inlet !== 'number' ||
+        typeof outlet !== 'number' ||
+        !Number.isFinite(inlet) ||
+        !Number.isFinite(outlet)
+      ) {
+        return {
+          success: false,
+          error: 'Inlet and Outlet flow rates must be valid numbers.',
+          requestId: '',
+        };
+      }
+
+      if (inlet < 0 || inlet > 100 || outlet < 0 || outlet > 100) {
+        return {
+          success: false,
+          error: 'Flow rates must be between 0.0 and 100.0 L/min.',
+          requestId: '',
+        };
+      }
+
+      if (!clientRef.current || status !== 'connected') {
+        return {
+          success: false,
+          error: 'MQTT broker is not connected. Please connect first.',
+          requestId: '',
+        };
+      }
+
+      const requestId =
+        reqId || `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      const cmd: SimulatorCommand = {
+        command: 'set_flow',
+        inlet: Number(inlet.toFixed(2)),
+        outlet: Number(outlet.toFixed(2)),
+        requestId,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      const published = publishCommand(cmd);
+      if (!published) {
+        return {
+          success: false,
+          error: 'Failed to send command over MQTT connection.',
+          requestId,
+        };
+      }
+
+      return { success: true, requestId };
+    },
+    [status, publishCommand]
+  );
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -165,10 +250,12 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastMessageTime,
         lastRawPayload,
         lastReading,
+        lastAck,
         logs,
         connect,
         disconnect,
         publishCommand,
+        publishFlowCommand,
         onTelemetryReceived: telemetryCallbackRef.current,
         setOnTelemetryReceived,
       }}
