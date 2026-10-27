@@ -188,8 +188,8 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
   });
 
   test('5. Preset: Normal flow (8.0 / 8.0 L/min) maintains normal balanced pipeline', () => {
-    const engine = new LeakDetectionEngine(testThresholds);
-    const t0 = 1000000;
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
 
     const normalPacket = JSON.stringify({
       deviceId: 'ESP32_WOKWI_01',
@@ -204,15 +204,15 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     assert.ok(reading);
     reading.timestamp = t0;
 
-    const result = engine.processReading(reading);
-    assert.equal(result.status, 'normal');
-    assert.equal(result.alert, null);
-    assert.equal(result.mismatch, 0.0);
+    const result = engine.processReading(reading, testThresholds, t0);
+    assert.equal(result.state, 'normal');
+    assert.equal(result.hasAlert, false);
+    assert.equal(result.activeCategory, 'NORMAL');
   });
 
-  test('6. Preset: Simulate Leak (8.0 / 3.0 L/min) triggers suspected_leak after persistence', () => {
-    const engine = new LeakDetectionEngine(testThresholds);
-    const t0 = 1000000;
+  test('6. Preset: Simulate Leak (8.0 / 3.0 L/min) triggers leak state after persistence', () => {
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
 
     const leakPacket = JSON.stringify({
       deviceId: 'ESP32_WOKWI_01',
@@ -227,27 +227,28 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     assert.ok(r0);
     r0.timestamp = t0;
 
-    // t0: Initial leak detection starts tracking timer
-    const res0 = engine.processReading(r0);
-    assert.equal(res0.mismatch, 5.0);
-    assert.equal(res0.status, 'normal', 'Must not trigger instantly before persistence');
+    // t0: Initial leak detection starts tracking timer (state: checking)
+    const res0 = engine.processReading(r0, testThresholds, t0);
+    assert.equal(res0.state, 'checking');
+    assert.equal(res0.hasAlert, false, 'Must not trigger instantly before persistence');
 
     // t1: 6 seconds later (> persistence duration of 5s)
+    const t1 = t0 + 6000;
     const { reading: r1 } = parseAndNormalizeTelemetry(leakPacket);
     assert.ok(r1);
-    r1.timestamp = t0 + 6000;
+    r1.timestamp = t1;
 
-    const res1 = engine.processReading(r1);
-    assert.equal(res1.status, 'suspected_leak');
-    assert.ok(res1.alert !== null);
-    assert.equal(res1.alert.type, 'suspected_leak');
-    assert.equal(res1.alert.severity, 'critical');
-    assert.match(res1.alert.message, /5\.0 L\/min/);
+    const res1 = engine.processReading(r1, testThresholds, t1);
+    assert.equal(res1.state, 'leak');
+    assert.equal(res1.hasAlert, true);
+    assert.equal(res1.alertCandidate?.category, 'SUSPECTED_LEAK');
+    assert.equal(res1.alertCandidate?.severity, 'critical');
+    assert.match(res1.alertCandidate?.message || '', /5\.0 L\/min/);
   });
 
-  test('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal_consumption', () => {
-    const engine = new LeakDetectionEngine(testThresholds);
-    const t0 = 1000000;
+  test('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal consumption', () => {
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
 
     const highPacket = JSON.stringify({
       deviceId: 'ESP32_WOKWI_01',
@@ -262,24 +263,25 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     assert.ok(r0);
     r0.timestamp = t0;
 
-    const res0 = engine.processReading(r0);
-    assert.equal(res0.mismatch, 0.0);
-    assert.equal(res0.status, 'normal');
+    const res0 = engine.processReading(r0, testThresholds, t0);
+    assert.equal(res0.state, 'checking');
+    assert.equal(res0.hasAlert, false);
 
     // 7 seconds later (> 6s high consumption threshold duration)
+    const t1 = t0 + 7000;
     const { reading: r1 } = parseAndNormalizeTelemetry(highPacket);
     assert.ok(r1);
-    r1.timestamp = t0 + 7000;
+    r1.timestamp = t1;
 
-    const res1 = engine.processReading(r1);
-    assert.equal(res1.status, 'abnormal_consumption');
-    assert.ok(res1.alert !== null);
-    assert.equal(res1.alert.type, 'abnormal_consumption');
+    const res1 = engine.processReading(r1, testThresholds, t1);
+    assert.equal(res1.state, 'high');
+    assert.equal(res1.hasAlert, true);
+    assert.equal(res1.alertCandidate?.category, 'ABNORMAL_CONSUMPTION');
   });
 
   test('8. Preset: Reversed Mismatch (3.0 / 8.0 L/min) flags anomaly without false positive leak', () => {
-    const engine = new LeakDetectionEngine(testThresholds);
-    const t0 = 1000000;
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
 
     const revPacket = JSON.stringify({
       deviceId: 'ESP32_WOKWI_01',
@@ -293,31 +295,32 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
     const { reading: r0 } = parseAndNormalizeTelemetry(revPacket);
     assert.ok(r0);
     r0.timestamp = t0;
-    engine.processReading(r0);
+    const res0 = engine.processReading(r0, testThresholds, t0);
+    assert.equal(res0.state, 'checking');
 
+    const t1 = t0 + 6000;
     const { reading: r1 } = parseAndNormalizeTelemetry(revPacket);
     assert.ok(r1);
-    r1.timestamp = t0 + 6000;
+    r1.timestamp = t1;
 
-    const res1 = engine.processReading(r1);
-    assert.equal(res1.status, 'sensor_anomaly');
-    assert.ok(res1.alert !== null);
-    assert.equal(res1.alert.type, 'sensor_anomaly');
-    assert.notEqual(res1.status, 'suspected_leak', 'Negative deficit must not trigger leak alarm');
+    const res1 = engine.processReading(r1, testThresholds, t1);
+    assert.equal(res1.state, 'datacheck');
+    assert.equal(res1.activeCategory, 'SENSOR_ANOMALY');
+    assert.notEqual(res1.activeCategory, 'SUSPECTED_LEAK', 'Negative deficit must not trigger leak alarm');
   });
 
   test('9. State isolation: command generation does not modify telemetry state until packet arrives', () => {
     // Current active reading
-    let currentInlet = 12.5;
-    let currentOutlet = 12.3;
+    let currentInFlow = 12.5;
+    let currentOutFlow = 12.3;
 
     // User applies manual flow
     const cmdResult = createFlowCommand(8.0, 3.0, true, 'req_iso_1');
     assert.equal(cmdResult.success, true);
 
     // State MUST NOT be updated synchronously from input
-    assert.equal(currentInlet, 12.5);
-    assert.equal(currentOutlet, 12.3);
+    assert.equal(currentInFlow, 12.5);
+    assert.equal(currentOutFlow, 12.3);
 
     // Only after telemetry packet arrives is state updated
     const simulatedTelemetry = JSON.stringify({
@@ -331,10 +334,10 @@ describe('Manual Flow Control & Bidirectional MQTT Protocol Tests', () => {
 
     const { reading } = parseAndNormalizeTelemetry(simulatedTelemetry);
     assert.ok(reading);
-    currentInlet = reading.inletFlow;
-    currentOutlet = reading.outletFlow;
+    currentInFlow = reading.inletFlow;
+    currentOutFlow = reading.outletFlow;
 
-    assert.equal(currentInlet, 8.0);
-    assert.equal(currentOutlet, 3.0);
+    assert.equal(currentInFlow, 8.0);
+    assert.equal(currentOutFlow, 3.0);
   });
 });

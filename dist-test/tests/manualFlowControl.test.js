@@ -157,8 +157,8 @@ const testThresholds = {
         strict_1.default.equal(reading.requestId, 'req_manual_42');
     });
     (0, node_test_1.test)('5. Preset: Normal flow (8.0 / 8.0 L/min) maintains normal balanced pipeline', () => {
-        const engine = new leakDetection_1.LeakDetectionEngine(testThresholds);
-        const t0 = 1000000;
+        const engine = new leakDetection_1.LeakDetectionEngine();
+        const t0 = 1700000000000;
         const normalPacket = JSON.stringify({
             deviceId: 'ESP32_WOKWI_01',
             inlet: 8.0,
@@ -170,14 +170,14 @@ const testThresholds = {
         const { reading } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(normalPacket);
         strict_1.default.ok(reading);
         reading.timestamp = t0;
-        const result = engine.processReading(reading);
-        strict_1.default.equal(result.status, 'normal');
-        strict_1.default.equal(result.alert, null);
-        strict_1.default.equal(result.mismatch, 0.0);
+        const result = engine.processReading(reading, testThresholds, t0);
+        strict_1.default.equal(result.state, 'normal');
+        strict_1.default.equal(result.hasAlert, false);
+        strict_1.default.equal(result.activeCategory, 'NORMAL');
     });
-    (0, node_test_1.test)('6. Preset: Simulate Leak (8.0 / 3.0 L/min) triggers suspected_leak after persistence', () => {
-        const engine = new leakDetection_1.LeakDetectionEngine(testThresholds);
-        const t0 = 1000000;
+    (0, node_test_1.test)('6. Preset: Simulate Leak (8.0 / 3.0 L/min) triggers leak state after persistence', () => {
+        const engine = new leakDetection_1.LeakDetectionEngine();
+        const t0 = 1700000000000;
         const leakPacket = JSON.stringify({
             deviceId: 'ESP32_WOKWI_01',
             inlet: 8.0,
@@ -189,24 +189,25 @@ const testThresholds = {
         const { reading: r0 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(leakPacket);
         strict_1.default.ok(r0);
         r0.timestamp = t0;
-        // t0: Initial leak detection starts tracking timer
-        const res0 = engine.processReading(r0);
-        strict_1.default.equal(res0.mismatch, 5.0);
-        strict_1.default.equal(res0.status, 'normal', 'Must not trigger instantly before persistence');
+        // t0: Initial leak detection starts tracking timer (state: checking)
+        const res0 = engine.processReading(r0, testThresholds, t0);
+        strict_1.default.equal(res0.state, 'checking');
+        strict_1.default.equal(res0.hasAlert, false, 'Must not trigger instantly before persistence');
         // t1: 6 seconds later (> persistence duration of 5s)
+        const t1 = t0 + 6000;
         const { reading: r1 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(leakPacket);
         strict_1.default.ok(r1);
-        r1.timestamp = t0 + 6000;
-        const res1 = engine.processReading(r1);
-        strict_1.default.equal(res1.status, 'suspected_leak');
-        strict_1.default.ok(res1.alert !== null);
-        strict_1.default.equal(res1.alert.type, 'suspected_leak');
-        strict_1.default.equal(res1.alert.severity, 'critical');
-        strict_1.default.match(res1.alert.message, /5\.0 L\/min/);
+        r1.timestamp = t1;
+        const res1 = engine.processReading(r1, testThresholds, t1);
+        strict_1.default.equal(res1.state, 'leak');
+        strict_1.default.equal(res1.hasAlert, true);
+        strict_1.default.equal(res1.alertCandidate?.category, 'SUSPECTED_LEAK');
+        strict_1.default.equal(res1.alertCandidate?.severity, 'critical');
+        strict_1.default.match(res1.alertCandidate?.message || '', /5\.0 L\/min/);
     });
-    (0, node_test_1.test)('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal_consumption', () => {
-        const engine = new leakDetection_1.LeakDetectionEngine(testThresholds);
-        const t0 = 1000000;
+    (0, node_test_1.test)('7. Preset: High Consumption (30.0 / 30.0 L/min) triggers abnormal consumption', () => {
+        const engine = new leakDetection_1.LeakDetectionEngine();
+        const t0 = 1700000000000;
         const highPacket = JSON.stringify({
             deviceId: 'ESP32_WOKWI_01',
             inlet: 30.0,
@@ -218,21 +219,22 @@ const testThresholds = {
         const { reading: r0 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(highPacket);
         strict_1.default.ok(r0);
         r0.timestamp = t0;
-        const res0 = engine.processReading(r0);
-        strict_1.default.equal(res0.mismatch, 0.0);
-        strict_1.default.equal(res0.status, 'normal');
+        const res0 = engine.processReading(r0, testThresholds, t0);
+        strict_1.default.equal(res0.state, 'checking');
+        strict_1.default.equal(res0.hasAlert, false);
         // 7 seconds later (> 6s high consumption threshold duration)
+        const t1 = t0 + 7000;
         const { reading: r1 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(highPacket);
         strict_1.default.ok(r1);
-        r1.timestamp = t0 + 7000;
-        const res1 = engine.processReading(r1);
-        strict_1.default.equal(res1.status, 'abnormal_consumption');
-        strict_1.default.ok(res1.alert !== null);
-        strict_1.default.equal(res1.alert.type, 'abnormal_consumption');
+        r1.timestamp = t1;
+        const res1 = engine.processReading(r1, testThresholds, t1);
+        strict_1.default.equal(res1.state, 'high');
+        strict_1.default.equal(res1.hasAlert, true);
+        strict_1.default.equal(res1.alertCandidate?.category, 'ABNORMAL_CONSUMPTION');
     });
     (0, node_test_1.test)('8. Preset: Reversed Mismatch (3.0 / 8.0 L/min) flags anomaly without false positive leak', () => {
-        const engine = new leakDetection_1.LeakDetectionEngine(testThresholds);
-        const t0 = 1000000;
+        const engine = new leakDetection_1.LeakDetectionEngine();
+        const t0 = 1700000000000;
         const revPacket = JSON.stringify({
             deviceId: 'ESP32_WOKWI_01',
             inlet: 3.0,
@@ -244,26 +246,27 @@ const testThresholds = {
         const { reading: r0 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(revPacket);
         strict_1.default.ok(r0);
         r0.timestamp = t0;
-        engine.processReading(r0);
+        const res0 = engine.processReading(r0, testThresholds, t0);
+        strict_1.default.equal(res0.state, 'checking');
+        const t1 = t0 + 6000;
         const { reading: r1 } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(revPacket);
         strict_1.default.ok(r1);
-        r1.timestamp = t0 + 6000;
-        const res1 = engine.processReading(r1);
-        strict_1.default.equal(res1.status, 'sensor_anomaly');
-        strict_1.default.ok(res1.alert !== null);
-        strict_1.default.equal(res1.alert.type, 'sensor_anomaly');
-        strict_1.default.notEqual(res1.status, 'suspected_leak', 'Negative deficit must not trigger leak alarm');
+        r1.timestamp = t1;
+        const res1 = engine.processReading(r1, testThresholds, t1);
+        strict_1.default.equal(res1.state, 'datacheck');
+        strict_1.default.equal(res1.activeCategory, 'SENSOR_ANOMALY');
+        strict_1.default.notEqual(res1.activeCategory, 'SUSPECTED_LEAK', 'Negative deficit must not trigger leak alarm');
     });
     (0, node_test_1.test)('9. State isolation: command generation does not modify telemetry state until packet arrives', () => {
         // Current active reading
-        let currentInlet = 12.5;
-        let currentOutlet = 12.3;
+        let currentInFlow = 12.5;
+        let currentOutFlow = 12.3;
         // User applies manual flow
         const cmdResult = createFlowCommand(8.0, 3.0, true, 'req_iso_1');
         strict_1.default.equal(cmdResult.success, true);
         // State MUST NOT be updated synchronously from input
-        strict_1.default.equal(currentInlet, 12.5);
-        strict_1.default.equal(currentOutlet, 12.3);
+        strict_1.default.equal(currentInFlow, 12.5);
+        strict_1.default.equal(currentOutFlow, 12.3);
         // Only after telemetry packet arrives is state updated
         const simulatedTelemetry = JSON.stringify({
             deviceId: 'ESP32_WOKWI_01',
@@ -275,9 +278,9 @@ const testThresholds = {
         });
         const { reading } = (0, telemetryParser_1.parseAndNormalizeTelemetry)(simulatedTelemetry);
         strict_1.default.ok(reading);
-        currentInlet = reading.inletFlow;
-        currentOutlet = reading.outletFlow;
-        strict_1.default.equal(currentInlet, 8.0);
-        strict_1.default.equal(currentOutlet, 3.0);
+        currentInFlow = reading.inletFlow;
+        currentOutFlow = reading.outletFlow;
+        strict_1.default.equal(currentInFlow, 8.0);
+        strict_1.default.equal(currentOutFlow, 3.0);
     });
 });
