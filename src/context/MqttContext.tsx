@@ -91,49 +91,19 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLastMessageTime(Date.now());
 
         if (topic === MQTT_CONFIG.topics.telemetry) {
-          try {
-            const data = JSON.parse(raw);
-            
-            // Validate incoming telemetry schema
-            if (typeof data === 'object' && data !== null) {
-              const rawInlet = Number(data.inlet);
-              const rawOutlet = Number(data.outlet);
-              const hasValidNumbers =
-                isFinite(rawInlet) &&
-                isFinite(rawOutlet) &&
-                !isNaN(rawInlet) &&
-                !isNaN(rawOutlet);
-
-              if (hasValidNumbers) {
-                const inletVal = Math.max(0, rawInlet);
-                const outletVal = Math.max(0, rawOutlet);
-                const isExplicitlyInvalid = data.isValid === false;
-
-                const reading: TelemetryReading = {
-                  deviceId: typeof data.deviceId === 'string' ? data.deviceId : 'WOKWI_ESP32',
-                  timestamp: data.ts
-                    ? (Number(data.ts) > 10000000000 ? Number(data.ts) : Number(data.ts) * 1000)
-                    : Date.now(),
-                  inletFlow: inletVal,
-                  outletFlow: outletVal,
-                  flowDifference: Number((inletVal - outletVal).toFixed(2)),
-                  isValid: !isExplicitlyInvalid && rawInlet >= 0 && rawOutlet >= 0,
-                  isSimulated: Boolean(data.isSimulated),
-                  status: 'online',
-                  notes: typeof data.notes === 'string' ? data.notes : undefined,
-                };
-
-                if (telemetryCallbackRef.current) {
-                  telemetryCallbackRef.current(reading);
-                }
-              } else {
-                addLog(`Warning: Telemetry non-numeric flow values: In=${data.inlet}, Out=${data.outlet}`);
-              }
+          const { reading, error } = parseAndNormalizeTelemetry(raw);
+          if (reading) {
+            setLastReading(reading);
+            addLog(
+              `[Telemetry] Rcv In=${reading.inletFlow.toFixed(1)} L/m, Out=${reading.outletFlow.toFixed(1)} L/m (${reading.deviceId})`
+            );
+            if (telemetryCallbackRef.current) {
+              telemetryCallbackRef.current(reading);
             } else {
-              addLog(`Warning: Malformed telemetry payload: ${raw.slice(0, 60)}`);
+              addLog('[Telemetry Warning] Telemetry received but no callback registered.');
             }
-          } catch (jsonErr) {
-            addLog(`Error parsing JSON message: ${jsonErr}`);
+          } else {
+            addLog(`[Telemetry Rejected] ${error || 'Unknown parsing error'}`);
           }
         }
       });
@@ -194,6 +164,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setBrokerUrl,
         lastMessageTime,
         lastRawPayload,
+        lastReading,
         logs,
         connect,
         disconnect,
