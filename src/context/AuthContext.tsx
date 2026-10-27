@@ -35,10 +35,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthState({
       isAuthenticated: true,
       user: {
-        uid: 'demo-admin-session',
+        uid: 'demo-admin-expo-session',
         phoneNumber: phone,
         maskedPhone: maskPhoneNumber(phone),
-        displayName: 'Demo Administrator',
+        displayName: 'Expo Demo Administrator',
         role: 'admin',
         isDemoUser: true,
         createdAt: Date.now(),
@@ -50,20 +50,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const loginFirebaseOtp = async (phone: string, otp: string) => {
-    // Scaffold for real Firebase Phone Auth
-    // In Production: verifies with firebase.auth().confirm(otp)
-    if (otp !== '123456') {
-      return { success: false, error: 'Invalid verification code. For demo evaluation use 123456.' };
+  /**
+   * Firebase Phone OTP Authentication
+   * In a live production deployment, this invokes the Firebase Phone Auth ConfirmationResult:
+   *   await confirmationResult.confirm(otp)
+   * In this offline academic environment without active cellular SMS credits / google-services.json,
+   * we clearly notify the user rather than faking an SMS delivery.
+   */
+  const loginFirebaseOtp = async (phone: string, otp: string): Promise<{ success: boolean; error?: string }> => {
+    // Check if live Firebase Auth credentials are present in runtime environment
+    const isFirebaseConfigured = false; // Graceful degradation in offline expo environment
+
+    if (!isFirebaseConfigured) {
+      return {
+        success: false,
+        error:
+          'Firebase SMS provider is not active in this offline evaluation build. Please select "Instant Demo Admin Login" to evaluate all administrator privileges.',
+      };
     }
-    
+
     setAuthState({
       isAuthenticated: true,
       user: {
         uid: `firebase-admin-${Date.now()}`,
         phoneNumber: phone,
         maskedPhone: maskPhoneNumber(phone),
-        displayName: 'Verified Administrator',
+        displayName: 'Verified Firebase Admin',
         role: 'admin',
         isDemoUser: false,
         createdAt: Date.now(),

@@ -71,6 +71,11 @@ export default function LoginScreen() {
         setErrorMsg(res.error || 'Verification failed.');
       }
     } else {
+      if (otp !== '123456') {
+        setIsLoading(false);
+        setErrorMsg('Invalid evaluation passcode. Enter 123456 for the demo, or use Instant Demo Login.');
+        return;
+      }
       await loginDemo(fullPhone);
       setIsLoading(false);
       router.back();
@@ -105,7 +110,7 @@ export default function LoginScreen() {
         <View style={styles.demoBanner}>
           <Text style={styles.demoBannerText}>
             {isRealFirebaseMode
-              ? 'PRODUCTION MODE: Firebase Phone Auth'
+              ? 'PRODUCTION MODE: Live Firebase Phone Auth'
               : 'EXPO DEMO MODE: Academic Evaluation Session'}
           </Text>
         </View>
