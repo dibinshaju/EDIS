@@ -83,20 +83,16 @@ void setup() {
 
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
   mqttClient.setCallback(onMqttMessage);
-  mqttClient.setBufferSize(512);
+  mqttClient.setBufferSize(1024);
 }
 
 void publishTelemetryNow() {
   telemetrySequence++;
 
+  // Read exclusively from persistent in-memory variables.
+  // Never reset or read from floating potentiometers during normal operation.
   float inletLpm = currentInlet;
   float outletLpm = currentOutlet;
-
-  if (isHardwarePotMode) {
-    inletLpm = readFlowSensor(PIN_POT_INLET);
-    outletLpm = readFlowSensor(PIN_POT_OUTLET);
-  }
-
   float mismatch = inletLpm - outletLpm;
 
   // Trigger local LED and Buzzer if leak is severe (> 2.0 L/min deficit)
@@ -110,7 +106,7 @@ void publishTelemetryNow() {
     alarmActive = false;
   }
 
-  // Derive accurate scenario state
+  // Derive accurate scenario state describing current stored values
   String scenarioToSend = currentScenario;
   if (mismatch >= 2.0) {
     scenarioToSend = "suspected_leak";
@@ -125,35 +121,40 @@ void publishTelemetryNow() {
   }
 
   // Build JSON Telemetry Payload
-  StaticJsonDocument<512> doc;
-  doc["deviceId"]    = DEVICE_ID;
-  doc["source"]      = SOURCE;
-  doc["sequence"]    = telemetrySequence;
-  doc["ts"]          = (unsigned long)(millis() / 1000);
-  doc["inlet"]       = serialized(String(inletLpm, 2));
-  doc["outlet"]      = serialized(String(outletLpm, 2));
-  doc["isValid"]     = true;
-  doc["isSimulated"] = true;
-  doc["scenario"]    = scenarioToSend;
-  doc["notes"]       = "Inlet: " + String(inletLpm, 2) + " L/min, Outlet: " + String(outletLpm, 2) + " L/min";
-  doc["tank1"]       = serialized(String(currentTank1, 2));
-  doc["tank2"]       = serialized(String(currentTank2, 2));
-  doc["valve1"]      = valve1State;
-  doc["valve2"]      = valve2State;
-  doc["scadaMode"]   = scadaMode;
+  StaticJsonDocument<768> doc;
+  doc["deviceId"]       = DEVICE_ID;
+  doc["source"]         = SOURCE;
+  doc["sequence"]       = telemetrySequence;
+  doc["ts"]             = (unsigned long)(millis() / 1000);
+  doc["timestamp"]      = (unsigned long)(millis() / 1000);
+  doc["inlet"]          = serialized(String(inletLpm, 2));
+  doc["outlet"]         = serialized(String(outletLpm, 2));
+  doc["inletFlow"]      = serialized(String(inletLpm, 2));
+  doc["outletFlow"]     = serialized(String(outletLpm, 2));
+  doc["flowDifference"] = serialized(String(mismatch, 2));
+  doc["isValid"]        = true;
+  doc["isSimulated"]    = true;
+  doc["scenario"]       = scenarioToSend;
+  doc["notes"]          = "Inlet: " + String(inletLpm, 2) + " L/min, Outlet: " + String(outletLpm, 2) + " L/min";
+  doc["tank1"]          = serialized(String(currentTank1, 2));
+  doc["tank2"]          = serialized(String(currentTank2, 2));
+  doc["valve1"]         = valve1State;
+  doc["valve2"]         = valve2State;
+  doc["scadaMode"]      = scadaMode;
   if (lastRequestId.length() > 0) {
     doc["requestId"] = lastRequestId;
   }
 
-  char buffer[512];
+  char buffer[768];
   serializeJson(doc, buffer);
 
   bool pubOk = mqttClient.publish(TOPIC_TELEMETRY, buffer);
   if (pubOk) {
-    Serial.printf("[TELEMETRY #%lu] In: %.2f L/m | Out: %.2f L/m | Diff: %+.2f | Sc: %s | Mqtt: OK\n",
-                  telemetrySequence, inletLpm, outletLpm, mismatch, scenarioToSend.c_str());
+    Serial.printf("[STAGE 3: WOKWI TX TELEMETRY #%lu] %s\n", telemetrySequence, buffer);
+    Serial.printf("[TELEMETRY STATUS] In: %.2f L/m | Out: %.2f L/m | Diff: %+.2f | Scenario: %s\n",
+                  inletLpm, outletLpm, mismatch, scenarioToSend.c_str());
   } else {
-    Serial.println("[MQTT] Telemetry publish failed!");
+    Serial.println("[STAGE 3 ERROR] MQTT Telemetry publish failed! Buffer size or network issue.");
   }
   lastPublishTime = millis();
 }
