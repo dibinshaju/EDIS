@@ -10,6 +10,7 @@ export interface TelemetryReading {
   flowDifference: number; // inletFlow - outletFlow (positive = water deficit/loss)
   isValid: boolean;
   isSimulated: boolean;
+  source?: DataSource;
   status: SensorStatus;
   notes?: string;
   isNightTimeOverride?: boolean;
