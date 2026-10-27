@@ -173,7 +173,7 @@ export default function LoginScreen() {
             {!isRealFirebaseMode && (
               <View style={styles.demoOtpHalf}>
                 <Text style={styles.demoOtpHalfText}>
-                  Evaluation Code: Enter <Text style={styles.bold}>123456</Text>
+                  Expo Demo Passcode: Enter <Text style={styles.bold}>123456</Text>
                 </Text>
               </View>
             )}

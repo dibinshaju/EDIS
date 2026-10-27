@@ -53,10 +53,17 @@ export default function AdminScreen() {
       return;
     }
 
+    const startH = parseInt(nightStart.split(':')[0], 10);
+    const endH = parseInt(nightEnd.split(':')[0], 10);
+    const validNightHours =
+      !isNaN(startH) && !isNaN(endH) && startH >= 0 && startH <= 23 && endH >= 0 && endH <= 23;
+
     updateThresholds({
       mismatchThreshold: m,
       persistenceDurationSec: p,
       highConsumptionThreshold: h,
+      nightTimeStartHour: validNightHours ? startH : thresholds.nightTimeStartHour,
+      nightTimeEndHour: validNightHours ? endH : thresholds.nightTimeEndHour,
     });
     alert('Detection thresholds and parameters successfully saved.');
   };
