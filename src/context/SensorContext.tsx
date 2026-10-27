@@ -80,6 +80,19 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Single Authoritative Leak Detection Engine instance
   const engineRef = useRef<LeakDetectionEngine>(new LeakDetectionEngine());
 
+  // Refs to guarantee telemetry callbacks and async timers always read the freshest state without stale closures
+  const dataSourceRef = useRef<DataSource>(dataSource);
+  useEffect(() => {
+    dataSourceRef.current = dataSource;
+  }, [dataSource]);
+
+  const thresholdsRef = useRef<ThresholdConfig>(thresholds);
+  useEffect(() => {
+    thresholdsRef.current = thresholds;
+  }, [thresholds]);
+
+  const lastWokwiPacketTimeRef = useRef<number | null>(null);
+
   const [detectionResult, setDetectionResult] = useState<DetectionResult>({
     hasAlert: false,
     alertCandidate: null,
@@ -209,6 +222,9 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (dataSource !== 'demo') return;
 
     const timer = setInterval(() => {
+      // Guard against race conditions if source switched asynchronously
+      if (dataSourceRef.current !== 'demo') return;
+
       setElapsed((prevElapsed) => {
         const nextElapsed = prevElapsed + 3;
         const dtMinutes = 3 / 60; // 3 seconds in minutes
@@ -228,12 +244,13 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           flowDifference: Number((inFlow - outFlow).toFixed(2)),
           isValid: isFinite(inFlow) && isFinite(outFlow) && inFlow >= 0 && outFlow >= 0,
           isSimulated: true,
+          source: 'demo',
           status: 'online',
           isNightTimeOverride: activeScenario === 'night_time_flow' ? true : undefined,
         };
 
         // Pass reading into the Authoritative LeakDetectionEngine
-        const evalResult = engineRef.current.processReading(reading, thresholds, now);
+        const evalResult = engineRef.current.processReading(reading, thresholdsRef.current, now);
         setDetectionResult(evalResult);
         setStatusState(evalResult.state);
         
@@ -266,16 +283,32 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [dataSource, inFlow, outFlow, thresholds, activeScenario, needIntervals, addEvent]);
+  }, [dataSource, inFlow, outFlow, activeScenario, needIntervals, addEvent]);
 
   // Handle Live Telemetry received over MQTT (e.g. from virtual Wokwi ESP32 or physical devkit)
   const handleLiveTelemetry = useCallback((reading: TelemetryReading) => {
-    if (dataSource === 'wokwi') {
+    const currentSource = dataSourceRef.current;
+    
+    // Accept telemetry whenever active source is 'wokwi' or 'mqtt'
+    if (currentSource === 'wokwi' || currentSource === 'mqtt') {
+      // 1. Update shared live flow state
       setInFlow(reading.inletFlow);
       setOutFlow(reading.outletFlow);
-      setMismatch(Number((reading.inletFlow - reading.outletFlow).toFixed(2)));
+      setMismatch(reading.flowDifference);
 
-      const evalResult = engineRef.current.processReading(reading, thresholds, reading.timestamp);
+      // 2. Accumulate live volume for valid telemetry readings
+      const now = reading.timestamp || Date.now();
+      const lastTime = lastWokwiPacketTimeRef.current;
+      lastWokwiPacketTimeRef.current = now;
+      if (lastTime !== null && reading.isValid) {
+        const dtSec = Math.max(0.5, Math.min(10, (now - lastTime) / 1000));
+        const dtMinutes = dtSec / 60;
+        setInVol((prev) => Number((prev + reading.inletFlow * dtMinutes).toFixed(2)));
+        setOutVol((prev) => Number((prev + reading.outletFlow * dtMinutes).toFixed(2)));
+      }
+
+      // 3. Process reading in Authoritative LeakDetectionEngine
+      const evalResult = engineRef.current.processReading(reading, thresholdsRef.current, now);
       setDetectionResult(evalResult);
       setStatusState(evalResult.state);
 
@@ -285,6 +318,16 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         'Wokwi Live: Inlet and outlet flows are balanced.';
       setStatusDetail(detailText);
 
+      if (evalResult.state === 'leak') {
+        setAlarmed(true);
+        setSuspicious(needIntervals);
+      } else if (evalResult.state === 'checking') {
+        setSuspicious((prev) => prev + 1);
+      } else {
+        setSuspicious(0);
+        setAlarmed(false);
+      }
+
       if (evalResult.hasAlert && evalResult.alertCandidate) {
         addEvent(`[WOKWI] ${evalResult.alertCandidate.title}: ${evalResult.alertCandidate.explanation}`, elapsed);
       } else if (evalResult.isRecovered) {
@@ -293,10 +336,13 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       setHistory((prev) => [...prev.slice(-29), reading]);
     }
-  }, [dataSource, thresholds, elapsed, addEvent]);
+  }, [elapsed, needIntervals, addEvent]);
 
   useEffect(() => {
     setOnTelemetryReceived(handleLiveTelemetry);
+    return () => {
+      setOnTelemetryReceived(null);
+    };
   }, [setOnTelemetryReceived, handleLiveTelemetry]);
 
   const currentReading: TelemetryReading = {
