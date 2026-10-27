@@ -629,137 +629,157 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSubtitle}>
-              Simulate dual-flow pipeline conditions in real time:
-            </Text>
-
-            <View style={styles.scenarioList}>
-              <TouchableOpacity
-                style={[
-                  styles.scenarioBtn,
-                  activeScenario === 'normal' && styles.scenarioBtnActive,
-                ]}
-                onPress={() => {
-                  setScenario('normal');
-                  setShowScenarioModal(false);
-                }}
-              >
-                <View style={styles.scenarioBtnContent}>
-                  <Text style={styles.scenarioNumber}>01</Text>
-                  <View>
-                    <Text style={styles.scenarioName}>Normal Balanced Flow</Text>
-                    <Text style={styles.scenarioDesc}>Inlet 12.0 L/m • Outlet 12.0 L/m (Zero Deficit)</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.scenarioBtn,
-                  activeScenario === 'suspected_leak' && styles.scenarioBtnDanger,
-                ]}
-                onPress={() => {
-                  setScenario('suspected_leak');
-                  setShowScenarioModal(false);
-                }}
-              >
-                <View style={styles.scenarioBtnContent}>
-                  <Text style={[styles.scenarioNumber, { color: COLORS.danger }]}>02</Text>
-                  <View>
-                    <Text style={[styles.scenarioName, { color: COLORS.danger }]}>Pipe Rupture / Leak</Text>
-                    <Text style={styles.scenarioDesc}>Inlet 14.0 L/m • Outlet 7.0 L/m (+7.0 L/m Deficit)</Text>
-                  </View>
-                </View>
-                <Ionicons name="warning" size={18} color={COLORS.danger} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.scenarioBtn,
-                  activeScenario === 'abnormal_consumption' && styles.scenarioBtnActive,
-                ]}
-                onPress={() => {
-                  setScenario('abnormal_consumption');
-                  setShowScenarioModal(false);
-                }}
-              >
-                <View style={styles.scenarioBtnContent}>
-                  <Text style={styles.scenarioNumber}>03</Text>
-                  <View>
-                    <Text style={styles.scenarioName}>High Demand Consumption</Text>
-                    <Text style={styles.scenarioDesc}>Both sensors rise to 26.0 L/m symmetrically</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.scenarioBtn,
-                  activeScenario === 'sensor_anomaly' && styles.scenarioBtnActive,
-                ]}
-                onPress={() => {
-                  setScenario('sensor_anomaly');
-                  setShowScenarioModal(false);
-                }}
-              >
-                <View style={styles.scenarioBtnContent}>
-                  <Text style={styles.scenarioNumber}>04</Text>
-                  <View>
-                    <Text style={styles.scenarioName}>Sensor Calibration Fault</Text>
-                    <Text style={styles.scenarioDesc}>Reversed mismatch / sensor defect flag</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#8F959E" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Quick Screen Navigation Links */}
-            <View style={styles.quickNavRow}>
-              <TouchableOpacity
-                style={styles.quickNavBtn}
-                onPress={() => {
-                  setShowScenarioModal(false);
-                  router.push('/history');
-                }}
-              >
-                <Ionicons name="stats-chart" size={16} color="#0D140D" />
-                <Text style={styles.quickNavText}>Analytics</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickNavBtn}
-                onPress={() => {
-                  setShowScenarioModal(false);
-                  router.push('/alerts');
-                }}
-              >
-                <Ionicons name="alert-circle" size={16} color="#0D140D" />
-                <Text style={styles.quickNavText}>Alerts ({activeCount})</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickNavBtn}
-                onPress={() => {
-                  setShowScenarioModal(false);
-                  router.push('/admin');
-                }}
-              >
-                <Ionicons name="shield-checkmark" size={16} color="#0D140D" />
-                <Text style={styles.quickNavText}>Admin</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalResetBtn}
-              onPress={() => {
-                resetDemo();
-                setShowScenarioModal(false);
-              }}
+            <ScrollView
+              style={{ maxHeight: 520 }}
+              contentContainerStyle={{ paddingBottom: 12 }}
+              showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.modalResetText}>Reset to Live Sensor Baseline</Text>
-            </TouchableOpacity>
+              {/* Manual Flow Control */}
+              <ManualFlowControl compact={true} />
+
+              <Text style={[styles.modalSubtitle, { marginTop: 12, marginBottom: 8 }]}>
+                Or select evaluated demo scenario:
+              </Text>
+
+              <View style={styles.scenarioList}>
+                <TouchableOpacity
+                  style={[
+                    styles.scenarioBtn,
+                    activeScenario === 'normal' && styles.scenarioBtnActive,
+                  ]}
+                  onPress={() => {
+                    setScenario('normal');
+                    setShowScenarioModal(false);
+                  }}
+                >
+                  <View style={styles.scenarioBtnContent}>
+                    <Text style={styles.scenarioNumber}>01</Text>
+                    <View>
+                      <Text style={styles.scenarioName}>Normal Balanced Flow</Text>
+                      <Text style={styles.scenarioDesc}>Inlet 12.0 L/m • Outlet 12.0 L/m (Zero Deficit)</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.scenarioBtn,
+                    activeScenario === 'suspected_leak' && styles.scenarioBtnDanger,
+                  ]}
+                  onPress={() => {
+                    setScenario('suspected_leak');
+                    setShowScenarioModal(false);
+                  }}
+                >
+                  <View style={styles.scenarioBtnContent}>
+                    <Text style={[styles.scenarioNumber, { color: COLORS.danger }]}>02</Text>
+                    <View>
+                      <Text style={[styles.scenarioName, { color: COLORS.danger }]}>Pipe Rupture / Leak</Text>
+                      <Text style={styles.scenarioDesc}>Inlet 14.0 L/m • Outlet 7.0 L/m (+7.0 L/m Deficit)</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="warning" size={18} color={COLORS.danger} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.scenarioBtn,
+                    activeScenario === 'abnormal_consumption' && styles.scenarioBtnActive,
+                  ]}
+                  onPress={() => {
+                    setScenario('abnormal_consumption');
+                    setShowScenarioModal(false);
+                  }}
+                >
+                  <View style={styles.scenarioBtnContent}>
+                    <Text style={styles.scenarioNumber}>03</Text>
+                    <View>
+                      <Text style={styles.scenarioName}>High Demand Consumption</Text>
+                      <Text style={styles.scenarioDesc}>Both sensors rise to 26.0 L/m symmetrically</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.scenarioBtn,
+                    activeScenario === 'sensor_anomaly' && styles.scenarioBtnActive,
+                  ]}
+                  onPress={() => {
+                    setScenario('sensor_anomaly');
+                    setShowScenarioModal(false);
+                  }}
+                >
+                  <View style={styles.scenarioBtnContent}>
+                    <Text style={styles.scenarioNumber}>04</Text>
+                    <View>
+                      <Text style={styles.scenarioName}>Sensor Calibration Fault</Text>
+                      <Text style={styles.scenarioDesc}>Reversed mismatch / sensor defect flag</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#8F959E" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Quick Screen Navigation Links */}
+              <View style={styles.quickNavRow}>
+                <TouchableOpacity
+                  style={styles.quickNavBtn}
+                  onPress={() => {
+                    setShowScenarioModal(false);
+                    router.push('/wokwi-guide');
+                  }}
+                >
+                  <Ionicons name="hardware-chip" size={16} color="#0D140D" />
+                  <Text style={styles.quickNavText}>Wokwi</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.quickNavBtn}
+                  onPress={() => {
+                    setShowScenarioModal(false);
+                    router.push('/history');
+                  }}
+                >
+                  <Ionicons name="stats-chart" size={16} color="#0D140D" />
+                  <Text style={styles.quickNavText}>Analytics</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.quickNavBtn}
+                  onPress={() => {
+                    setShowScenarioModal(false);
+                    router.push('/alerts');
+                  }}
+                >
+                  <Ionicons name="alert-circle" size={16} color="#0D140D" />
+                  <Text style={styles.quickNavText}>Alerts ({activeCount})</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.quickNavBtn}
+                  onPress={() => {
+                    setShowScenarioModal(false);
+                    router.push('/admin');
+                  }}
+                >
+                  <Ionicons name="shield-checkmark" size={16} color="#0D140D" />
+                  <Text style={styles.quickNavText}>Admin</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalResetBtn}
+                onPress={() => {
+                  resetDemo();
+                  setShowScenarioModal(false);
+                }}
+              >
+                <Text style={styles.modalResetText}>Reset to Live Sensor Baseline</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
