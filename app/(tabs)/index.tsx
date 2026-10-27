@@ -16,7 +16,6 @@ import { useSensor } from '../../src/context/SensorContext';
 import { useMqtt } from '../../src/context/MqttContext';
 import { useAlerts } from '../../src/context/AlertContext';
 import { formatFlow } from '../../src/utils/format';
-import { ManualFlowControl } from '../../src/components/ManualFlowControl';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
