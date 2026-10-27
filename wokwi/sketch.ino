@@ -101,15 +101,23 @@ void loop() {
       outletLpm = 10.8;
       statusNote = "Remote Command: Injected Pipe Leak (-5.7 L/min)";
     } else if (activeScenario == "abnormal_consumption") {
-      inletLpm = 31.5;
-      outletLpm = 31.2;
-      statusNote = "Remote Command: High Consumption Draw";
+      inletLpm = 31.0;
+      outletLpm = 31.0;
+      statusNote = "Remote Command: High Consumption Draw (31.0 L/min)";
+    } else if (activeScenario == "night_time_flow") {
+      inletLpm = 4.5;
+      outletLpm = 4.5;
+      statusNote = "Remote Command: Continuous Night Quiescent Flow (4.5 L/min)";
     } else if (activeScenario == "sensor_anomaly") {
       inletLpm = 9.0;
-      outletLpm = 15.4;
-      statusNote = "Remote Command: Reversed Mismatch Anomaly";
+      outletLpm = 15.2;
+      statusNote = "Remote Command: Reversed Mismatch Anomaly (-6.2 L/min)";
+    } else if (activeScenario == "recovery") {
+      inletLpm = 12.5;
+      outletLpm = 12.3;
+      statusNote = "Remote Command: Recovered Balanced Baseline";
     } else {
-      // Default balanced baseline
+      // Default balanced baseline (normal)
       inletLpm = 12.5;
       outletLpm = 12.3;
       statusNote = "Remote Command: Balanced Steady State";
@@ -224,7 +232,14 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
       }
     } else if (strcmp(cmd, "reset") == 0) {
       activeScenario = "hardware";
+      digitalWrite(PIN_LED_ALERT, LOW);
+      noTone(PIN_BUZZER);
       Serial.println("[COMMAND] Reset to hardware potentiometer tracking");
+    } else if (strcmp(cmd, "ack_alarm") == 0) {
+      alarmActive = false;
+      digitalWrite(PIN_LED_ALERT, LOW);
+      noTone(PIN_BUZZER);
+      Serial.println("[COMMAND] Alarm silenced remotely from mobile app");
     }
   }
 }

@@ -92,29 +92,42 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const data = JSON.parse(raw);
             
             // Validate incoming telemetry schema
-            if (
-              typeof data === 'object' &&
-              data !== null &&
-              typeof data.inlet === 'number' &&
-              typeof data.outlet === 'number'
-            ) {
-              const reading: TelemetryReading = {
-                deviceId: data.deviceId || 'WOKWI_ESP32',
-                timestamp: data.ts ? (data.ts > 10000000000 ? data.ts : data.ts * 1000) : Date.now(),
-                inletFlow: Number(data.inlet),
-                outletFlow: Number(data.outlet),
-                flowDifference: Number(data.inlet) - Number(data.outlet),
-                isValid: true,
-                isSimulated: data.isSimulated ?? false,
-                status: 'online',
-                notes: data.notes,
-              };
+            if (typeof data === 'object' && data !== null) {
+              const rawInlet = Number(data.inlet);
+              const rawOutlet = Number(data.outlet);
+              const hasValidNumbers =
+                isFinite(rawInlet) &&
+                isFinite(rawOutlet) &&
+                !isNaN(rawInlet) &&
+                !isNaN(rawOutlet);
 
-              if (telemetryCallbackRef.current) {
-                telemetryCallbackRef.current(reading);
+              if (hasValidNumbers) {
+                const inletVal = Math.max(0, rawInlet);
+                const outletVal = Math.max(0, rawOutlet);
+                const isExplicitlyInvalid = data.isValid === false;
+
+                const reading: TelemetryReading = {
+                  deviceId: typeof data.deviceId === 'string' ? data.deviceId : 'WOKWI_ESP32',
+                  timestamp: data.ts
+                    ? (Number(data.ts) > 10000000000 ? Number(data.ts) : Number(data.ts) * 1000)
+                    : Date.now(),
+                  inletFlow: inletVal,
+                  outletFlow: outletVal,
+                  flowDifference: Number((inletVal - outletVal).toFixed(2)),
+                  isValid: !isExplicitlyInvalid && rawInlet >= 0 && rawOutlet >= 0,
+                  isSimulated: Boolean(data.isSimulated),
+                  status: 'online',
+                  notes: typeof data.notes === 'string' ? data.notes : undefined,
+                };
+
+                if (telemetryCallbackRef.current) {
+                  telemetryCallbackRef.current(reading);
+                }
+              } else {
+                addLog(`Warning: Telemetry non-numeric flow values: In=${data.inlet}, Out=${data.outlet}`);
               }
             } else {
-              addLog(`Warning: Telemetry schema mismatch: ${raw.slice(0, 60)}`);
+              addLog(`Warning: Malformed telemetry payload: ${raw.slice(0, 60)}`);
             }
           } catch (jsonErr) {
             addLog(`Error parsing JSON message: ${jsonErr}`);
