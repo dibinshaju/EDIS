@@ -26,10 +26,11 @@ const char* WIFI_PASS = "";
 
 // ----------------- MQTT Broker ---------------------
 // Using public broker.emqx.io (TCP port 1883, matching WSS port 8084 on the app)
-const char* MQTT_BROKER    = "broker.emqx.io";
-const int   MQTT_PORT      = 1883;
+const char* MQTT_BROKER     = "broker.emqx.io";
+const int   MQTT_PORT       = 1883;
 const char* TOPIC_TELEMETRY = "water/demo/telemetry";
 const char* TOPIC_COMMAND   = "water/demo/command";
+const char* TOPIC_ACK       = "water/demo/ack";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -40,14 +41,20 @@ unsigned long lastPublishTime = 0;
 const unsigned long PUBLISH_INTERVAL_MS = 2000; // Publish every 2 seconds
 
 // Scenario override mode from remote app commands
-String activeScenario = "hardware"; // "hardware" = read pots, or "leak", "high", "anomaly"
+String activeScenario = "hardware"; // "hardware" = read pots, "manual", "suspected_leak", etc.
 bool alarmActive = false;
+float manualInlet = 8.0;
+float manualOutlet = 8.0;
+String lastRequestId = "";
 
 // Function Prototypes
 void setupWiFi();
 void reconnectMQTT();
 void onMqttMessage(char* topic, byte* payload, unsigned int length);
 float readFlowSensor(int pin);
+void publishAck(String reqId, String status, float inVal, float outVal);
+void publishTelemetryNow();
+void getCurrentFlow(float &inletLpm, float &outletLpm, String &statusNote);
 
 void setup() {
   Serial.begin(115200);
@@ -71,6 +78,108 @@ void setup() {
   mqttClient.setBufferSize(512);
 }
 
+void getCurrentFlow(float &inletLpm, float &outletLpm, String &statusNote) {
+  if (activeScenario == "hardware") {
+    // Read simulated analog sensors (0-4095 ADC mapped to 0-35.0 L/min)
+    inletLpm = readFlowSensor(PIN_POT_INLET);
+    outletLpm = readFlowSensor(PIN_POT_OUTLET);
+    statusNote = "Hardware Potentiometer Tracking";
+  } else if (activeScenario == "manual") {
+    inletLpm = manualInlet;
+    outletLpm = manualOutlet;
+    statusNote = "Manual Flow (" + String(manualInlet, 1) + "/" + String(manualOutlet, 1) + " L/min)";
+  } else if (activeScenario == "suspected_leak") {
+    inletLpm = 16.5;
+    outletLpm = 10.8;
+    statusNote = "Remote Command: Injected Pipe Leak (-5.7 L/min)";
+  } else if (activeScenario == "abnormal_consumption") {
+    inletLpm = 31.0;
+    outletLpm = 31.0;
+    statusNote = "Remote Command: High Consumption Draw (31.0 L/min)";
+  } else if (activeScenario == "night_time_flow") {
+    inletLpm = 4.5;
+    outletLpm = 4.5;
+    statusNote = "Remote Command: Continuous Night Quiescent Flow (4.5 L/min)";
+  } else if (activeScenario == "sensor_anomaly") {
+    inletLpm = 9.0;
+    outletLpm = 15.2;
+    statusNote = "Remote Command: Reversed Mismatch Anomaly (-6.2 L/min)";
+  } else if (activeScenario == "recovery") {
+    inletLpm = 12.5;
+    outletLpm = 12.3;
+    statusNote = "Remote Command: Recovered Balanced Baseline";
+  } else {
+    // Default balanced baseline (normal)
+    inletLpm = 12.5;
+    outletLpm = 12.3;
+    statusNote = "Remote Command: Balanced Steady State";
+  }
+}
+
+void publishTelemetryNow() {
+  float inletLpm = 0.0;
+  float outletLpm = 0.0;
+  String statusNote = "";
+  getCurrentFlow(inletLpm, outletLpm, statusNote);
+
+  float mismatch = inletLpm - outletLpm;
+
+  // Trigger local LED and Buzzer if leak is severe (> 2.0 L/min deficit)
+  if (mismatch >= 2.0) {
+    digitalWrite(PIN_LED_ALERT, HIGH);
+    tone(PIN_BUZZER, 1000, 100);
+    alarmActive = true;
+  } else {
+    digitalWrite(PIN_LED_ALERT, LOW);
+    noTone(PIN_BUZZER);
+    alarmActive = false;
+  }
+
+  // Build JSON Telemetry Payload
+  StaticJsonDocument<384> doc;
+  doc["deviceId"]    = DEVICE_ID;
+  doc["ts"]          = (unsigned long)(millis() / 1000);
+  doc["inlet"]       = serialized(String(inletLpm, 2));
+  doc["outlet"]      = serialized(String(outletLpm, 2));
+  doc["isValid"]     = true;
+  doc["isSimulated"] = true;
+  doc["notes"]       = statusNote;
+  doc["scenario"]    = activeScenario;
+  if (lastRequestId.length() > 0) {
+    doc["requestId"] = lastRequestId;
+  }
+
+  char buffer[384];
+  serializeJson(doc, buffer);
+
+  bool pubOk = mqttClient.publish(TOPIC_TELEMETRY, buffer);
+  if (pubOk) {
+    Serial.printf("[TELEMETRY] In: %.1f L/m | Out: %.1f L/m | Diff: %+.1f | Sc: %s | Mqtt: OK\n",
+                  inletLpm, outletLpm, mismatch, activeScenario.c_str());
+  } else {
+    Serial.println("[MQTT] Telemetry publish failed!");
+  }
+  lastPublishTime = millis();
+}
+
+void publishAck(String reqId, String status, float inVal, float outVal) {
+  StaticJsonDocument<256> ackDoc;
+  ackDoc["type"]      = "ack";
+  ackDoc["command"]   = "set_flow";
+  ackDoc["status"]    = status;
+  if (reqId.length() > 0) {
+    ackDoc["requestId"] = reqId;
+  }
+  ackDoc["inlet"]     = serialized(String(inVal, 2));
+  ackDoc["outlet"]    = serialized(String(outVal, 2));
+  ackDoc["timestamp"] = (unsigned long)(millis() / 1000);
+
+  char ackBuf[256];
+  serializeJson(ackDoc, ackBuf);
+  mqttClient.publish(TOPIC_ACK, ackBuf);
+  Serial.printf("[ACK] Published to %s: %s\n", TOPIC_ACK, ackBuf);
+}
+
 void loop() {
   // Ensure WiFi remains connected
   if (WiFi.status() != WL_CONNECTED) {
@@ -86,77 +195,7 @@ void loop() {
   // Periodic Telemetry Publish
   unsigned long now = millis();
   if (now - lastPublishTime >= PUBLISH_INTERVAL_MS) {
-    lastPublishTime = now;
-
-    float inletLpm = 0.0;
-    float outletLpm = 0.0;
-    String statusNote = "Hardware Potentiometer Tracking";
-
-    if (activeScenario == "hardware") {
-      // Read simulated analog sensors (0-4095 ADC mapped to 0-35.0 L/min)
-      inletLpm = readFlowSensor(PIN_POT_INLET);
-      outletLpm = readFlowSensor(PIN_POT_OUTLET);
-    } else if (activeScenario == "suspected_leak") {
-      inletLpm = 16.5;
-      outletLpm = 10.8;
-      statusNote = "Remote Command: Injected Pipe Leak (-5.7 L/min)";
-    } else if (activeScenario == "abnormal_consumption") {
-      inletLpm = 31.0;
-      outletLpm = 31.0;
-      statusNote = "Remote Command: High Consumption Draw (31.0 L/min)";
-    } else if (activeScenario == "night_time_flow") {
-      inletLpm = 4.5;
-      outletLpm = 4.5;
-      statusNote = "Remote Command: Continuous Night Quiescent Flow (4.5 L/min)";
-    } else if (activeScenario == "sensor_anomaly") {
-      inletLpm = 9.0;
-      outletLpm = 15.2;
-      statusNote = "Remote Command: Reversed Mismatch Anomaly (-6.2 L/min)";
-    } else if (activeScenario == "recovery") {
-      inletLpm = 12.5;
-      outletLpm = 12.3;
-      statusNote = "Remote Command: Recovered Balanced Baseline";
-    } else {
-      // Default balanced baseline (normal)
-      inletLpm = 12.5;
-      outletLpm = 12.3;
-      statusNote = "Remote Command: Balanced Steady State";
-    }
-
-    float mismatch = inletLpm - outletLpm;
-
-    // Trigger local LED and Buzzer if leak is severe (> 2.0 L/min deficit)
-    if (mismatch >= 2.0) {
-      digitalWrite(PIN_LED_ALERT, HIGH);
-      // Gentle buzzer click/pulse
-      tone(PIN_BUZZER, 1000, 100);
-      alarmActive = true;
-    } else {
-      digitalWrite(PIN_LED_ALERT, LOW);
-      noTone(PIN_BUZZER);
-      alarmActive = false;
-    }
-
-    // Build JSON Telemetry Payload
-    StaticJsonDocument<256> doc;
-    doc["deviceId"]    = DEVICE_ID;
-    doc["ts"]          = (unsigned long)(millis() / 1000);
-    doc["inlet"]       = serialized(String(inletLpm, 2));
-    doc["outlet"]      = serialized(String(outletLpm, 2));
-    doc["isValid"]     = true;
-    doc["isSimulated"] = true;
-    doc["notes"]       = statusNote;
-
-    char buffer[256];
-    serializeJson(doc, buffer);
-
-    bool pubOk = mqttClient.publish(TOPIC_TELEMETRY, buffer);
-    if (pubOk) {
-      Serial.printf("[TELEMETRY] In: %.1f L/m | Out: %.1f L/m | Diff: %+.1f | Mqtt: OK\n",
-                    inletLpm, outletLpm, mismatch);
-    } else {
-      Serial.println("[MQTT] Telemetry publish failed!");
-    }
+    publishTelemetryNow();
   }
 }
 
@@ -215,26 +254,79 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
 
   Serial.printf("[MQTT] Received on %s: %s\n", topic, msg);
 
-  StaticJsonDocument<256> doc;
+  // Check JSON format or plain-text fallback
+  StaticJsonDocument<384> doc;
   DeserializationError error = deserializeJson(doc, msg);
   if (error) {
-    Serial.println("[MQTT] Failed to parse command JSON");
+    String textCmd = String(msg);
+    textCmd.trim();
+    if (textCmd.equalsIgnoreCase("normal")) {
+      manualInlet = 8.0; manualOutlet = 8.0; activeScenario = "manual"; lastRequestId = "";
+      publishAck("", "applied", 8.0, 8.0);
+      publishTelemetryNow();
+      Serial.println("[COMMAND] Plain-text: Applied normal (8.0/8.0)");
+    } else if (textCmd.equalsIgnoreCase("leak")) {
+      manualInlet = 8.0; manualOutlet = 3.0; activeScenario = "manual"; lastRequestId = "";
+      publishAck("", "applied", 8.0, 3.0);
+      publishTelemetryNow();
+      Serial.println("[COMMAND] Plain-text: Applied leak (8.0/3.0)");
+    } else if (textCmd.equalsIgnoreCase("high")) {
+      manualInlet = 30.0; manualOutlet = 30.0; activeScenario = "manual"; lastRequestId = "";
+      publishAck("", "applied", 30.0, 30.0);
+      publishTelemetryNow();
+      Serial.println("[COMMAND] Plain-text: Applied high consumption (30.0/30.0)");
+    } else if (textCmd.equalsIgnoreCase("reversed")) {
+      manualInlet = 3.0; manualOutlet = 8.0; activeScenario = "manual"; lastRequestId = "";
+      publishAck("", "applied", 3.0, 8.0);
+      publishTelemetryNow();
+      Serial.println("[COMMAND] Plain-text: Applied reversed mismatch (3.0/8.0)");
+    } else if (textCmd.equalsIgnoreCase("night")) {
+      manualInlet = 2.0; manualOutlet = 2.0; activeScenario = "manual"; lastRequestId = "";
+      publishAck("", "applied", 2.0, 2.0);
+      publishTelemetryNow();
+      Serial.println("[COMMAND] Plain-text: Applied night flow (2.0/2.0)");
+    } else {
+      Serial.println("[MQTT] Failed to parse command JSON or recognized text");
+    }
     return;
   }
 
   const char* cmd = doc["command"];
   if (cmd) {
-    if (strcmp(cmd, "set_scenario") == 0) {
+    if (strcmp(cmd, "set_flow") == 0) {
+      float inVal = doc["inlet"].as<float>();
+      float outVal = doc["outlet"].as<float>();
+      const char* reqIdC = doc["requestId"] | "";
+      String reqId = String(reqIdC);
+
+      // Validate bounds 0.0 to 100.0 L/min
+      if (isnan(inVal) || isnan(outVal) || inVal < 0.0 || inVal > 100.0 || outVal < 0.0 || outVal > 100.0) {
+        publishAck(reqId, "rejected_range", inVal, outVal);
+        Serial.println("[COMMAND] Rejected set_flow: out of range (0-100 L/min)");
+      } else {
+        manualInlet = inVal;
+        manualOutlet = outVal;
+        lastRequestId = reqId;
+        activeScenario = "manual";
+        publishAck(reqId, "applied", inVal, outVal);
+        publishTelemetryNow();
+        Serial.printf("[COMMAND] Applied set_flow: In=%.2f, Out=%.2f, ReqId=%s\n", inVal, outVal, reqId.c_str());
+      }
+    } else if (strcmp(cmd, "set_scenario") == 0) {
       const char* sc = doc["scenario"];
       if (sc) {
         activeScenario = String(sc);
+        lastRequestId = "";
         Serial.printf("[COMMAND] Switched active scenario to: %s\n", sc);
+        publishTelemetryNow();
       }
     } else if (strcmp(cmd, "reset") == 0) {
       activeScenario = "hardware";
+      lastRequestId = "";
       digitalWrite(PIN_LED_ALERT, LOW);
       noTone(PIN_BUZZER);
       Serial.println("[COMMAND] Reset to hardware potentiometer tracking");
+      publishTelemetryNow();
     } else if (strcmp(cmd, "ack_alarm") == 0) {
       alarmActive = false;
       digitalWrite(PIN_LED_ALERT, LOW);
