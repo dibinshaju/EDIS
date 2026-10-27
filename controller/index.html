@@ -937,6 +937,7 @@
       };
 
       const payload = JSON.stringify(cmd);
+      console.log('[STAGE 1: CONTROLLER TX]', TOPIC_COMMAND, cmd);
       client.publish(TOPIC_COMMAND, payload, { qos: 0 });
       addLog(`[Command Sent] set_flow: In=${inVal.toFixed(1)}, Out=${outVal.toFixed(1)} (req=${reqId.slice(-6)})`, 'cmd');
 
