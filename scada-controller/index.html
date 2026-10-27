@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCADA — Van Đầu Vào | Inlet Valve Control Station</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- MQTT.js Browser Bundle -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    :root {
+      --scada-gray: #ECEEF0;
+      --scada-border: #9EA3A9;
+      --topbar-bg: #32383E;
+      --topbar-border: #212529;
+      --industrial-btn: #E0E2E5;
+      --industrial-btn-border: #7A8088;
+      --alarm-red: #D32F2F;
+      --lamp-green: #00E676;
+      --lamp-off: #D1D5DB;
+      --valve-yellow: #FBC02D;
+      --pipe-metal-start: #C5C9CD;
+      --pipe-metal-mid: #F2F4F7;
+      --pipe-metal-end: #8C9298;
+      --water-blue: #0288D1;
+      --water-light: #4FC3F7;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-industrial: 'Chakra Petch', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: #1A1D20;
+      color: #1F2937;
+      font-family: var(--font-industrial);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+    }
+
+    /* Outer SCADA Cabinet Frame */
+    .scada-cabinet {
+      width: 100%;
+      max-width: 1200px;
+      background: #FFFFFF;
+      border: 3px solid #4B5563;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.8);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Industrial App Bar */
+    .topbar {
+      background: linear-gradient(180deg, #3C434A 0%, #2A2F35 100%);
+      border-bottom: 2px solid #1E2226;
+      padding: 6px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #FFFFFF;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Alarm Bell Button */
+    .btn-alarm {
+      background: linear-gradient(180deg, #EF4444 0%, #B91C1C 100%);
+      color: #FFFFFF;
+      border: 1px solid #7F1D1D;
+      border-radius: 14px;
+      padding: 3px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-industrial);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.4);
+      animation: pulse-alarm 2s infinite;
+    }
+
+    @keyframes pulse-alarm {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    /* Industrial Action Buttons */
+    .btn-scada-nav {
+      background: linear-gradient(180deg, #4A515A 0%, #30363D 100%);
+      color: #E2E8F0;
+      border: 1px solid #1E2328;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-scada-nav:hover {
+      background: linear-gradient(180deg, #5A626C 0%, #3B424B 100%);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Annunciator box */
+    .annunciator {
+      width: 48px;
+      height: 28px;
+      background: #25282C;
+      border: 1px solid #DC2626;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .annunciator::before, .annunciator::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: rgba(220, 38, 38, 0.5);
+    }
+    .annunciator::before { transform: rotate(26deg); }
+    .annunciator::after { transform: rotate(-26deg); }
+    .annunciator-icon {
+      position: relative;
+      z-index: 2;
+      width: 14px;
+      height: 14px;
+      background: #EF4444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFF;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .clock-display {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.2;
+      color: #E2E8F0;
+    }
+
+    /* Main SCADA Canvas */
+    .scada-canvas {
+      background-color: var(--scada-gray);
+      padding: 16px 24px;
+      position: relative;
+      border-bottom: 2px solid #CBD5E1;
+    }
+
+    /* Header Grid */
+    .scada-header {
+      display: grid;
+      grid-template-columns: 240px 1fr 340px;
+      align-items: start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* CSI Solutions Logo */
+    .brand-logo {
+      display: flex;
+      flex-direction: column;
+    }
+    .csi-letters {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #10B981;
+      line-height: 0.9;
+      font-family: var(--font-industrial);
+      text-shadow: 1px 1px 0px #065F46;
+    }
+    .csi-subtitle {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #4B5563;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* Center Title */
+    .title-center {
+      text-align: center;
+    }
+    .station-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .station-subtitle {
+      font-size: 11px;
+      color: #6B7280;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    /* High / Low Water Level Setpoint Table */
+    .level-setpoint-table {
+      margin-top: 10px;
+      border: 1px solid #71717A;
+      background: #FFFFFF;
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: inset 1px 1px 0 #FFF, 1px 1px 2px rgba(0,0,0,0.15);
+    }
+    .level-setpoint-table td {
+      border: 1px solid #9CA3AF;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1F2937;
+    }
+    .level-setpoint-table .val-col {
+      width: 80px;
+      background: #F3F4F6;
+      text-align: center;
+    }
+    .setpoint-box {
+      background: #FFFFFF;
+      border: 1px solid #9CA3AF;
+      border-radius: 2px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      color: #111827;
+      width: 65px;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    /* Operating Schedule Table */
+    .schedule-panel {
+      border-left: 2px solid #71717A;
+      padding-left: 14px;
+    }
+    .schedule-header {
+      font-size: 16px;
+      font-weight: 800;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .shifts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 10px;
+    }
+    .shifts-divider {
+      background: #9CA3AF;
+      width: 1px;
+      height: 100%;
+    }
+    .shift-col {
+      text-align: center;
+    }
+    .shift-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+    .shift-sub {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      font-size: 11px;
+      color: #4B5563;
+      margin-bottom: 4px;
+    }
+    .time-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 3px 0;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .time-box {
+      background: #FFFFFF;
+      border: 1px solid #9CA3AF;
+      border-radius: 2px;
+      width: 28px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+    }
+    .time-arrow {
+      color: #111827;
+      font-size: 14px;
+      margin: 2px 0;
+    }
+
+    /* P&ID Diagram Area */
+    .pid-viewport {
+      width: 100%;
+      height: 480px;
+      position: relative;
+    }
+
+    svg.pid-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Flow animation on pipes */
+    @keyframes dashFlow {
+      to {
+        stroke-dashoffset: -40;
+      }
+    }
+    .flow-arrow-path {
+      stroke: #00E5FF;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 10 14;
+      animation: dashFlow 1.2s linear infinite;
+    }
+    .flow-arrow-stopped {
+      display: none;
+    }
+
+    /* Valve Actuator Graphic */
+    .actuator-body {
+      fill: #FFD54F;
+      stroke: #C79100;
+      stroke-width: 1.5;
+      cursor: pointer;
+      filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.25));
+      transition: fill 0.2s;
+    }
+    .actuator-body:hover {
+      fill: #FFE082;
+    }
+    .actuator-closed {
+      fill: #EF5350 !important;
+      stroke: #B71C1C !important;
+    }
+
+    /* Mode Lamps */
+    .lamp-circle {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lamp-label {
+      font-family: var(--font-industrial);
+      font-size: 11px;
+      font-weight: 700;
+      fill: #111827;
+      cursor: pointer;
+    }
+
+    /* Water Tanks */
+    .tank-body-gradient {
+      filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+    }
+    .water-fill-rect {
+      transition: height 0.6s ease, y 0.6s ease;
+    }
+
+    /* Digital Readout Boxes in SVG */
+    .scada-digital-box {
+      fill: #FFFFFF;
+      stroke: #4B5563;
+      stroke-width: 1.5;
+      rx: 2;
+      filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.2));
+    }
+    .scada-digital-text {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      fill: #111827;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Bottom SCADA Operations Console */
+    .ops-console {
+      background: #252A30;
+      border-top: 2px solid #3F4752;
+      padding: 16px 20px;
+      color: #E2E8F0;
+    }
+
+    .ops-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .ops-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mqtt-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      background: #1E293B;
+      border: 1px solid #334155;
+    }
+    .mqtt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+    }
+    .mqtt-connected .mqtt-dot {
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+    }
+    .mqtt-connected {
+      color: #34D399;
+      border-color: #059669;
+    }
+
+    /* Form Grid */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .ctrl-card {
+      background: #1C2025;
+      border: 1px solid #374151;
+      border-radius: 4px;
+      padding: 10px 12px;
+    }
+    .ctrl-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .flow-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .flow-input-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #CBD5E1;
+      width: 50px;
+    }
+    .flow-number-input {
+      background: #0F1215;
+      border: 1px solid #4B5563;
+      border-radius: 3px;
+      padding: 4px 8px;
+      color: #F8FAFC;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      width: 75px;
+      text-align: right;
+    }
+    .flow-number-input:focus {
+      border-color: #38BDF8;
+      outline: none;
+    }
+    .flow-unit {
+      font-size: 11px;
+      color: #64748B;
+      font-family: var(--font-mono);
+    }
+
+    /* Preset Scenarios */
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .btn-preset {
+      background: #2D333B;
+      border: 1px solid #444C56;
+      color: #CBD5E1;
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-preset:hover {
+      background: #373E47;
+      color: #FFFFFF;
+      border-color: #6B7280;
+    }
+    .btn-preset.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #38BDF8;
+    }
+
+    /* Valve Toggle Buttons */
+    .valve-toggle-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-valve {
+      flex: 1;
+      background: #10B981;
+      color: #064E3B;
+      border: 1px solid #059669;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 4px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-valve.closed {
+      background: #EF4444;
+      color: #7F1D1D;
+      border-color: #DC2626;
+    }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #334155;
+      padding-top: 12px;
+    }
+
+    .btn-apply-scada {
+      background: linear-gradient(180deg, #0284C7 0%, #0369A1 100%);
+      color: #FFFFFF;
+      border: 1px solid #38BDF8;
+      border-radius: 4px;
+      padding: 8px 24px;
+      font-family: var(--font-industrial);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-apply-scada:hover {
+      background: linear-gradient(180deg, #0369A1 0%, #075985 100%);
+    }
+
+    .ack-status {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #94A3B8;
+    }
+    .ack-success {
+      color: #34D399;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Outer SCADA Cabinet Frame -->
+  <div class="scada-cabinet">
+    
+    <!-- Top Industrial Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn-alarm" id="alarmBtn" onclick="toggleAlarmAck()">
+          <span>🔔</span>
+          <span id="alarmText">Unacked (3)</span>
+        </button>
+        <button class="btn-scada-nav" title="Back" onclick="history.back()">←</button>
+        <button class="btn-scada-nav" title="Toggle Fullscreen" onclick="toggleFullscreen()">🗖</button>
+        <button class="btn-scada-nav" title="User Login">👤 Log on</button>
+      </div>
+
+      <div class="topbar-right">
+        <div class="annunciator" title="Fault Annunciator">
+          <div class="annunciator-icon">✕</div>
+        </div>
+        <div class="clock-display">
+          <div id="liveClock">09:11:55 AM</div>
+          <div id="liveDate">04/17/2023</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main SCADA Canvas -->
+    <div class="scada-canvas">
+      
+      <!-- SCADA Header Area -->
+      <div class="scada-header">
+        
+        <!-- Left: CSI Solutions Brand -->
+        <div class="brand-logo">
+          <div class="csi-letters">CS<span style="font-size: 32px; letter-spacing: 0;">II</span></div>
+          <div class="csi-subtitle">SOLUTIONS</div>
+
+          <!-- Setpoint Table -->
+          <table class="level-setpoint-table">
+            <tr>
+              <td>Mức nước đầy bể (m)</td>
+              <td class="val-col">
+                <input type="number" id="highLevelInput" class="setpoint-box" value="5.10" step="0.10" onchange="updateSetpoints()">
+              </td>
+            </tr>
+            <tr>
+              <td>Mức nước cạn bể (m)</td>
+              <td class="val-col">
+                <input type="number" id="lowLevelInput" class="setpoint-box" value="4.50" step="0.10" onchange="updateSetpoints()">
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Center: Station Title -->
+        <div class="title-center">
+          <div class="station-title">VAN ĐẦU VÀO</div>
+          <div class="station-subtitle">INLET VALVE CONTROL STATION • DUO-TANK STORAGE P&amp;ID</div>
+        </div>
+
+        <!-- Right: Operating Schedule -->
+        <div class="schedule-panel">
+          <div class="schedule-header">Thời gian vận hành</div>
+          <div class="shifts-grid">
+            
+            <!-- Shift 1 (Ca 1) -->
+            <div class="shift-col">
+              <div class="shift-title">Ca 1</div>
+              <div class="shift-sub"><span>Giờ</span><span>Phút</span></div>
+              <div class="time-row">
+                <span>Bắt đầu :</span>
+                <div class="time-box">11</div>
+                <span>:</span>
+                <div class="time-box">0</div>
+              </div>
+              <div class="time-arrow">↓</div>
+              <div class="time-row">
+                <span>Kết thúc :</span>
+                <div class="time-box">15</div>
+                <span>:</span>
+                <div class="time-box">0</div>
+              </div>
+            </div>
+
+            <!-- Vertical Divider -->
+            <div class="shifts-divider"></div>
+
+            <!-- Shift 2 (Ca 2) -->
+            <div class="shift-col">
+              <div class="shift-title">Ca 2</div>
+              <div class="shift-sub"><span>Giờ</span><span>Phút</span></div>
+              <div class="time-row">
+                <div class="time-box">0</div>
+                <span>:</span>
+                <div class="time-box">0</div>
+              </div>
+              <div class="time-arrow">↓</div>
+              <div class="time-row">
+                <div class="time-box">2</div>
+                <span>:</span>
+                <div class="time-box">0</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- P&ID Viewport (SVG High-Fidelity Diagram) -->
+      <div class="pid-viewport">
+        <svg class="pid-svg" viewBox="0 0 1000 460" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Pipe Gradients -->
+            <linearGradient id="pipeH" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8E949B"/>
+              <stop offset="35%" stop-color="#E8EBEF"/>
+              <stop offset="70%" stop-color="#8E949B"/>
+              <stop offset="100%" stop-color="#555B62"/>
+            </linearGradient>
+
+            <linearGradient id="pipeV" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#8E949B"/>
+              <stop offset="35%" stop-color="#E8EBEF"/>
+              <stop offset="70%" stop-color="#8E949B"/>
+              <stop offset="100%" stop-color="#555B62"/>
+            </linearGradient>
+
+            <!-- Tank Metallic Gradient -->
+            <linearGradient id="tankMetal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7B828A"/>
+              <stop offset="25%" stop-color="#BDC3C9"/>
+              <stop offset="50%" stop-color="#8F969E"/>
+              <stop offset="100%" stop-color="#555C64"/>
+            </linearGradient>
+
+            <!-- Water Liquid Gradient -->
+            <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#29B6F6"/>
+              <stop offset="40%" stop-color="#0288D1"/>
+              <stop offset="100%" stop-color="#01579B"/>
+            </linearGradient>
+
+            <!-- Flange Shape Marker -->
+            <g id="flangeH">
+              <rect x="-4" y="-12" width="8" height="24" fill="#6B7280" stroke="#374151" stroke-width="1"/>
+              <circle cx="0" cy="-7" r="1.5" fill="#1F2937"/>
+              <circle cx="0" cy="7" r="1.5" fill="#1F2937"/>
+            </g>
+
+            <g id="flangeV">
+              <rect x="-12" y="-4" width="24" height="8" fill="#6B7280" stroke="#374151" stroke-width="1"/>
+              <circle cx="-7" cy="0" r="1.5" fill="#1F2937"/>
+              <circle cx="7" cy="0" r="1.5" fill="#1F2937"/>
+            </g>
+          </defs>
+
+          <!-- ================= PIPING NETWORK ================= -->
+          <!-- Main Inflow Pipe (Left to Manifold) -->
+          <rect x="20" y="215" width="130" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+          <!-- Animated flow on Inflow pipe -->
+          <path id="flowMainIn" class="flow-arrow-path" d="M 25 222 L 145 222"/>
+
+          <!-- Vertical Manifold Pipe (Flanged top and bottom) -->
+          <rect x="140" y="85" width="14" height="274" fill="url(#pipeV)" stroke="#4B5563" stroke-width="1"/>
+          <!-- Manifold Flanges -->
+          <use href="#flangeV" x="147" y="85"/>
+          <use href="#flangeV" x="147" y="359"/>
+
+          <!-- Branch 2 (Top Pipe to Tank 2) -->
+          <rect x="154" y="100" width="460" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+          <path id="flowBranch2" class="flow-arrow-path" d="M 147 222 L 147 107 L 610 107"/>
+
+          <!-- Branch 1 (Bottom Pipe to Tank 1) -->
+          <rect x="154" y="330" width="460" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+          <path id="flowBranch1" class="flow-arrow-path" d="M 147 222 L 147 337 L 610 337"/>
+
+          <!-- Outflow Pipe Tank 2 (Right) -->
+          <rect x="790" y="100" width="190" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+          <path id="flowOut2" class="flow-arrow-path" d="M 795 107 L 975 107"/>
+
+          <!-- Outflow Pipe Tank 1 (Right) -->
+          <rect x="790" y="330" width="190" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+          <path id="flowOut1" class="flow-arrow-path" d="M 795 337 L 975 337"/>
+
+          <!-- Equalization Pipe between Tanks with Handwheel Valve -->
+          <path d="M 610 160 H 570 Q 550 160 550 180 V 270 Q 550 290 570 290 H 610" 
+                fill="none" stroke="url(#pipeH)" stroke-width="14" stroke-linecap="square"/>
+          <path d="M 610 160 H 570 Q 550 160 550 180 V 270 Q 550 290 570 290 H 610" 
+                fill="none" stroke="#4B5563" stroke-width="1"/>
+          
+          <!-- Equalization Valve Graphic -->
+          <g transform="translate(540, 225)">
+            <!-- Valve body -->
+            <polygon points="-8,-12 8,12 8,-12 -8,12" fill="#71717A" stroke="#374151" stroke-width="1.5"/>
+            <!-- Stem and Handwheel -->
+            <line x1="0" y1="0" x2="-14" y2="0" stroke="#374151" stroke-width="3"/>
+            <circle cx="-18" cy="0" r="10" fill="none" stroke="#374151" stroke-width="3"/>
+            <line x1="-18" y1="-10" x2="-18" y2="10" stroke="#374151" stroke-width="2"/>
+            <line x1="-28" y1="0" x2="-8" y2="0" stroke="#374151" stroke-width="2"/>
+          </g>
+
+          <!-- ================= MOTORIZED VALVE 2 (TOP) ================= -->
+          <g id="valve2Group" transform="translate(280, 107)">
+            <!-- Valve Body on Pipe -->
+            <polygon points="-14,-10 14,10 14,-10 -14,10" fill="#EAB308" stroke="#CA8A04" stroke-width="1.5"/>
+            <!-- Actuator Neck -->
+            <rect x="-6" y="-22" width="12" height="12" fill="#CA8A04"/>
+            <!-- Actuator Electric Motor Housing -->
+            <rect id="actuator2Body" class="actuator-body" x="-22" y="-62" width="44" height="40" rx="3" onclick="toggleValve(2)"/>
+            <rect x="-18" y="-58" width="36" height="6" fill="#FDE047" opacity="0.6"/>
+            <!-- Valve Label -->
+            <text x="0" y="26" font-family="var(--font-industrial)" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">Van đầu vào 2</text>
+          </g>
+
+          <!-- Mode Selectors for Valve 2 -->
+          <g transform="translate(365, 52)">
+            <!-- LOCAL -->
+            <circle id="v2_local_lamp" class="lamp-circle" cx="0" cy="0" r="9" fill="#D1D5DB" stroke="#4B5563" stroke-width="1.5" onclick="setMode('LOCAL')"/>
+            <text class="lamp-label" x="16" y="4" onclick="setMode('LOCAL')">LOCAL</text>
+
+            <!-- REMOTE -->
+            <circle id="v2_remote_lamp" class="lamp-circle" cx="0" cy="24" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setMode('REMOTE')"/>
+            <text class="lamp-label" x="16" y="28" onclick="setMode('REMOTE')">REMOTE</text>
+
+            <!-- AUTO -->
+            <circle id="v2_auto_lamp" class="lamp-circle" cx="0" cy="48" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setMode('AUTO')"/>
+            <text class="lamp-label" x="16" y="52" onclick="setMode('AUTO')">AUTO</text>
+          </g>
+
+          <!-- ================= MOTORIZED VALVE 1 (BOTTOM) ================= -->
+          <g id="valve1Group" transform="translate(280, 337)">
+            <!-- Valve Body on Pipe -->
+            <polygon points="-14,-10 14,10 14,-10 -14,10" fill="#EAB308" stroke="#CA8A04" stroke-width="1.5"/>
+            <!-- Actuator Neck -->
+            <rect x="-6" y="-22" width="12" height="12" fill="#CA8A04"/>
+            <!-- Actuator Electric Motor Housing -->
+            <rect id="actuator1Body" class="actuator-body" x="-22" y="-62" width="44" height="40" rx="3" onclick="toggleValve(1)"/>
+            <rect x="-18" y="-58" width="36" height="6" fill="#FDE047" opacity="0.6"/>
+            <!-- Valve Label -->
+            <text x="0" y="26" font-family="var(--font-industrial)" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">Van đầu vào 1</text>
+          </g>
+
+          <!-- Mode Selectors for Valve 1 -->
+          <g transform="translate(365, 282)">
+            <!-- LOCAL -->
+            <circle id="v1_local_lamp" class="lamp-circle" cx="0" cy="0" r="9" fill="#D1D5DB" stroke="#4B5563" stroke-width="1.5" onclick="setMode('LOCAL')"/>
+            <text class="lamp-label" x="16" y="4" onclick="setMode('LOCAL')">LOCAL</text>
+
+            <!-- REMOTE -->
+            <circle id="v1_remote_lamp" class="lamp-circle" cx="0" cy="24" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setMode('REMOTE')"/>
+            <text class="lamp-label" x="16" y="28" onclick="setMode('REMOTE')">REMOTE</text>
+
+            <!-- AUTO -->
+            <circle id="v1_auto_lamp" class="lamp-circle" cx="0" cy="48" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setMode('AUTO')"/>
+            <text class="lamp-label" x="16" y="52" onclick="setMode('AUTO')">AUTO</text>
+          </g>
+
+          <!-- ================= WATER TANK 2 (TOP CYLINDER) ================= -->
+          <g id="tank2Group" transform="translate(610, 40)">
+            <!-- Clip path for internal water fill -->
+            <clipPath id="tank2Clip">
+              <rect x="0" y="15" width="180" height="95"/>
+              <ellipse cx="90" cy="110" rx="90" ry="15"/>
+            </clipPath>
+
+            <!-- Tank Metallic Shell Base -->
+            <rect x="0" y="15" width="180" height="95" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+            <ellipse cx="90" cy="110" rx="90" ry="15" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+
+            <!-- Dynamic Water Fill Layer -->
+            <g clip-path="url(#tank2Clip)">
+              <rect id="tank2WaterRect" class="water-fill-rect" x="0" y="45" width="180" height="75" fill="url(#waterGrad)"/>
+              <ellipse id="tank2WaterTop" cx="90" cy="45" rx="90" ry="12" fill="#4FC3F7" opacity="0.8"/>
+            </g>
+
+            <!-- Tank Top Rounded Cap -->
+            <ellipse cx="90" cy="15" rx="90" ry="15" fill="#9EA4AB" stroke="#374151" stroke-width="1.5"/>
+            <ellipse cx="90" cy="15" rx="80" ry="12" fill="#BDC3C9" opacity="0.7"/>
+
+            <!-- Digital Readout Box on Tank 2 -->
+            <g transform="translate(90, 68)">
+              <rect class="scada-digital-box" x="-42" y="-14" width="84" height="28"/>
+              <text id="tank2Display" class="scada-digital-text" x="0" y="0">2.89 m</text>
+            </g>
+          </g>
+
+          <!-- ================= WATER TANK 1 (BOTTOM CYLINDER) ================= -->
+          <g id="tank1Group" transform="translate(610, 270)">
+            <clipPath id="tank1Clip">
+              <rect x="0" y="15" width="180" height="95"/>
+              <ellipse cx="90" cy="110" rx="90" ry="15"/>
+            </clipPath>
+
+            <!-- Tank Metallic Shell Base -->
+            <rect x="0" y="15" width="180" height="95" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+            <ellipse cx="90" cy="110" rx="90" ry="15" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+
+            <!-- Dynamic Water Fill Layer -->
+            <g clip-path="url(#tank1Clip)">
+              <rect id="tank1WaterRect" class="water-fill-rect" x="0" y="45" width="180" height="75" fill="url(#waterGrad)"/>
+              <ellipse id="tank1WaterTop" cx="90" cy="45" rx="90" ry="12" fill="#4FC3F7" opacity="0.8"/>
+            </g>
+
+            <!-- Tank Top Rounded Cap -->
+            <ellipse cx="90" cy="15" rx="90" ry="15" fill="#9EA4AB" stroke="#374151" stroke-width="1.5"/>
+            <ellipse cx="90" cy="15" rx="80" ry="12" fill="#BDC3C9" opacity="0.7"/>
+
+            <!-- Digital Readout Box on Tank 1 -->
+            <g transform="translate(90, 68)">
+              <rect class="scada-digital-box" x="-42" y="-14" width="84" height="28"/>
+              <text id="tank1Display" class="scada-digital-text" x="0" y="0">2.89 m</text>
+            </g>
+          </g>
+
+        </svg>
+      </div>
+
+    </div>
+
+    <!-- Bottom Operator Control Console -->
+    <div class="ops-console">
+      <div class="ops-header">
+        <div class="ops-title">
+          <span>⚙</span> SCADA Remote Setpoint &amp; Simulation Console
+        </div>
+        <div id="mqttBadge" class="mqtt-pill">
+          <span class="mqtt-dot"></span>
+          <span id="mqttStatus">CONNECTING...</span>
+        </div>
+      </div>
+
+      <!-- Controls Grid -->
+      <div class="controls-grid">
+        
+        <!-- Flow Rate Setpoints -->
+        <div class="ctrl-card">
+          <div class="ctrl-card-title">
+            <span>Flow Rate Setpoints</span>
+            <span class="flow-unit">(0.0 – 100.0)</span>
+          </div>
+          <div class="flow-input-group">
+            <span class="flow-input-label">Inlet:</span>
+            <input type="number" id="inletInput" class="flow-number-input" value="8.0" min="0" max="100" step="0.5">
+            <span class="flow-unit">L/min</span>
+          </div>
+          <div class="flow-input-group">
+            <span class="flow-input-label">Outlet:</span>
+            <input type="number" id="outletInput" class="flow-number-input" value="8.0" min="0" max="100" step="0.5">
+            <span class="flow-unit">L/min</span>
+          </div>
+        </div>
+
+        <!-- Tank Level Setpoints -->
+        <div class="ctrl-card">
+          <div class="ctrl-card-title">
+            <span>Water Level Targets</span>
+            <span class="flow-unit">(0.0 – 6.0 m)</span>
+          </div>
+          <div class="flow-input-group">
+            <span class="flow-input-label">Tank 2:</span>
+            <input type="number" id="tank2Input" class="flow-number-input" value="2.89" min="0" max="6" step="0.1" oninput="previewTankLevel(2, this.value)">
+            <span class="flow-unit">meters</span>
+          </div>
+          <div class="flow-input-group">
+            <span class="flow-input-label">Tank 1:</span>
+            <input type="number" id="tank1Input" class="flow-number-input" value="2.89" min="0" max="6" step="0.1" oninput="previewTankLevel(1, this.value)">
+            <span class="flow-unit">meters</span>
+          </div>
+        </div>
+
+        <!-- Motorized Valves & Mode -->
+        <div class="ctrl-card">
+          <div class="ctrl-card-title">
+            <span>Valve &amp; Mode Overrides</span>
+            <span id="currentModeLabel" style="color: #38BDF8;">REMOTE</span>
+          </div>
+          <div class="valve-toggle-row">
+            <button id="valve2Btn" class="btn-valve" onclick="toggleValve(2)">Valve 2: OPEN</button>
+            <button id="valve1Btn" class="btn-valve" onclick="toggleValve(1)">Valve 1: OPEN</button>
+          </div>
+          <div style="display: flex; gap: 4px; margin-top: 8px;">
+            <button class="btn-preset" onclick="setMode('LOCAL')">LOCAL</button>
+            <button class="btn-preset active" id="modeRemoteBtn" onclick="setMode('REMOTE')">REMOTE</button>
+            <button class="btn-preset" id="modeAutoBtn" onclick="setMode('AUTO')">AUTO</button>
+          </div>
+        </div>
+
+        <!-- Presets Card -->
+        <div class="ctrl-card">
+          <div class="ctrl-card-title">Quick Simulation Presets</div>
+          <div class="presets-row">
+            <button class="btn-preset" onclick="applyPreset(8.0, 8.0, 2.89, 2.89)">Normal (8/8)</button>
+            <button class="btn-preset" onclick="applyPreset(16.5, 10.8, 3.20, 2.10)">Leak (-5.7)</button>
+            <button class="btn-preset" onclick="applyPreset(31.0, 31.0, 4.50, 4.50)">High Draw (31)</button>
+            <button class="btn-preset" onclick="applyPreset(9.0, 15.2, 2.00, 3.80)">Reversed (+6.2)</button>
+            <button class="btn-preset" onclick="applyPreset(8.0, 8.0, 2.89, 2.89, true)">Reset Pots</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions Bar -->
+      <div class="actions-bar">
+        <button class="btn-apply-scada" onclick="sendScadaCommand()">
+          <span>⚡</span> APPLY / TRANSMIT SCADA COMMAND
+        </button>
+
+        <div id="ackStatus" class="ack-status">
+          Ready to transmit command to ESP32 Wokwi
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Configuration
+    const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
+    const TOPIC_TELEMETRY = 'water/demo/telemetry';
+    const TOPIC_COMMAND   = 'water/demo/command';
+    const TOPIC_ACK       = 'water/demo/ack';
+
+    // State
+    let mqttClient = null;
+    let valve1Open = true;
+    let valve2Open = true;
+    let currentMode = 'REMOTE'; // 'LOCAL', 'REMOTE', 'AUTO'
+    let unackedCount = 3;
+    let pendingRequestId = null;
+
+    // Clock and Date Update
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: true });
+      const dateStr = (now.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                      now.getDate().toString().padStart(2, '0') + '/' +
+                      now.getFullYear();
+      document.getElementById('liveClock').textContent = timeStr;
+      document.getElementById('liveDate').textContent = dateStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Alarm Button
+    function toggleAlarmAck() {
+      if (unackedCount > 0) {
+        unackedCount = 0;
+        document.getElementById('alarmText').textContent = 'Acknowledged (0)';
+        document.getElementById('alarmBtn').style.animation = 'none';
+        document.getElementById('alarmBtn').style.background = '#4B5563';
+        // Send alarm silence command if desired
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(TOPIC_COMMAND, JSON.stringify({ command: 'ack_alarm' }));
+        }
+      } else {
+        unackedCount = 3;
+        document.getElementById('alarmText').textContent = 'Unacked (3)';
+        document.getElementById('alarmBtn').style.animation = 'pulse-alarm 2s infinite';
+        document.getElementById('alarmBtn').style.background = 'linear-gradient(180deg, #EF4444 0%, #B91C1C 100%)';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Set Operating Mode
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('currentModeLabel').textContent = mode;
+      
+      const isLocal = mode === 'LOCAL';
+      const isRemote = mode === 'REMOTE';
+      const isAuto = mode === 'AUTO';
+
+      // Update Lamp Colors for Valve 2
+      document.getElementById('v2_local_lamp').setAttribute('fill', isLocal ? '#FBC02D' : '#D1D5DB');
+      document.getElementById('v2_remote_lamp').setAttribute('fill', isRemote ? '#00E676' : '#D1D5DB');
+      document.getElementById('v2_auto_lamp').setAttribute('fill', isAuto ? '#00E676' : '#D1D5DB');
+
+      // Update Lamp Colors for Valve 1
+      document.getElementById('v1_local_lamp').setAttribute('fill', isLocal ? '#FBC02D' : '#D1D5DB');
+      document.getElementById('v1_remote_lamp').setAttribute('fill', isRemote ? '#00E676' : '#D1D5DB');
+      document.getElementById('v1_auto_lamp').setAttribute('fill', isAuto ? '#00E676' : '#D1D5DB');
+
+      // Auto update active preset styling
+      document.getElementById('modeRemoteBtn').classList.toggle('active', isRemote);
+      document.getElementById('modeAutoBtn').classList.toggle('active', isAuto);
+    }
+
+    // Toggle Motorized Valves
+    function toggleValve(valveNum) {
+      if (valveNum === 1) {
+        valve1Open = !valve1Open;
+        updateValveVisuals(1, valve1Open);
+      } else if (valveNum === 2) {
+        valve2Open = !valve2Open;
+        updateValveVisuals(2, valve2Open);
+      }
+    }
+
+    function updateValveVisuals(valveNum, isOpen) {
+      const actuator = document.getElementById('actuator' + valveNum + 'Body');
+      const btn = document.getElementById('valve' + valveNum + 'Btn');
+      const flowPath = document.getElementById('flowBranch' + valveNum);
+
+      if (isOpen) {
+        actuator.classList.remove('actuator-closed');
+        btn.textContent = 'Valve ' + valveNum + ': OPEN';
+        btn.classList.remove('closed');
+        flowPath.classList.remove('flow-arrow-stopped');
+      } else {
+        actuator.classList.add('actuator-closed');
+        btn.textContent = 'Valve ' + valveNum + ': CLOSED';
+        btn.classList.add('closed');
+        flowPath.classList.add('flow-arrow-stopped');
+      }
+    }
+
+    // Water Tank Visual Rendering
+    // Scale: 0.0m = y:110, height:0 | 6.0m = y:15, height:95
+    function updateTankGraphic(tankNum, levelMeters) {
+      const clamped = Math.max(0, Math.min(6.0, levelMeters));
+      const fillPercent = clamped / 6.0;
+      const totalHeight = 95;
+      const waterHeight = totalHeight * fillPercent;
+      const waterY = 110 - waterHeight;
+
+      const waterRect = document.getElementById('tank' + tankNum + 'WaterRect');
+      const waterTop = document.getElementById('tank' + tankNum + 'WaterTop');
+      const display = document.getElementById('tank' + tankNum + 'Display');
+
+      waterRect.setAttribute('y', waterY);
+      waterRect.setAttribute('height', waterHeight + 15);
+      waterTop.setAttribute('cy', waterY);
+      display.textContent = clamped.toFixed(2) + ' m';
+    }
+
+    function previewTankLevel(tankNum, value) {
+      const num = parseFloat(value);
+      if (!isNaN(num)) {
+        updateTankGraphic(tankNum, num);
+      }
+    }
+
+    function updateSetpoints() {
+      const high = parseFloat(document.getElementById('highLevelInput').value);
+      const low = parseFloat(document.getElementById('lowLevelInput').value);
+      console.log('Setpoints updated:', { high, low });
+    }
+
+    // Presets
+    function applyPreset(inVal, outVal, t1, t2, isReset = false) {
+      document.getElementById('inletInput').value = inVal.toFixed(1);
+      document.getElementById('outletInput').value = outVal.toFixed(1);
+      document.getElementById('tank1Input').value = t1.toFixed(2);
+      document.getElementById('tank2Input').value = t2.toFixed(2);
+      previewTankLevel(1, t1);
+      previewTankLevel(2, t2);
+
+      if (isReset) {
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(TOPIC_COMMAND, JSON.stringify({ command: 'reset' }));
+          document.getElementById('ackStatus').innerHTML = '<span class="ack-success">Reset command sent to hardware pots</span>';
+        }
+      } else {
+        sendScadaCommand();
+      }
+    }
+
+    // Transmit SCADA Command over MQTT
+    function sendScadaCommand() {
+      const inlet = parseFloat(document.getElementById('inletInput').value);
+      const outlet = parseFloat(document.getElementById('outletInput').value);
+      const t1 = parseFloat(document.getElementById('tank1Input').value);
+      const t2 = parseFloat(document.getElementById('tank2Input').value);
+
+      if (isNaN(inlet) || inlet < 0 || inlet > 100 || isNaN(outlet) || outlet < 0 || outlet > 100) {
+        alert('Flow values must be between 0.0 and 100.0 L/min');
+        return;
+      }
+
+      const reqId = 'scada_' + Date.now().toString(36);
+      pendingRequestId = reqId;
+
+      const payload = {
+        command: 'set_scada',
+        inlet: inlet,
+        outlet: outlet,
+        tank1: t1,
+        tank2: t2,
+        valve1: valve1Open ? 'OPEN' : 'CLOSED',
+        valve2: valve2Open ? 'OPEN' : 'CLOSED',
+        mode: currentMode,
+        requestId: reqId
+      };
+
+      if (!mqttClient || !mqttClient.connected) {
+        document.getElementById('ackStatus').innerHTML = '<span style="color: #EF4444;">Error: MQTT Broker Disconnected</span>';
+        return;
+      }
+
+      document.getElementById('ackStatus').textContent = 'Transmitting setpoints (ReqId: ' + reqId + ')...';
+      mqttClient.publish(TOPIC_COMMAND, JSON.stringify(payload), { qos: 0 }, (err) => {
+        if (err) {
+          document.getElementById('ackStatus').innerHTML = '<span style="color: #EF4444;">Publish error: ' + err.message + '</span>';
+        } else {
+          document.getElementById('ackStatus').textContent = 'Command published! Awaiting ESP32 confirmation...';
+        }
+      });
+    }
+
+    // MQTT Initialization
+    function initMqtt() {
+      const badge = document.getElementById('mqttBadge');
+      const statusText = document.getElementById('mqttStatus');
+
+      console.log('[MQTT] Connecting to ' + MQTT_BROKER);
+      mqttClient = mqtt.connect(MQTT_BROKER, {
+        clientId: 'scada_hmi_' + Math.random().toString(16).substring(2, 8),
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 2500
+      });
+
+      mqttClient.on('connect', () => {
+        console.log('[MQTT] Connected to broker!');
+        badge.classList.add('mqtt-connected');
+        statusText.textContent = 'ONLINE (broker.emqx.io)';
+
+        mqttClient.subscribe(TOPIC_TELEMETRY);
+        mqttClient.subscribe(TOPIC_ACK);
+      });
+
+      mqttClient.on('error', (err) => {
+        console.error('[MQTT] Connection error:', err);
+        badge.classList.remove('mqtt-connected');
+        statusText.textContent = 'ERROR';
+      });
+
+      mqttClient.on('offline', () => {
+        badge.classList.remove('mqtt-connected');
+        statusText.textContent = 'DISCONNECTED';
+      });
+
+      mqttClient.on('message', (topic, message) => {
+        const payloadStr = message.toString();
+        try {
+          const data = JSON.parse(payloadStr);
+
+          // Handle ACK
+          if (topic === TOPIC_ACK) {
+            if (data.requestId === pendingRequestId || data.status === 'applied') {
+              document.getElementById('ackStatus').innerHTML = 
+                '<span class="ack-success">✔ ESP32 ACK Confirmed! Inlet: ' + (data.inlet || '-') + ' L/m, Outlet: ' + (data.outlet || '-') + ' L/m</span>';
+            }
+          }
+
+          // Handle Telemetry
+          if (topic === TOPIC_TELEMETRY) {
+            if (data.tank1 !== undefined) {
+              const t1 = parseFloat(data.tank1);
+              if (!isNaN(t1)) updateTankGraphic(1, t1);
+            }
+            if (data.tank2 !== undefined) {
+              const t2 = parseFloat(data.tank2);
+              if (!isNaN(t2)) updateTankGraphic(2, t2);
+            }
+            if (data.valve1) {
+              valve1Open = (data.valve1 === 'OPEN');
+              updateValveVisuals(1, valve1Open);
+            }
+            if (data.valve2) {
+              valve2Open = (data.valve2 === 'OPEN');
+              updateValveVisuals(2, valve2Open);
+            }
+            if (data.scadaMode && data.scadaMode !== currentMode) {
+              setMode(data.scadaMode);
+            }
+          }
+        } catch (e) {
+          console.warn('[MQTT] Non-JSON message received:', payloadStr);
+        }
+      });
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initMqtt();
+      updateTankGraphic(1, 2.89);
+      updateTankGraphic(2, 2.89);
+      setMode('REMOTE');
+    });
+  </script>
+</body>
+</html>
