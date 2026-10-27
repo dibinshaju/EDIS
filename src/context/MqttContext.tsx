@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import mqtt, { MqttClient } from 'mqtt';
 import { MQTT_CONFIG } from '../constants/mqtt';
 import { TelemetryReading, SimulatorCommand } from '../types/sensor';
+import { parseAndNormalizeTelemetry } from '../utils/telemetryParser';
 
 export type MqttConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -11,12 +12,13 @@ interface MqttContextType {
   setBrokerUrl: (url: string) => void;
   lastMessageTime: number | null;
   lastRawPayload: string | null;
+  lastReading: TelemetryReading | null;
   logs: string[];
   connect: () => void;
   disconnect: () => void;
   publishCommand: (cmd: SimulatorCommand) => boolean;
   onTelemetryReceived: ((reading: TelemetryReading) => void) | null;
-  setOnTelemetryReceived: (cb: (reading: TelemetryReading) => void) => void;
+  setOnTelemetryReceived: (cb: ((reading: TelemetryReading) => void) | null) => void;
 }
 
 const MqttContext = createContext<MqttContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [status, setStatus] = useState<MqttConnectionStatus>('disconnected');
   const [lastMessageTime, setLastMessageTime] = useState<number | null>(null);
   const [lastRawPayload, setLastRawPayload] = useState<string | null>(null);
+  const [lastReading, setLastReading] = useState<TelemetryReading | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   
   const clientRef = useRef<MqttClient | null>(null);
@@ -36,7 +39,7 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLogs((prev) => [`[${timestamp}] ${msg}`, ...prev.slice(0, 49)]);
   }, []);
 
-  const setOnTelemetryReceived = useCallback((cb: (reading: TelemetryReading) => void) => {
+  const setOnTelemetryReceived = useCallback((cb: ((reading: TelemetryReading) => void) | null) => {
     telemetryCallbackRef.current = cb;
   }, []);
 

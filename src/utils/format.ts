@@ -1,5 +1,5 @@
 export function formatFlow(litersPerMinute: number): string {
-  if (isNaN(litersPerMinute) || litersPerMinute < 0) return '0.0';
+  if (isNaN(litersPerMinute) || !isFinite(litersPerMinute)) return '0.0';
   return litersPerMinute.toFixed(1);
 }
 
