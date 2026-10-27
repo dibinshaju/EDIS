@@ -57,7 +57,14 @@ const INTERVAL_SECONDS = 10; // Each simulation interval represents 10 simulated
 export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { status: mqttStatus, setOnTelemetryReceived, publishCommand } = useMqtt();
 
-  const [dataSource, setDataSource] = useState<DataSource>('demo');
+  const [dataSource, setDataSourceState] = useState<DataSource>('demo');
+  const setDataSource = useCallback((s: DataSource) => {
+    dataSourceRef.current = s;
+    setDataSourceState(s);
+    if (s === 'wokwi') {
+      lastWokwiPacketTimeRef.current = null;
+    }
+  }, []);
   const [activeScenario, setActiveScenario] = useState<ScenarioType>('normal');
   
   // Baseline initial flow rates (matching certified baseline: 12.5 L/min inlet, 12.3 L/min outlet)
