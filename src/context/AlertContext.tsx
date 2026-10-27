@@ -121,7 +121,6 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const clearAllAlerts = useCallback(() => {
     buzzerService.stop();
     dedupRef.current.clear();
-    engineRef.current.reset();
     setAlerts([]);
     setActiveAlert(null);
   }, []);
