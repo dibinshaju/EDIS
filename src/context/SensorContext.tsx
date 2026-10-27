@@ -229,8 +229,9 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (dataSource !== 'demo') return;
 
     const timer = setInterval(() => {
-      // Guard against race conditions if source switched asynchronously
+      // Guard against race conditions if source switched asynchronously or live MQTT is active
       if (dataSourceRef.current !== 'demo') return;
+      if (lastWokwiPacketTimeRef.current && Date.now() - lastWokwiPacketTimeRef.current < 15000) return;
 
       setElapsed((prevElapsed) => {
         const nextElapsed = prevElapsed + 3;
@@ -292,57 +293,59 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(timer);
   }, [dataSource, inFlow, outFlow, activeScenario, needIntervals, addEvent]);
 
-  // Handle Live Telemetry received over MQTT (e.g. from virtual Wokwi ESP32 or physical devkit)
+  // Handle Live Telemetry received over MQTT (from virtual Wokwi ESP32 or physical devkit)
   const handleLiveTelemetry = useCallback((reading: TelemetryReading) => {
-    const currentSource = dataSourceRef.current;
-    
-    // Accept telemetry whenever active source is 'wokwi' or 'mqtt'
-    if (currentSource === 'wokwi' || currentSource === 'mqtt') {
-      // 1. Update shared live flow state
-      setInFlow(reading.inletFlow);
-      setOutFlow(reading.outletFlow);
-      setMismatch(reading.flowDifference);
+    const now = reading.timestamp || Date.now();
+    const lastTime = lastWokwiPacketTimeRef.current;
+    lastWokwiPacketTimeRef.current = now;
 
-      // 2. Accumulate live volume for valid telemetry readings
-      const now = reading.timestamp || Date.now();
-      const lastTime = lastWokwiPacketTimeRef.current;
-      lastWokwiPacketTimeRef.current = now;
-      if (lastTime !== null && reading.isValid) {
-        const dtSec = Math.max(0.5, Math.min(10, (now - lastTime) / 1000));
-        const dtMinutes = dtSec / 60;
-        setInVol((prev) => Number((prev + reading.inletFlow * dtMinutes).toFixed(2)));
-        setOutVol((prev) => Number((prev + reading.outletFlow * dtMinutes).toFixed(2)));
-      }
-
-      // 3. Process reading in Authoritative LeakDetectionEngine
-      const evalResult = engineRef.current.processReading(reading, thresholdsRef.current, now);
-      setDetectionResult(evalResult);
-      setStatusState(evalResult.state);
-
-      const detailText =
-        evalResult.alertCandidate?.explanation ||
-        (evalResult.diagnosticNotes.length > 0 ? evalResult.diagnosticNotes[0] : null) ||
-        'Wokwi Live: Inlet and outlet flows are balanced.';
-      setStatusDetail(detailText);
-
-      if (evalResult.state === 'leak') {
-        setAlarmed(true);
-        setSuspicious(needIntervals);
-      } else if (evalResult.state === 'checking') {
-        setSuspicious((prev) => prev + 1);
-      } else {
-        setSuspicious(0);
-        setAlarmed(false);
-      }
-
-      if (evalResult.hasAlert && evalResult.alertCandidate) {
-        addEvent(`[WOKWI] ${evalResult.alertCandidate.title}: ${evalResult.alertCandidate.explanation}`, elapsed);
-      } else if (evalResult.isRecovered) {
-        addEvent(`[WOKWI] RECOVERY: Normal flow restored (${evalResult.recoveredCategory} resolved).`, elapsed);
-      }
-
-      setHistory((prev) => [...prev.slice(-29), reading]);
+    // Automatically transition to 'wokwi' when live telemetry arrives
+    if (dataSourceRef.current !== 'wokwi' && reading.source !== 'demo') {
+      dataSourceRef.current = 'wokwi';
+      setDataSourceState('wokwi');
     }
+
+    // 1. Update shared live flow state immutably for UI re-render
+    setInFlow(reading.inletFlow);
+    setOutFlow(reading.outletFlow);
+    setMismatch(reading.flowDifference);
+
+    // 2. Accumulate live volume for valid telemetry readings
+    if (lastTime !== null && reading.isValid) {
+      const dtSec = Math.max(0.5, Math.min(10, (now - lastTime) / 1000));
+      const dtMinutes = dtSec / 60;
+      setInVol((prev) => Number((prev + reading.inletFlow * dtMinutes).toFixed(2)));
+      setOutVol((prev) => Number((prev + reading.outletFlow * dtMinutes).toFixed(2)));
+    }
+
+    // 3. Process reading in Authoritative LeakDetectionEngine
+    const evalResult = engineRef.current.processReading(reading, thresholdsRef.current, now);
+    setDetectionResult(evalResult);
+    setStatusState(evalResult.state);
+
+    const detailText =
+      evalResult.alertCandidate?.explanation ||
+      (evalResult.diagnosticNotes.length > 0 ? evalResult.diagnosticNotes[0] : null) ||
+      'Wokwi Live: Inlet and outlet flows are balanced.';
+    setStatusDetail(detailText);
+
+    if (evalResult.state === 'leak') {
+      setAlarmed(true);
+      setSuspicious(needIntervals);
+    } else if (evalResult.state === 'checking') {
+      setSuspicious((prev) => prev + 1);
+    } else {
+      setSuspicious(0);
+      setAlarmed(false);
+    }
+
+    if (evalResult.hasAlert && evalResult.alertCandidate) {
+      addEvent(`[WOKWI] ${evalResult.alertCandidate.title}: ${evalResult.alertCandidate.explanation}`, elapsed);
+    } else if (evalResult.isRecovered) {
+      addEvent(`[WOKWI] RECOVERY: Normal flow restored (${evalResult.recoveredCategory} resolved).`, elapsed);
+    }
+
+    setHistory((prev) => [...prev.slice(-29), reading]);
   }, [elapsed, needIntervals, addEvent]);
 
   useEffect(() => {
