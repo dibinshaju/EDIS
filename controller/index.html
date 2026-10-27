@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaterGuard-IoT — Remote Flow Controller</title>
+  
+  <!-- Fonts matching WaterGuard-IoT Design Spec -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Gravitas+One&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- MQTT.js Browser Bundle -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    :root {
+      --canvas-bg: #121316;
+      --card-bg: #FFFFFF;
+      --card-dark: #1C1D22;
+      --card-border: #282A30;
+      --card-border-light: #E2E1DA;
+      --accent-yellow: #F7FF00;
+      --accent-yellow-hover: #E5EE00;
+      --dark-charcoal: #0D0E11;
+      --text-primary: #0D0E11;
+      --text-secondary: #66655E;
+      --text-light: #9CA3AF;
+      --danger: #EF4444;
+      --danger-bg: #FEE2E2;
+      --success: #10B981;
+      --success-bg: #D1FAE5;
+      --warning: #F59E0B;
+      --font-heading: 'Bungee', cursive, sans-serif;
+      --font-body: 'Bebas Neue', sans-serif;
+      --font-number: 'Gravitas One', serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--canvas-bg);
+      color: #FFFFFF;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      background-color: #18191D;
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-pill {
+      background-color: var(--accent-yellow);
+      color: var(--dark-charcoal);
+      font-family: var(--font-body);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      color: #FFFFFF;
+      letter-spacing: 0.3px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav-primary {
+      background-color: var(--accent-yellow);
+      color: var(--dark-charcoal);
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+
+    .btn-nav-primary:hover {
+      background-color: var(--accent-yellow-hover);
+    }
+
+    .btn-nav-secondary {
+      background-color: #26282E;
+      color: #FFFFFF;
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+
+    .btn-nav-secondary:hover {
+      background-color: #32353D;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 760px;
+      width: 100%;
+      margin: 24px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Card Panels */
+    .card {
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--card-border-light);
+      color: var(--text-primary);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-dark {
+      background-color: var(--card-dark);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--card-border);
+      color: #FFFFFF;
+    }
+
+    /* Connection Card */
+    .connection-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--danger);
+      transition: background-color 0.2s;
+    }
+
+    .status-dot.connected {
+      background-color: var(--success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-connect {
+      background-color: var(--accent-yellow);
+      color: var(--dark-charcoal);
+      font-family: var(--font-body);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-disconnect {
+      background-color: #2C1D22;
+      color: var(--danger);
+      font-family: var(--font-body);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid #7F1D1D;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+    }
+
+    .connection-meta {
+      font-size: 12px;
+      color: var(--text-light);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .connection-meta code {
+      font-family: var(--font-mono);
+      color: #E5E7EB;
+      background-color: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Telemetry Snapshot */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr 1px 1fr;
+      align-items: center;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .telemetry-col h4 {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--text-light);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .telemetry-col .val {
+      font-family: var(--font-number);
+      font-size: 22px;
+      color: #FFFFFF;
+    }
+
+    .telemetry-col .unit {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .telemetry-divider {
+      background-color: var(--card-border);
+      height: 36px;
+      width: 1px;
+    }
+
+    /* Manual Flow Control Card */
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .input-box {
+      display: flex;
+      align-items: center;
+      background-color: #F8F8F6;
+      border: 1px solid var(--card-border-light);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+
+    .input-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: var(--font-number);
+      font-size: 20px;
+      color: var(--text-primary);
+      outline: none;
+      width: 100%;
+    }
+
+    .input-box .unit {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 6px;
+    }
+
+    .btn-apply {
+      width: 100%;
+      background-color: var(--accent-yellow);
+      color: var(--dark-charcoal);
+      font-family: var(--font-body);
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #E5EE00;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .btn-apply:hover {
+      background-color: var(--accent-yellow-hover);
+    }
+
+    .btn-apply:active {
+      transform: scale(0.99);
+    }
+
+    /* Feedback Banner */
+    .feedback-banner {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background-color: #F9FAFB;
+      border: 1px solid #E5E7EB;
+    }
+
+    .feedback-banner.success {
+      background-color: #ECFDF5;
+      border-color: #A7F3D0;
+      color: #065F46;
+    }
+
+    .feedback-banner.error {
+      background-color: #FEF2F2;
+      border-color: #FECACA;
+      color: #991B1B;
+    }
+
+    .feedback-banner.pending {
+      background-color: #EEF2FF;
+      border-color: #C7D2FE;
+      color: #4338CA;
+    }
+
+    .feedback-title {
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .feedback-detail {
+      font-size: 11px;
+      margin-top: 2px;
+      color: var(--text-secondary);
+    }
+
+    /* Presets */
+    .presets-title {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      margin: 16px 0 8px 0;
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .preset-btn {
+      background-color: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .preset-btn:hover {
+      background-color: #E5E7EB;
+      border-color: #D1D5DB;
+    }
+
+    .preset-name {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-primary);
+      display: block;
+    }
+
+    .preset-flow {
+      font-family: var(--font-number);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Evaluation Scenario Vectors */
+    .scenarios-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .scenarios-grid {
+        grid-template-columns: 1fr;
+      }
+      .inputs-grid {
+        grid-template-columns: 1fr;
+      }
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .telemetry-divider {
+        display: none;
+      }
+    }
+
+    .scenario-card {
+      background-color: #F8F8F6;
+      border: 1px solid var(--card-border-light);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .scenario-card:hover {
+      border-color: #0D0E11;
+      transform: translateY(-1px);
+    }
+
+    .scenario-badge {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background-color: #E2DFD8;
+      color: #0D0E11;
+      margin-bottom: 6px;
+    }
+
+    .scenario-name {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .scenario-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    /* Live Activity Log */
+    .log-box {
+      background-color: #0D0E11;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #A3A299;
+      height: 120px;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      line-height: 1.5;
+    }
+
+    .log-line {
+      margin-bottom: 2px;
+    }
+
+    .log-time {
+      color: #66655E;
+    }
+
+    .log-cmd {
+      color: var(--accent-yellow);
+    }
+
+    .log-ack {
+      color: var(--success);
+    }
+
+    .log-telem {
+      color: #60A5FA;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 11px;
+      color: var(--text-light);
+      text-align: center;
+      line-height: 1.4;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="badge-pill">STANDALONE CONSOLE</span>
+      <h1 class="nav-title">WaterGuard Remote Controller</h1>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-nav-primary" onclick="window.open('/', '_blank')">
+        Open Dashboard ↗
+      </button>
+      <button class="btn-nav-secondary" onclick="window.open('https://wokwi.com', '_blank')">
+        Wokwi Simulator ↗
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Connection & Broker Strip -->
+    <section class="card-dark">
+      <div class="connection-header">
+        <div class="connection-status">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-text">DISCONNECTED</span>
+        </div>
+        <button id="btn-toggle-connect" class="btn-connect" onclick="toggleConnection()">Connect Bridge</button>
+      </div>
+      <div class="connection-meta">
+        <span>Broker: <code id="broker-url">wss://broker.emqx.io:8084/mqtt</code></span>
+        <span>Command Topic: <code>water/demo/command</code></span>
+        <span>ACK Topic: <code>water/demo/ack</code></span>
+      </div>
+    </section>
+
+    <!-- Synchronized Live Telemetry Readout -->
+    <section class="card-dark">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-family: var(--font-body); font-size: 11px; color: var(--text-light); letter-spacing: 0.5px;">LIVE PIPELINE TELEMETRY</span>
+        <span id="scenario-badge" class="badge-pill" style="background-color: #064E3B; color: #FFFFFF; font-size: 10px;">STEADY</span>
+      </div>
+      <div class="telemetry-grid">
+        <div class="telemetry-col">
+          <h4>INLET S1</h4>
+          <div class="val"><span id="telemetry-inlet">12.5</span> <span class="unit">L/m</span></div>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-col">
+          <h4>OUTLET S2</h4>
+          <div class="val"><span id="telemetry-outlet">12.3</span> <span class="unit">L/m</span></div>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-col">
+          <h4>DEFICIT (S1-S2)</h4>
+          <div class="val" id="telemetry-diff-wrap"><span id="telemetry-diff">+0.2</span> <span class="unit">L/m</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Manual Flow Control -->
+    <section class="card">
+      <div class="card-title-row">
+        <h2 class="card-title">Manual Flow Injection</h2>
+        <span class="badge-pill">MQTT PROTOCOL</span>
+      </div>
+      <p class="card-subtitle">
+        Enter customized inlet and outlet flow rates (0.0 to 100.0 L/min) to control the virtual ESP32 simulator remotely.
+      </p>
+
+      <div class="inputs-grid">
+        <div class="input-group">
+          <label>INLET FLOW (S1)</label>
+          <div class="input-box">
+            <input type="number" id="input-inlet" step="0.1" min="0" max="100" value="8.0" />
+            <span class="unit">L/min</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>OUTLET FLOW (S2)</label>
+          <div class="input-box">
+            <input type="number" id="input-outlet" step="0.1" min="0" max="100" value="8.0" />
+            <span class="unit">L/min</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="btn-apply" class="btn-apply" onclick="applyManualFlow()">
+        Apply Flow Values
+      </button>
+
+      <!-- Feedback Banner -->
+      <div id="feedback-box" class="feedback-banner">
+        <div>
+          <div id="feedback-title" class="feedback-title">Ready</div>
+          <div id="feedback-detail" class="feedback-detail">Enter values or select a preset below to transmit to ESP32.</div>
+        </div>
+      </div>
+
+      <!-- Quick Flow Presets -->
+      <div class="presets-title">QUICK FLOW PRESETS</div>
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="setAndApply(8.0, 8.0, 'Normal')">
+          <span class="preset-name">Normal</span>
+          <span class="preset-flow">8.0 / 8.0 L/m</span>
+        </button>
+        <button class="preset-btn" onclick="setAndApply(8.0, 3.0, 'Simulate Leak')">
+          <span class="preset-name">Simulate Leak</span>
+          <span class="preset-flow" style="color: var(--danger);">8.0 / 3.0 L/m</span>
+        </button>
+        <button class="preset-btn" onclick="setAndApply(30.0, 30.0, 'High Consumption')">
+          <span class="preset-name">High Flow</span>
+          <span class="preset-flow" style="color: var(--warning);">30.0 / 30.0 L/m</span>
+        </button>
+        <button class="preset-btn" onclick="setAndApply(3.0, 8.0, 'Reversed Anomaly')">
+          <span class="preset-name">Reversed Mismatch</span>
+          <span class="preset-flow" style="color: #0D9488;">3.0 / 8.0 L/m</span>
+        </button>
+        <button class="preset-btn" onclick="setAndApply(8.0, 8.0, 'Reset Baseline')">
+          <span class="preset-name">Reset Baseline</span>
+          <span class="preset-flow">8.0 / 8.0 L/m</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Evaluation Scenario Suite -->
+    <section class="card">
+      <div class="card-title-row">
+        <h2 class="card-title">Academic Scenario Suite</h2>
+        <span class="badge-pill">EXPO EVALUATION</span>
+      </div>
+      <p class="card-subtitle">
+        Transmit deterministic stress patterns to evaluate the stateful Leak Detection Engine:
+      </p>
+
+      <div class="scenarios-grid">
+        <div class="scenario-card" onclick="sendScenarioCommand('normal', 'Balanced Baseline')">
+          <span class="scenario-badge">NORMAL</span>
+          <h3 class="scenario-name">1. Balanced Baseline Flow</h3>
+          <p class="scenario-desc">Inlet 12.5 L/m & Outlet 12.3 L/m match closely. Steady municipal draw.</p>
+        </div>
+
+        <div class="scenario-card" onclick="sendScenarioCommand('suspected_leak', 'Injected Pipe Leak')">
+          <span class="scenario-badge" style="background-color: var(--danger-bg); color: var(--danger);">CRITICAL</span>
+          <h3 class="scenario-name" style="color: var(--danger);">2. Suspected Pipe Leak</h3>
+          <p class="scenario-desc">Inlet 16.5 L/m exceeds Outlet 10.8 L/m (+5.7 L/m deficit). Triggers alarm after 5s.</p>
+        </div>
+
+        <div class="scenario-card" onclick="sendScenarioCommand('abnormal_consumption', 'High Consumption Draw')">
+          <span class="scenario-badge" style="background-color: #FEF3C7; color: #92400E;">HIGH FLOW</span>
+          <h3 class="scenario-name">3. Abnormal High Consumption</h3>
+          <p class="scenario-desc">Symmetric high draw at 31.0 L/m exceeding safe threshold of 25.0 L/m.</p>
+        </div>
+
+        <div class="scenario-card" onclick="sendScenarioCommand('sensor_anomaly', 'Reversed Flow Diagnostic')">
+          <span class="scenario-badge" style="background-color: #CCFBF1; color: #0F766E;">DIAGNOSTIC</span>
+          <h3 class="scenario-name">4. Reversed Flow Anomaly</h3>
+          <p class="scenario-desc">Outlet 15.2 L/m > Inlet 9.0 L/m. Evaluates calibration without false alarm.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live MQTT Packet Activity Log -->
+    <section class="card-dark">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-family: var(--font-body); font-size: 11px; color: var(--text-light); letter-spacing: 0.5px;">LIVE PROTOCOL ACTIVITY LOG</span>
+        <button onclick="clearLogs()" style="background: none; border: none; color: #66655E; font-size: 11px; cursor: pointer;">Clear</button>
+      </div>
+      <div id="log-box" class="log-box">
+        <div class="log-line"><span class="log-time">[Init]</span> WaterGuard Remote Console initialized. Connecting to EMQX broker...</div>
+      </div>
+    </section>
+
+    <!-- Academic Disclaimer -->
+    <footer class="disclaimer">
+      WaterGuard-IoT Academic Expo Prototype • Virtual ESP32 Simulator & Remote Flow Control Console • Communication: EMQX MQTT over Secure WebSockets (WSS 8084).
+    </footer>
+
+  </main>
+
+  <script>
+    const BROKER_URL = 'wss://broker.emqx.io:8084/mqtt';
+    const TOPIC_COMMAND   = 'water/demo/command';
+    const TOPIC_TELEMETRY = 'water/demo/telemetry';
+    const TOPIC_ACK       = 'water/demo/ack';
+
+    let client = null;
+    let pendingReqId = null;
+    let ackTimeout = null;
+
+    function addLog(msg, type = '') {
+      const logBox = document.getElementById('log-box');
+      const time = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      let typeClass = '';
+      if (type === 'cmd') typeClass = 'log-cmd';
+      if (type === 'ack') typeClass = 'log-ack';
+      if (type === 'telem') typeClass = 'log-telem';
+
+      line.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">${msg}</span>`;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('log-box').innerHTML = '';
+    }
+
+    function updateStatus(status) {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      const btn = document.getElementById('btn-toggle-connect');
+
+      if (status === 'connected') {
+        dot.className = 'status-dot connected';
+        text.innerText = 'ESP32 MQTT LINKED';
+        btn.className = 'btn-disconnect';
+        btn.innerText = 'Disconnect';
+      } else if (status === 'connecting') {
+        dot.className = 'status-dot';
+        text.innerText = 'CONNECTING...';
+        btn.className = 'btn-connect';
+        btn.innerText = 'Connecting...';
+      } else {
+        dot.className = 'status-dot';
+        text.innerText = 'DISCONNECTED';
+        btn.className = 'btn-connect';
+        btn.innerText = 'Connect Bridge';
+      }
+    }
+
+    function setFeedback(type, title, detail) {
+      const box = document.getElementById('feedback-box');
+      const titleEl = document.getElementById('feedback-title');
+      const detailEl = document.getElementById('feedback-detail');
+
+      box.className = `feedback-banner ${type}`;
+      titleEl.innerText = title;
+      detailEl.innerText = detail || '';
+    }
+
+    function connectBroker() {
+      if (client && client.connected) return;
+
+      updateStatus('connecting');
+      addLog(`Connecting to ${BROKER_URL}...`);
+
+      const clientId = `waterguard_ctrl_${Math.random().toString(16).substring(2, 8)}`;
+      client = mqtt.connect(BROKER_URL, {
+        clientId: clientId,
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 3000,
+      });
+
+      client.on('connect', () => {
+        updateStatus('connected');
+        addLog(`Connected successfully! Client ID: ${clientId}`, 'ack');
+        
+        client.subscribe(TOPIC_TELEMETRY, { qos: 0 }, (err) => {
+          if (!err) addLog(`Subscribed to telemetry topic: ${TOPIC_TELEMETRY}`);
+        });
+
+        client.subscribe(TOPIC_ACK, { qos: 0 }, (err) => {
+          if (!err) addLog(`Subscribed to ACK topic: ${TOPIC_ACK}`);
+        });
+      });
+
+      client.on('message', (topic, payload) => {
+        const raw = payload.toString();
+
+        if (topic === TOPIC_TELEMETRY) {
+          try {
+            const data = JSON.parse(raw);
+            const inVal = parseFloat(data.inlet ?? data.inletFlow ?? 0);
+            const outVal = parseFloat(data.outlet ?? data.outletFlow ?? 0);
+            const diff = inVal - outVal;
+
+            document.getElementById('telemetry-inlet').innerText = inVal.toFixed(1);
+            document.getElementById('telemetry-outlet').innerText = outVal.toFixed(1);
+            
+            const diffEl = document.getElementById('telemetry-diff');
+            diffEl.innerText = (diff >= 0 ? '+' : '') + diff.toFixed(1);
+            
+            if (diff > 1.5) {
+              diffEl.style.color = 'var(--danger)';
+              document.getElementById('scenario-badge').innerText = 'CRITICAL LEAK';
+              document.getElementById('scenario-badge').style.backgroundColor = '#7F1D1D';
+            } else if (diff < -1.5) {
+              diffEl.style.color = '#0D9488';
+              document.getElementById('scenario-badge').innerText = 'REVERSED ANOMALY';
+              document.getElementById('scenario-badge').style.backgroundColor = '#0F766E';
+            } else if (inVal >= 25.0) {
+              diffEl.style.color = 'var(--warning)';
+              document.getElementById('scenario-badge').innerText = 'HIGH DEMAND';
+              document.getElementById('scenario-badge').style.backgroundColor = '#78350F';
+            } else {
+              diffEl.style.color = '#FFFFFF';
+              document.getElementById('scenario-badge').innerText = 'NORMAL BALANCED';
+              document.getElementById('scenario-badge').style.backgroundColor = '#064E3B';
+            }
+
+            // Check if matching telemetry arrived for pending request
+            if (pendingReqId && (data.requestId === pendingReqId || (Math.abs(inVal - parseFloat(document.getElementById('input-inlet').value)) < 0.2))) {
+              if (ackTimeout) clearTimeout(ackTimeout);
+              setFeedback('success', 'Telemetry Confirmed & Active!', `ESP32 is actively streaming In: ${inVal.toFixed(1)} L/m, Out: ${outVal.toFixed(1)} L/m`);
+              pendingReqId = null;
+            }
+
+            addLog(`[Telemetry] In=${inVal.toFixed(1)} L/m, Out=${outVal.toFixed(1)} L/m (${data.deviceId || 'ESP32'})`, 'telem');
+          } catch (e) {
+            console.error('Error parsing telemetry JSON', e);
+          }
+        } else if (topic === TOPIC_ACK) {
+          try {
+            const ack = JSON.parse(raw);
+            if (ack.requestId === pendingReqId || pendingReqId !== null) {
+              if (ackTimeout) clearTimeout(ackTimeout);
+              if (ack.status === 'applied') {
+                setFeedback('success', 'Confirmed & Applied by ESP32!', `Applied values: Inlet ${parseFloat(ack.inlet).toFixed(1)} L/m, Outlet ${parseFloat(ack.outlet).toFixed(1)} L/m`);
+              } else {
+                setFeedback('error', `Rejected: ${ack.status}`, 'Flow rate out of bounds [0.0 - 100.0 L/min]');
+              }
+              pendingReqId = null;
+            }
+            addLog(`[ACK] ESP32 confirmed ${ack.command} (${ack.status}) req=${ack.requestId || 'n/a'}`, 'ack');
+          } catch (e) {
+            console.error('Error parsing ACK JSON', e);
+          }
+        }
+      });
+
+      client.on('error', (err) => {
+        addLog(`MQTT Error: ${err.message}`, 'error');
+        updateStatus('error');
+      });
+
+      client.on('close', () => {
+        addLog('MQTT connection closed.');
+        updateStatus('disconnected');
+      });
+    }
+
+    function disconnectBroker() {
+      if (client) {
+        client.end(true);
+        client = null;
+        updateStatus('disconnected');
+        addLog('Disconnected from MQTT broker.');
+      }
+    }
+
+    function toggleConnection() {
+      if (client && client.connected) {
+        disconnectBroker();
+      } else {
+        connectBroker();
+      }
+    }
+
+    function applyManualFlow(customInlet, customOutlet) {
+      const inVal = customInlet !== undefined ? customInlet : parseFloat(document.getElementById('input-inlet').value);
+      const outVal = customOutlet !== undefined ? customOutlet : parseFloat(document.getElementById('input-outlet').value);
+
+      if (isNaN(inVal) || isNaN(outVal) || inVal < 0 || inVal > 100 || outVal < 0 || outVal > 100) {
+        setFeedback('error', 'Validation Error', 'Values must be valid numbers between 0.0 and 100.0 L/min');
+        return;
+      }
+
+      if (!client || !client.connected) {
+        setFeedback('error', 'MQTT Disconnected', 'Connect to MQTT bridge first before sending commands.');
+        return;
+      }
+
+      const reqId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      const cmd = {
+        command: 'set_flow',
+        inlet: inVal,
+        outlet: outVal,
+        requestId: reqId,
+        timestamp: Math.floor(Date.now() / 1000)
+      };
+
+      const payload = JSON.stringify(cmd);
+      client.publish(TOPIC_COMMAND, payload, { qos: 0 });
+      addLog(`[Command Sent] set_flow: In=${inVal.toFixed(1)}, Out=${outVal.toFixed(1)} (req=${reqId.slice(-6)})`, 'cmd');
+
+      pendingReqId = reqId;
+      setFeedback('pending', 'Transmitting to ESP32...', `Tracking req: ${reqId.slice(-6)} — Awaiting ACK`);
+
+      if (ackTimeout) clearTimeout(ackTimeout);
+      ackTimeout = setTimeout(() => {
+        if (pendingReqId === reqId) {
+          setFeedback('pending', 'Awaiting ESP32 Confirmation', 'Command published. Ensure Wokwi simulation is running.');
+          pendingReqId = null;
+        }
+      }, 5000);
+    }
+
+    function setAndApply(inlet, outlet, label) {
+      document.getElementById('input-inlet').value = inlet.toFixed(1);
+      document.getElementById('input-outlet').value = outlet.toFixed(1);
+      applyManualFlow(inlet, outlet);
+    }
+
+    function sendScenarioCommand(scenario, label) {
+      if (!client || !client.connected) {
+        setFeedback('error', 'MQTT Disconnected', 'Connect to MQTT bridge first before sending commands.');
+        return;
+      }
+
+      const cmd = {
+        command: 'set_scenario',
+        scenario: scenario,
+        timestamp: Math.floor(Date.now() / 1000)
+      };
+
+      const payload = JSON.stringify(cmd);
+      client.publish(TOPIC_COMMAND, payload, { qos: 0 });
+      addLog(`[Scenario Sent] ${scenario} (${label})`, 'cmd');
+      setFeedback('success', `Scenario Applied: ${label}`, `ESP32 switched active vector to ${scenario}.`);
+    }
+
+    // Auto-connect upon page load
+    window.addEventListener('load', () => {
+      connectBroker();
+    });
+  </script>
+</body>
+</html>
