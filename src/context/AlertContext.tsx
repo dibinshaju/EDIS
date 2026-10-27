@@ -4,6 +4,7 @@ import { AlertDeduplicator } from '../utils/alertDedup';
 import { buzzerService } from '../utils/sound';
 import { useSensor } from './SensorContext';
 import { useAuth } from './AuthContext';
+import { useMqtt } from './MqttContext';
 
 interface AlertContextType {
   alerts: AlertEvent[];
@@ -24,6 +25,7 @@ const AlertContext = createContext<AlertContextType | undefined>(undefined);
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentReading, detectionResult } = useSensor();
   const { user } = useAuth();
+  const { status: mqttStatus, publishCommand } = useMqtt();
 
   const [alerts, setAlerts] = useState<AlertEvent[]>([]);
   const [activeAlert, setActiveAlert] = useState<AlertEvent | null>(null);
@@ -96,8 +98,15 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Silence audio immediately
     buzzerService.stop();
 
+    if (mqttStatus === 'connected') {
+      publishCommand({
+        command: 'ack_alarm',
+        timestamp: Math.floor(Date.now() / 1000),
+      });
+    }
+
     const ackName = user?.displayName || 'Administrator';
-    const acked = dedupRef.current.acknowledgeAlert(alertId, ackName);
+    dedupRef.current.acknowledgeAlert(alertId, ackName);
 
     setAlerts((prev) =>
       prev.map((a) =>
@@ -108,15 +117,23 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     setActiveAlert((prev) => (prev?.id === alertId ? { ...prev, status: 'ACKNOWLEDGED' } : prev));
-  }, [user]);
+  }, [user, mqttStatus, publishCommand]);
 
   const resolveAlert = useCallback((alertId: string) => {
     buzzerService.stop();
+
+    if (mqttStatus === 'connected') {
+      publishCommand({
+        command: 'ack_alarm',
+        timestamp: Math.floor(Date.now() / 1000),
+      });
+    }
+
     setAlerts((prev) =>
       prev.map((a) => (a.id === alertId ? { ...a, status: 'RESOLVED', resolvedAt: Date.now() } : a))
     );
     setActiveAlert((prev) => (prev?.id === alertId ? null : prev));
-  }, []);
+  }, [mqttStatus, publishCommand]);
 
   const clearAllAlerts = useCallback(() => {
     buzzerService.stop();
