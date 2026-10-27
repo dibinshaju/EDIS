@@ -1581,6 +1581,7 @@
 
       setCommandFeedback(`Transmitting setpoints (ReqId: ${reqId})...`, 'status-pending');
       addEventLog('CMD_SENT', `set_scada (Inlet: ${inlet}, Outlet: ${outlet}, T1: ${t1}m, T2: ${t2}m, Mode: ${currentMode})`, 'PENDING');
+      console.log('[STAGE 1: SCADA CONTROLLER PUBLISHED]', payload);
 
       mqttClient.publish(TOPIC_COMMAND, JSON.stringify(payload), { qos: 0 }, (err) => {
         if (err) {
@@ -1701,6 +1702,7 @@
           // 2. Handle Periodic Telemetry
           if (topic === TOPIC_TELEMETRY) {
             lastTelemetryTimestamp = Date.now();
+            console.log('[STAGE 4: SCADA CONTROLLER RECEIVED TELEMETRY]', data);
 
             const inVal = parseFloat(data.inlet !== undefined ? data.inlet : (data.inletFlow || 0));
             const outVal = parseFloat(data.outlet !== undefined ? data.outlet : (data.outletFlow || 0));

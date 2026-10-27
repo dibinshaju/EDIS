@@ -304,6 +304,15 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const lastTime = lastWokwiPacketTimeRef.current;
     lastWokwiPacketTimeRef.current = now;
 
+    console.log('[STAGE 6: SENSOR STATE UPDATING]', {
+      inletFlow: reading.inletFlow,
+      outletFlow: reading.outletFlow,
+      flowDifference: reading.flowDifference,
+      source: reading.source,
+      sequence: reading.sequence,
+      scenario: reading.scenario,
+    });
+
     // Automatically transition to 'wokwi' when live telemetry arrives
     if (dataSourceRef.current !== 'wokwi' && reading.source !== 'demo') {
       dataSourceRef.current = 'wokwi';
@@ -344,21 +353,32 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setAlarmed(false);
     }
 
+    const currentT = elapsedRef.current;
     if (evalResult.hasAlert && evalResult.alertCandidate) {
-      addEvent(`[WOKWI] ${evalResult.alertCandidate.title}: ${evalResult.alertCandidate.explanation}`, elapsed);
+      addEvent(`[WOKWI] ${evalResult.alertCandidate.title}: ${evalResult.alertCandidate.explanation}`, currentT);
     } else if (evalResult.isRecovered) {
-      addEvent(`[WOKWI] RECOVERY: Normal flow restored (${evalResult.recoveredCategory} resolved).`, elapsed);
+      addEvent(`[WOKWI] RECOVERY: Normal flow restored (${evalResult.recoveredCategory} resolved).`, currentT);
     }
 
     setHistory((prev) => [...prev.slice(-29), reading]);
-  }, [elapsed, needIntervals, addEvent]);
+  }, [needIntervals, addEvent]);
 
+  // Primary live telemetry bridge: direct callback
   useEffect(() => {
     setOnTelemetryReceived(handleLiveTelemetry);
     return () => {
       setOnTelemetryReceived(null);
     };
   }, [setOnTelemetryReceived, handleLiveTelemetry]);
+
+  // Secondary live telemetry bridge: reactive state subscription
+  const lastProcessedTsRef = useRef<number>(0);
+  useEffect(() => {
+    if (lastReading && lastReading.timestamp && lastReading.timestamp !== lastProcessedTsRef.current) {
+      lastProcessedTsRef.current = lastReading.timestamp;
+      handleLiveTelemetry(lastReading);
+    }
+  }, [lastReading, handleLiveTelemetry]);
 
   const currentReading: TelemetryReading = {
     deviceId: dataSource === 'demo' ? 'SIM_METER_01' : 'ESP32_WOKWI_01',
