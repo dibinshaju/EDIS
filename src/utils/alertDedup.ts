@@ -28,7 +28,7 @@ export class AlertDeduplicator {
     now: number = Date.now()
   ): { isNew: boolean; event: AlertEvent } | null {
     const existing = this.activeAlertsByCategory.get(candidate.category);
-    const lastTimestamp = this.lastAlertTimestampByCategory.get(candidate.category) || 0;
+    const lastTimestamp = this.lastAlertTimestampByCategory.get(candidate.category);
 
     // If there is an existing ACTIVE or ACKNOWLEDGED alert for this category
     if (existing && existing.status !== 'RESOLVED') {
@@ -43,7 +43,7 @@ export class AlertDeduplicator {
     }
 
     // Cooldown check for recently resolved categories
-    if (now - lastTimestamp < this.cooldownMs && candidate.category !== 'RECOVERED') {
+    if (lastTimestamp !== undefined && (now - lastTimestamp < this.cooldownMs) && candidate.category !== 'RECOVERED') {
       return null;
     }
 
