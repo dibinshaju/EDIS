@@ -61,7 +61,7 @@ export class AlertDeduplicator {
       flowDifference: reading.flowDifference,
       durationSec: candidate.durationSec,
       isSimulated: reading.isSimulated,
-      source: reading.isSimulated ? 'demo' : 'wokwi',
+      source: reading.source || (reading.isSimulated ? 'demo' : 'wokwi'),
       occurrenceCount: 1,
     };
 
