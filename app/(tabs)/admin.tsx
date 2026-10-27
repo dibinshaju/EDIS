@@ -237,6 +237,10 @@ export default function AdminScreen() {
             <Text style={styles.testChimeText}>Test Buzzer Sound</Text>
           </TouchableOpacity>
 
+          <Text style={styles.disclaimerText}>
+            Web Browser Buzzer Simulation: Synthesized via Web Audio API. Requires user interaction to enable audio output on mobile browsers.
+          </Text>
+
           <View style={[styles.switchRow, { marginTop: 12 }]}>
             <View>
               <Text style={styles.switchTitle}>In-App Push Dispatch</Text>
@@ -568,5 +572,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#0F172A',
+  },
+  disclaimerText: {
+    fontSize: 10,
+    color: '#64748B',
+    lineHeight: 14,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });

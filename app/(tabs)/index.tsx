@@ -209,9 +209,24 @@ export default function DashboardScreen() {
               </View>
             </View>
 
-            {/* Header: AquaGuard® + MENU */}
             <View style={styles.p1HeaderRow}>
-              <Text style={styles.brandTitleWhite}>AquaGuard®</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.brandTitleWhite}>AquaGuard®</Text>
+                <View
+                  style={{
+                    backgroundColor: dataSource === 'wokwi' ? (mqttStatus === 'connected' ? '#10B981' : '#EF4444') : '#1E293B',
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: dataSource === 'wokwi' ? '#10B981' : '#334155',
+                  }}
+                >
+                  <Text style={{ fontSize: 8, fontWeight: '800', color: dataSource === 'wokwi' ? '#FFFFFF' : '#94A3B8', letterSpacing: 0.5 }}>
+                    {dataSource === 'wokwi' ? (mqttStatus === 'connected' ? 'WOKWI LIVE' : 'WOKWI OFFLINE') : 'DEMO'}
+                  </Text>
+                </View>
+              </View>
               <TouchableOpacity
                 style={styles.menuBtnLight}
                 onPress={() => setShowScenarioModal(true)}
