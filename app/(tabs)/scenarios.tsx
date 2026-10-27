@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { ScenarioController } from '../../src/components/ScenarioController';
+import { ManualFlowControl } from '../../src/components/ManualFlowControl';
 import { useSensor } from '../../src/context/SensorContext';
 import { formatFlow } from '../../src/utils/format';
 
@@ -73,6 +74,9 @@ export default function ScenariosScreen() {
 
         {/* Master Scenario Controller Component */}
         <ScenarioController />
+
+        {/* Remote Manual Flow Control (MQTT & ESP32) */}
+        <ManualFlowControl />
       </ScrollView>
     </View>
   );
