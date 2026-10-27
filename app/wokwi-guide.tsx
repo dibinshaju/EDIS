@@ -5,6 +5,7 @@ import { COLORS, RADIUS, SPACING } from '../src/constants/theme';
 import { useMqtt } from '../src/context/MqttContext';
 import { useSensor } from '../src/context/SensorContext';
 import { StatusDot } from '../src/components/StatusDot';
+import { ManualFlowControl } from '../src/components/ManualFlowControl';
 import { Ionicons } from '@expo/vector-icons';
 import { formatTime } from '../src/utils/format';
 
@@ -104,6 +105,9 @@ export default function WokwiGuideScreen() {
             </View>
           )}
         </View>
+
+        {/* Remote Manual Flow Control */}
+        <ManualFlowControl />
 
         {/* Step-by-Step Instructions */}
         <View style={styles.stepsCard}>
