@@ -12,6 +12,7 @@ export interface TelemetryReading {
   isSimulated: boolean;
   status: SensorStatus;
   notes?: string;
+  isNightTimeOverride?: boolean;
 }
 
 export type ScenarioType = 
