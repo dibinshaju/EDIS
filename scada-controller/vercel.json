@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "waterguard-scada",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
