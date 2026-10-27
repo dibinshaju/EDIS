@@ -9,12 +9,16 @@ export interface AlertCandidate {
   durationSec: number;
 }
 
+export type EngineStatusState = 'normal' | 'checking' | 'leak' | 'high' | 'datacheck';
+
 export interface DetectionResult {
   hasAlert: boolean;
   alertCandidate: AlertCandidate | null;
   diagnosticNotes: string[];
   isRecovered: boolean;
   recoveredCategory?: AlertCategory;
+  state: EngineStatusState;
+  activeCategory: AlertCategory | null;
 }
 
 /**
