@@ -55,7 +55,7 @@ const SensorContext = createContext<SensorContextType | undefined>(undefined);
 const INTERVAL_SECONDS = 10; // Each simulation interval represents 10 simulated seconds
 
 export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { status: mqttStatus, setOnTelemetryReceived, publishCommand } = useMqtt();
+  const { status: mqttStatus, setOnTelemetryReceived, publishCommand, lastReading } = useMqtt();
 
   const [dataSource, setDataSourceState] = useState<DataSource>('demo');
   const setDataSource = useCallback((s: DataSource) => {
@@ -97,6 +97,11 @@ export const SensorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     thresholdsRef.current = thresholds;
   }, [thresholds]);
+
+  const elapsedRef = useRef<number>(elapsed);
+  useEffect(() => {
+    elapsedRef.current = elapsed;
+  }, [elapsed]);
 
   const lastWokwiPacketTimeRef = useRef<number | null>(null);
 

@@ -107,8 +107,17 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLastMessageTime(Date.now());
 
         if (topic === MQTT_CONFIG.topics.telemetry) {
+          console.log('[STAGE 4: DASHBOARD RECEIVED TELEMETRY]', { topic, raw });
           const { reading, error } = parseAndNormalizeTelemetry(raw);
           if (reading) {
+            console.log('[STAGE 5: TELEMETRY PARSED]', {
+              inletFlow: reading.inletFlow,
+              outletFlow: reading.outletFlow,
+              flowDifference: reading.flowDifference,
+              source: reading.source,
+              sequence: reading.sequence,
+              scenario: reading.scenario,
+            });
             setLastReading(reading);
             addLog(
               `[Telemetry] Rcv In=${reading.inletFlow.toFixed(1)} L/m, Out=${reading.outletFlow.toFixed(1)} L/m (${reading.deviceId})`
@@ -116,9 +125,11 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (telemetryCallbackRef.current) {
               telemetryCallbackRef.current(reading);
             } else {
+              console.warn('[STAGE 5 WARNING] No telemetryCallbackRef registered in MqttContext!');
               addLog('[Telemetry Warning] Telemetry received but no callback registered.');
             }
           } else {
+            console.error('[STAGE 5 ERROR: PARSER REJECTED]', error, raw);
             addLog(`[Telemetry Rejected] ${error || 'Unknown parsing error'}`);
           }
         } else if (topic === MQTT_CONFIG.topics.ack) {
