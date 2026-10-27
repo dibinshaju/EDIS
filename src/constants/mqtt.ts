@@ -11,6 +11,7 @@ export const MQTT_CONFIG = {
   topics: {
     telemetry: 'water/demo/telemetry',
     command: 'water/demo/command',
+    ack: 'water/demo/ack',
   },
   
   clientIdPrefix: 'edis_app_',

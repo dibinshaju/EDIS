@@ -13,6 +13,8 @@ export interface TelemetryReading {
   source?: DataSource;
   status: SensorStatus;
   notes?: string;
+  scenario?: string;
+  requestId?: string;
   isNightTimeOverride?: boolean;
 }
 
@@ -39,6 +41,17 @@ export interface ThresholdConfig {
 export interface SimulatorCommand {
   command: 'set_scenario' | 'set_flow' | 'reset' | 'ack_alarm';
   scenario?: ScenarioType;
+  inlet?: number;
+  outlet?: number;
+  requestId?: string;
+  timestamp: number;
+}
+
+export interface CommandAck {
+  type: string;
+  command: string;
+  status: 'applied' | 'rejected_range' | 'error';
+  requestId?: string;
   inlet?: number;
   outlet?: number;
   timestamp: number;

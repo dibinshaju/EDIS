@@ -120,6 +120,9 @@ export function parseAndNormalizeTelemetry(raw: string | Record<string, any>): T
       ? `Scenario: ${data.scenario}`
       : undefined;
 
+  const scenario = typeof data.scenario === 'string' ? data.scenario : undefined;
+  const requestId = typeof data.requestId === 'string' ? data.requestId : undefined;
+
   const reading: TelemetryReading = {
     deviceId,
     timestamp,
@@ -131,6 +134,8 @@ export function parseAndNormalizeTelemetry(raw: string | Record<string, any>): T
     source,
     status: 'online',
     notes,
+    scenario,
+    requestId,
   };
 
   return { reading };
