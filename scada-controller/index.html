@@ -1555,6 +1555,8 @@
 
       const reqId = 'scada_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
       pendingRequestId = reqId;
+      pendingExpectedInlet = inlet;
+      pendingExpectedOutlet = outlet;
 
       const payload = {
         command: 'set_scada',
@@ -1583,7 +1585,7 @@
           setCommandFeedback(`Publish Error: ${err.message}`, 'status-error');
           addEventLog('CMD_ERROR', `Publish error: ${err.message}`, 'FAILED');
         } else {
-          setCommandFeedback(`Published! Awaiting Wokwi ESP32 ACK confirmation...`, 'status-pending');
+          setCommandFeedback(`Published! Awaiting Wokwi ESP32 confirmation & telemetry...`, 'status-pending');
           startAckTimeoutTimer(reqId);
         }
       });
