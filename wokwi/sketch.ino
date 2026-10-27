@@ -89,28 +89,27 @@ void setup() {
 void publishTelemetryNow() {
   telemetrySequence++;
 
+  // Read strictly from persistent in-memory variables (never overwritten by analog ADC noise)
   float inletLpm = currentInlet;
   float outletLpm = currentOutlet;
-
-  if (isHardwarePotMode) {
-    inletLpm = readFlowSensor(PIN_POT_INLET);
-    outletLpm = readFlowSensor(PIN_POT_OUTLET);
-  }
-
   float mismatch = inletLpm - outletLpm;
 
-  // Trigger local LED and Buzzer if leak is severe (> 2.0 L/min deficit)
+  // Trigger local LED and Buzzer on alarm edge if leak is severe (>= 2.0 L/min deficit)
   if (mismatch >= 2.0) {
     digitalWrite(PIN_LED_ALERT, HIGH);
-    tone(PIN_BUZZER, 1000, 100);
-    alarmActive = true;
+    if (!alarmActive) {
+      tone(PIN_BUZZER, 1000, 100);
+      alarmActive = true;
+    }
   } else {
     digitalWrite(PIN_LED_ALERT, LOW);
-    noTone(PIN_BUZZER);
-    alarmActive = false;
+    if (alarmActive) {
+      noTone(PIN_BUZZER);
+      alarmActive = false;
+    }
   }
 
-  // Derive accurate scenario state
+  // Derive accurate scenario state based on current persistent flow rates
   String scenarioToSend = currentScenario;
   if (mismatch >= 2.0) {
     scenarioToSend = "suspected_leak";
@@ -118,26 +117,28 @@ void publishTelemetryNow() {
     scenarioToSend = "sensor_anomaly";
   } else if (inletLpm >= 25.0) {
     scenarioToSend = "abnormal_consumption";
-  } else if (currentScenario != "manual") {
+  } else if (currentScenario.length() > 0 && currentScenario != "normal") {
     scenarioToSend = currentScenario;
   } else {
     scenarioToSend = "normal";
   }
 
-  // Build JSON Telemetry Payload
+  // Build JSON Telemetry Payload cleanly without temporary String dangling pointers
   StaticJsonDocument<512> doc;
   doc["deviceId"]    = DEVICE_ID;
   doc["source"]      = SOURCE;
   doc["sequence"]    = telemetrySequence;
   doc["ts"]          = (unsigned long)(millis() / 1000);
-  doc["inlet"]       = serialized(String(inletLpm, 2));
-  doc["outlet"]      = serialized(String(outletLpm, 2));
+  doc["inlet"]       = inletLpm;
+  doc["inletFlow"]   = inletLpm;
+  doc["outlet"]      = outletLpm;
+  doc["outletFlow"]  = outletLpm;
   doc["isValid"]     = true;
   doc["isSimulated"] = true;
   doc["scenario"]    = scenarioToSend;
   doc["notes"]       = "Inlet: " + String(inletLpm, 2) + " L/min, Outlet: " + String(outletLpm, 2) + " L/min";
-  doc["tank1"]       = serialized(String(currentTank1, 2));
-  doc["tank2"]       = serialized(String(currentTank2, 2));
+  doc["tank1"]       = currentTank1;
+  doc["tank2"]       = currentTank2;
   doc["valve1"]      = valve1State;
   doc["valve2"]      = valve2State;
   doc["scadaMode"]   = scadaMode;
@@ -150,10 +151,9 @@ void publishTelemetryNow() {
 
   bool pubOk = mqttClient.publish(TOPIC_TELEMETRY, buffer);
   if (pubOk) {
-    Serial.printf("[TELEMETRY #%lu] In: %.2f L/m | Out: %.2f L/m | Diff: %+.2f | Sc: %s | Mqtt: OK\n",
-                  telemetrySequence, inletLpm, outletLpm, mismatch, scenarioToSend.c_str());
+    Serial.printf("[STAGE 3: WOKWI TELEMETRY PUBLISHED #%lu] %s\n", telemetrySequence, buffer);
   } else {
-    Serial.println("[MQTT] Telemetry publish failed!");
+    Serial.println("[MQTT ERROR] Telemetry publish failed!");
   }
   lastPublishTime = millis();
 }
@@ -166,10 +166,12 @@ void publishAck(String reqId, String status, float inVal, float outVal) {
   if (reqId.length() > 0) {
     ackDoc["requestId"] = reqId;
   }
-  ackDoc["inlet"]     = serialized(String(inVal, 2));
-  ackDoc["outlet"]    = serialized(String(outVal, 2));
-  ackDoc["tank1"]     = serialized(String(currentTank1, 2));
-  ackDoc["tank2"]     = serialized(String(currentTank2, 2));
+  ackDoc["inlet"]     = inVal;
+  ackDoc["inletFlow"] = inVal;
+  ackDoc["outlet"]    = outVal;
+  ackDoc["outletFlow"]= outVal;
+  ackDoc["tank1"]     = currentTank1;
+  ackDoc["tank2"]     = currentTank2;
   ackDoc["valve1"]    = valve1State;
   ackDoc["valve2"]    = valve2State;
   ackDoc["mode"]      = scadaMode;
@@ -178,7 +180,7 @@ void publishAck(String reqId, String status, float inVal, float outVal) {
   char ackBuf[384];
   serializeJson(ackDoc, ackBuf);
   mqttClient.publish(TOPIC_ACK, ackBuf);
-  Serial.printf("[ACK] Published to %s: %s\n", TOPIC_ACK, ackBuf);
+  Serial.printf("[STAGE 3: WOKWI ACK PUBLISHED] to %s: %s\n", TOPIC_ACK, ackBuf);
 }
 
 void loop() {
