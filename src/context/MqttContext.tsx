@@ -232,14 +232,15 @@ export const MqttProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [status, publishCommand]
   );
 
-  // Clean up on unmount
+  // Auto-connect on mount and clean up on unmount
   useEffect(() => {
+    connect();
     return () => {
       if (clientRef.current) {
         clientRef.current.end(true);
       }
     };
-  }, []);
+  }, [connect]);
 
   return (
     <MqttContext.Provider

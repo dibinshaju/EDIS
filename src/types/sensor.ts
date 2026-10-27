@@ -4,6 +4,7 @@ export type DataSource = 'wokwi' | 'demo' | 'mqtt';
 
 export interface TelemetryReading {
   deviceId: string;
+  sequence?: number;
   timestamp: number; // Unix timestamp in ms
   inletFlow: number; // Liters per minute (L/min)
   outletFlow: number; // Liters per minute (L/min)
@@ -50,7 +51,7 @@ export interface SimulatorCommand {
 export interface CommandAck {
   type: string;
   command: string;
-  status: 'applied' | 'rejected_range' | 'error';
+  status: 'applied' | 'rejected_range' | 'error' | 'reset_applied';
   requestId?: string;
   inlet?: number;
   outlet?: number;

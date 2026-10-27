@@ -122,9 +122,16 @@ export function parseAndNormalizeTelemetry(raw: string | Record<string, any>): T
 
   const scenario = typeof data.scenario === 'string' ? data.scenario : undefined;
   const requestId = typeof data.requestId === 'string' ? data.requestId : undefined;
+  const sequence =
+    typeof data.sequence === 'number'
+      ? data.sequence
+      : typeof data.seq === 'number'
+      ? data.seq
+      : undefined;
 
   const reading: TelemetryReading = {
     deviceId,
+    sequence,
     timestamp,
     inletFlow,
     outletFlow,
