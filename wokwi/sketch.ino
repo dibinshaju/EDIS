@@ -45,6 +45,11 @@ String activeScenario = "hardware"; // "hardware" = read pots, "manual", "suspec
 bool alarmActive = false;
 float manualInlet = 8.0;
 float manualOutlet = 8.0;
+float tankLevel1 = 2.89; // meters
+float tankLevel2 = 2.89; // meters
+String valve1State = "OPEN";
+String valve2State = "OPEN";
+String scadaMode = "REMOTE"; // "LOCAL", "REMOTE", "AUTO"
 String lastRequestId = "";
 
 // Function Prototypes
