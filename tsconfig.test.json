@@ -10,5 +10,5 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  "include": ["src/types/**/*", "src/utils/leakDetection.ts", "tests/**/*"]
+  "include": ["src/types/**/*", "src/utils/**/*", "tests/**/*"]
 }

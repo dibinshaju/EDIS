@@ -127,4 +127,88 @@ describe('LeakDetectionEngine Unit Tests', () => {
     assert.equal(recoveryRes.alertCandidate?.category, 'RECOVERED');
     assert.equal(recoveryRes.recoveredCategory, 'SUSPECTED_LEAK');
   });
+
+  test('8. Continuous night-time flow triggers NIGHT_FLOW alert', () => {
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
+    
+    // Explicit night-time override active
+    const nightReading: TelemetryReading = {
+      ...makeReading(4.5, 4.5, t0),
+      isNightTimeOverride: true,
+    };
+
+    // First reading starts persistence tracking
+    let res = engine.processReading(nightReading, testThresholds, t0);
+    assert.equal(res.hasAlert, false);
+
+    // After 8 seconds (exceeding testThresholds.persistenceDurationSec * 1.5 = 7.5s)
+    res = engine.processReading({ ...nightReading, timestamp: t0 + 8000 }, testThresholds, t0 + 8000);
+    assert.equal(res.hasAlert, true);
+    assert.equal(res.alertCandidate?.category, 'NIGHT_FLOW');
+    assert.equal(res.alertCandidate?.severity, 'WARNING');
+  });
+
+  test('9. Daytime flow at 2:00 PM does NOT trigger NIGHT_FLOW', () => {
+    const engine = new LeakDetectionEngine();
+    // 2:00 PM UTC
+    const t0 = new Date('2026-10-22T14:00:00Z').getTime();
+    
+    // Low continuous draw during middle of the day (e.g. drip or reverse osmosis system)
+    const reading = makeReading(2.0, 2.0, t0);
+    
+    // After 10 seconds of flow during daytime
+    engine.processReading(reading, testThresholds, t0);
+    const res = engine.processReading(makeReading(2.0, 2.0, t0 + 10000), testThresholds, t0 + 10000);
+    assert.notEqual(res.alertCandidate?.category, 'NIGHT_FLOW', 'Daytime flow must never trigger night-time alert');
+  });
+
+  test('10. Midnight boundary handling accurately spans across 00:00', () => {
+    const engine = new LeakDetectionEngine();
+    
+    // Window: 23:00 to 05:00
+    // Test 23:30 (before midnight)
+    const t2330 = new Date('2026-10-22T23:30:00').getTime();
+    assert.equal(engine.isNightWindow(t2330, 23, 5), true, '23:30 must be recognized as night window');
+
+    // Test 00:30 (after midnight)
+    const t0030 = new Date('2026-10-23T00:30:00').getTime();
+    assert.equal(engine.isNightWindow(t0030, 23, 5), true, '00:30 must be recognized as night window');
+
+    // Test 04:59 (quiescent tail end)
+    const t0459 = new Date('2026-10-23T04:59:00').getTime();
+    assert.equal(engine.isNightWindow(t0459, 23, 5), true, '04:59 must be recognized as night window');
+
+    // Test 05:01 (daytime transition)
+    const t0501 = new Date('2026-10-23T05:01:00').getTime();
+    assert.equal(engine.isNightWindow(t0501, 23, 5), false, '05:01 must be recognized as day');
+  });
+
+  test('11. Non-finite values (Infinity, -Infinity, negative flows) trigger SENSOR_ANOMALY', () => {
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
+
+    // Test Infinity
+    let res = engine.processReading(makeReading(Infinity, 10.0, t0), testThresholds, t0);
+    assert.equal(res.hasAlert, true);
+    assert.equal(res.alertCandidate?.category, 'SENSOR_ANOMALY');
+    assert.equal(res.state, 'datacheck');
+
+    // Test Negative Flow
+    res = engine.processReading(makeReading(-5.0, 10.0, t0), testThresholds, t0);
+    assert.equal(res.hasAlert, true);
+    assert.equal(res.alertCandidate?.category, 'SENSOR_ANOMALY');
+    assert.equal(res.state, 'datacheck');
+  });
+
+  test('12. Stale transmission delay generates diagnostic warning', () => {
+    const engine = new LeakDetectionEngine();
+    const t0 = 1700000000000;
+
+    engine.processReading(makeReading(12.0, 12.0, t0), testThresholds, t0);
+    
+    // Jump forward 25 seconds (exceeding testThresholds.sensorTimeoutSec 10s)
+    const res = engine.processReading(makeReading(12.0, 12.0, t0 + 25000), testThresholds, t0 + 25000);
+    assert.ok(res.diagnosticNotes.some((note) => note.includes('Data transmission delay detected')));
+  });
 });
