@@ -1276,6 +1276,8 @@
     let currentMode = 'REMOTE'; // 'LOCAL', 'REMOTE', 'AUTO'
     let unackedCount = 3;
     let pendingRequestId = null;
+    let pendingExpectedInlet = null;
+    let pendingExpectedOutlet = null;
     let pendingTimeoutTimer = null;
     let lastTelemetryTimestamp = 0;
 
@@ -1700,9 +1702,21 @@
           if (topic === TOPIC_TELEMETRY) {
             lastTelemetryTimestamp = Date.now();
 
-            const inVal = parseFloat(data.inlet || data.inletFlow || 0);
-            const outVal = parseFloat(data.outlet || data.outletFlow || 0);
+            const inVal = parseFloat(data.inlet !== undefined ? data.inlet : (data.inletFlow || 0));
+            const outVal = parseFloat(data.outlet !== undefined ? data.outlet : (data.outletFlow || 0));
             const diff = inVal - outVal;
+
+            // Check if telemetry matches expected setpoint
+            if (pendingExpectedInlet !== null && pendingExpectedOutlet !== null) {
+              if (Math.abs(inVal - pendingExpectedInlet) <= 0.05 && Math.abs(outVal - pendingExpectedOutlet) <= 0.05) {
+                if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
+                pendingRequestId = null;
+                setCommandFeedback(`✔ Telemetry Synchronized! Wokwi Active: ${inVal.toFixed(2)} / ${outVal.toFixed(2)} L/min`, 'status-applied');
+                addEventLog('TELEMETRY_SYNCED', `Confirmed by incoming telemetry: In=${inVal.toFixed(2)}, Out=${outVal.toFixed(2)} (Seq #${data.sequence || 'n/a'})`, 'CONFIRMED');
+                pendingExpectedInlet = null;
+                pendingExpectedOutlet = null;
+              }
+            }
 
             // Update KPI cards
             document.getElementById('kpiInlet').textContent = inVal.toFixed(2);
