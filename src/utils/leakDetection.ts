@@ -52,6 +52,39 @@ export class LeakDetectionEngine {
   }
 
   /**
+   * Get current active incident category
+   */
+  public getActiveIncident(): AlertCategory | null {
+    return this.currentActiveIncident;
+  }
+
+  /**
+   * Helper to determine if a timestamp or explicit override falls within night window.
+   * Accurately supports midnight rollover (e.g. 23:00 to 05:00) as well as same-day windows.
+   */
+  public isNightWindow(
+    now: number,
+    startHour: number,
+    endHour: number,
+    override?: boolean
+  ): boolean {
+    if (override !== undefined) {
+      return override;
+    }
+    const currentHour = new Date(now).getHours();
+    if (startHour > endHour) {
+      // Midnight crossing: e.g. 23:00 to 05:00 -> hour >= 23 OR hour < 5
+      return currentHour >= startHour || currentHour < endHour;
+    } else if (startHour < endHour) {
+      // Same day window: e.g. 01:00 to 05:00 -> hour >= 1 AND hour < 5
+      return currentHour >= startHour && currentHour < endHour;
+    } else {
+      // Degenerate case: start == end (0-hour window)
+      return false;
+    }
+  }
+
+  /**
    * Evaluates an incoming sensor reading.
    * 
    * @param reading Incoming telemetry data
@@ -67,21 +100,42 @@ export class LeakDetectionEngine {
     let isRecovered = false;
     let recoveredCategory: AlertCategory | undefined;
 
-    // 1. Validate reading integrity
-    if (!reading.isValid || isNaN(reading.inletFlow) || isNaN(reading.outletFlow)) {
+    // 1. Validate reading integrity and numerical sanity
+    const hasValidNumbers =
+      typeof reading.inletFlow === 'number' &&
+      typeof reading.outletFlow === 'number' &&
+      isFinite(reading.inletFlow) &&
+      isFinite(reading.outletFlow) &&
+      !isNaN(reading.inletFlow) &&
+      !isNaN(reading.outletFlow);
+
+    const hasNonNegativeFlows = reading.inletFlow >= 0 && reading.outletFlow >= 0;
+
+    if (!reading.isValid || !hasValidNumbers || !hasNonNegativeFlows) {
       this.positiveMismatchStartTime = null;
       this.reversedMismatchStartTime = null;
+      this.highConsumptionStartTime = null;
+      this.nightFlowStartTime = null;
+
+      const faultReason = !hasValidNumbers
+        ? 'Corrupt or non-numeric/infinite sensor reading received from telemetry interface.'
+        : !hasNonNegativeFlows
+        ? 'Negative flow reading detected (possible sensor reverse-polarity or hardware wiring fault).'
+        : 'Telemetry packet flagged as invalid by device firmware.';
+
       return {
         hasAlert: true,
         alertCandidate: {
           category: 'SENSOR_ANOMALY',
           severity: 'WARNING',
           title: 'Sensor Reading Invalid',
-          explanation: 'Corrupt or non-numeric sensor reading received from telemetry interface.',
+          explanation: faultReason,
           durationSec: 0,
         },
-        diagnosticNotes: ['Invalid payload: check sensor wiring or telemetry parser.'],
+        diagnosticNotes: ['Invalid payload: inspect sensor wiring, ADC ground, or telemetry parser.'],
         isRecovered: false,
+        state: 'datacheck',
+        activeCategory: 'SENSOR_ANOMALY',
       };
     }
 
@@ -89,7 +143,7 @@ export class LeakDetectionEngine {
     if (this.lastReadingTimestamp !== null) {
       const timeDeltaSec = (now - this.lastReadingTimestamp) / 1000;
       if (timeDeltaSec > thresholds.sensorTimeoutSec) {
-        diagnosticNotes.push(`Data transmission delay detected (${timeDeltaSec.toFixed(1)}s gap)`);
+        diagnosticNotes.push(`Data transmission delay detected (${timeDeltaSec.toFixed(1)}s gap, timeout: ${thresholds.sensorTimeoutSec}s)`);
       }
     }
     this.lastReadingTimestamp = now;
@@ -117,19 +171,34 @@ export class LeakDetectionEngine {
             category: 'SENSOR_ANOMALY',
             severity: 'WARNING',
             title: 'Diagnostic: Outlet Exceeds Inlet Flow',
-            explanation: `Downstream outlet (${outlet.toFixed(1)} L/min) is reading higher than upstream inlet (${inlet.toFixed(1)} L/min). This indicates sensor miscalibration, unmetered auxiliary inlet, or expansion tank release.`,
+            explanation: `Downstream outlet (${outlet.toFixed(1)} L/min) is reading higher than upstream inlet (${inlet.toFixed(1)} L/min) by ${(outlet - inlet).toFixed(1)} L/min. This indicates sensor miscalibration, unmetered auxiliary inlet, or expansion tank release — NOT a pipe leak.`,
             durationSec: Math.round(durationSec),
           },
           diagnosticNotes: [
             'Outlet > Inlet mismatch detected.',
-            'Inspect sensor calibration factors and reverse-flow check valves.',
+            'Inspect sensor calibration factors, check-valves, and unmetered auxiliary feeds.',
           ],
           isRecovered: false,
+          state: 'datacheck',
+          activeCategory: 'SENSOR_ANOMALY',
         };
       } else {
         diagnosticNotes.push(`Reversed flow mismatch filtering (${durationSec.toFixed(1)}s / ${thresholds.persistenceDurationSec}s)`);
+        return {
+          hasAlert: false,
+          alertCandidate: null,
+          diagnosticNotes,
+          isRecovered: false,
+          state: 'checking',
+          activeCategory: this.currentActiveIncident,
+        };
       }
     } else {
+      if (this.currentActiveIncident === 'SENSOR_ANOMALY') {
+        isRecovered = true;
+        recoveredCategory = 'SENSOR_ANOMALY';
+        this.currentActiveIncident = null;
+      }
       this.reversedMismatchStartTime = null;
     }
 
@@ -149,7 +218,7 @@ export class LeakDetectionEngine {
             category: 'SUSPECTED_LEAK',
             severity: 'CRITICAL',
             title: 'Suspected Water Leakage Detected',
-            explanation: `Inlet flow exceeds outlet flow by ${flowDiff.toFixed(1)} L/min continuously for ${Math.round(durationSec)}s. Possible pipe breach, burst joint, or unmetered fixture loss.`,
+            explanation: `Inlet flow exceeds outlet flow by ${flowDiff.toFixed(1)} L/min continuously for ${Math.round(durationSec)}s. Possible pipe breach, burst joint, or unmetered fixture loss between monitoring points.`,
             durationSec: Math.round(durationSec),
           },
           diagnosticNotes: [
@@ -157,9 +226,19 @@ export class LeakDetectionEngine {
             'Dual-sensor mismatch indicates suspected loss, pending physical inspection.',
           ],
           isRecovered: false,
+          state: 'leak',
+          activeCategory: 'SUSPECTED_LEAK',
         };
       } else {
         diagnosticNotes.push(`Leak persistence filter active (${durationSec.toFixed(1)}s / ${thresholds.persistenceDurationSec}s)`);
+        return {
+          hasAlert: false,
+          alertCandidate: null,
+          diagnosticNotes,
+          isRecovered: false,
+          state: 'checking',
+          activeCategory: this.currentActiveIncident,
+        };
       }
     } else {
       // Normal flow difference
@@ -187,11 +266,13 @@ export class LeakDetectionEngine {
             category: 'ABNORMAL_CONSUMPTION',
             severity: 'WARNING',
             title: 'Abnormal High Consumption',
-            explanation: `Water draw rate of ${inlet.toFixed(1)} L/min exceeds maximum threshold (${thresholds.highConsumptionThreshold} L/min) for ${Math.round(durationSec)}s. Check for stuck valves or open taps.`,
+            explanation: `Water draw rate of ${inlet.toFixed(1)} L/min exceeds maximum threshold (${thresholds.highConsumptionThreshold.toFixed(1)} L/min) for ${Math.round(durationSec)}s. Meters remain balanced; check for stuck commercial valves or open taps.`,
             durationSec: Math.round(durationSec),
           },
-          diagnosticNotes: [`High demand: ${inlet.toFixed(1)} L/min sustained.`],
+          diagnosticNotes: [`High demand: ${inlet.toFixed(1)} L/min sustained with balanced metering.`],
           isRecovered: false,
+          state: 'high',
+          activeCategory: 'ABNORMAL_CONSUMPTION',
         };
       }
     } else {
@@ -204,10 +285,12 @@ export class LeakDetectionEngine {
     }
 
     // 6. Evaluate Continuous Night-time Flow
-    const currentHour = new Date(now).getHours();
-    const isNightTime = thresholds.nightTimeStartHour > thresholds.nightTimeEndHour
-      ? (currentHour >= thresholds.nightTimeStartHour || currentHour < thresholds.nightTimeEndHour)
-      : (currentHour >= thresholds.nightTimeStartHour && currentHour < thresholds.nightTimeEndHour);
+    const isNightTime = this.isNightWindow(
+      now,
+      thresholds.nightTimeStartHour,
+      thresholds.nightTimeEndHour,
+      reading.isNightTimeOverride
+    );
 
     if (isNightTime && inlet >= thresholds.nightTimeThreshold && outlet >= thresholds.nightTimeThreshold) {
       if (this.nightFlowStartTime === null) {
@@ -224,11 +307,13 @@ export class LeakDetectionEngine {
             category: 'NIGHT_FLOW',
             severity: 'WARNING',
             title: 'Continuous Night-time Consumption',
-            explanation: `Unbroken water flow (${inlet.toFixed(1)} L/min) detected during quiescent night hours (${thresholds.nightTimeStartHour}:00 - ${thresholds.nightTimeEndHour}:00). May indicate running toilet or irrigation leak.`,
+            explanation: `Unbroken water flow (${inlet.toFixed(1)} L/min) detected during quiescent night hours (${thresholds.nightTimeStartHour}:00 - ${thresholds.nightTimeEndHour}:00). May indicate running toilet, irrigation leak, or dripping fixtures.`,
             durationSec: Math.round(durationSec),
           },
           diagnosticNotes: ['Night flow exceeds quiescent baseline.'],
           isRecovered: false,
+          state: 'high',
+          activeCategory: 'NIGHT_FLOW',
         };
       }
     } else {
@@ -254,6 +339,8 @@ export class LeakDetectionEngine {
         diagnosticNotes: ['Flow stabilized within expected tolerances.'],
         isRecovered: true,
         recoveredCategory,
+        state: 'normal',
+        activeCategory: null,
       };
     }
 
@@ -263,6 +350,8 @@ export class LeakDetectionEngine {
       alertCandidate: null,
       diagnosticNotes,
       isRecovered: false,
+      state: 'normal',
+      activeCategory: null,
     };
   }
 }
