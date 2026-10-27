@@ -303,24 +303,40 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
 
   const char* cmd = doc["command"];
   if (cmd) {
-    if (strcmp(cmd, "set_flow") == 0) {
-      float inVal = doc["inlet"].as<float>();
-      float outVal = doc["outlet"].as<float>();
+    if (strcmp(cmd, "set_flow") == 0 || strcmp(cmd, "set_scada") == 0) {
+      float inVal = doc.containsKey("inlet") ? doc["inlet"].as<float>() : manualInlet;
+      float outVal = doc.containsKey("outlet") ? doc["outlet"].as<float>() : manualOutlet;
       const char* reqIdC = doc["requestId"] | "";
       String reqId = String(reqIdC);
 
       // Validate bounds 0.0 to 100.0 L/min
       if (isnan(inVal) || isnan(outVal) || inVal < 0.0 || inVal > 100.0 || outVal < 0.0 || outVal > 100.0) {
         publishAck(reqId, "rejected_range", inVal, outVal);
-        Serial.println("[COMMAND] Rejected set_flow: out of range (0-100 L/min)");
+        Serial.println("[COMMAND] Rejected set_flow/set_scada: out of range (0-100 L/min)");
       } else {
         manualInlet = inVal;
         manualOutlet = outVal;
+        if (doc.containsKey("tank1")) {
+          tankLevel1 = doc["tank1"].as<float>();
+        }
+        if (doc.containsKey("tank2")) {
+          tankLevel2 = doc["tank2"].as<float>();
+        }
+        if (doc.containsKey("valve1")) {
+          valve1State = String((const char*)doc["valve1"]);
+        }
+        if (doc.containsKey("valve2")) {
+          valve2State = String((const char*)doc["valve2"]);
+        }
+        if (doc.containsKey("mode")) {
+          scadaMode = String((const char*)doc["mode"]);
+        }
         lastRequestId = reqId;
         activeScenario = "manual";
         publishAck(reqId, "applied", inVal, outVal);
         publishTelemetryNow();
-        Serial.printf("[COMMAND] Applied set_flow: In=%.2f, Out=%.2f, ReqId=%s\n", inVal, outVal, reqId.c_str());
+        Serial.printf("[COMMAND] Applied %s: In=%.2f, Out=%.2f, T1=%.2fm, T2=%.2fm, V1=%s, V2=%s, Mode=%s, ReqId=%s\n",
+                      cmd, inVal, outVal, tankLevel1, tankLevel2, valve1State.c_str(), valve2State.c_str(), scadaMode.c_str(), reqId.c_str());
       }
     } else if (strcmp(cmd, "set_scenario") == 0) {
       const char* sc = doc["scenario"];

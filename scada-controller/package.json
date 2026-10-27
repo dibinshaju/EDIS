@@ -1,0 +1,11 @@
+{
+  "name": "waterguard-scada-controller",
+  "version": "1.0.0",
+  "description": "Standalone Industrial SCADA Water Control Panel for WaterGuard-IoT / EDIS",
+  "scripts": {
+    "start": "serve . -l 3000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
