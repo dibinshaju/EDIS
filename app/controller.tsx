@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   telemetryBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: RADIUS.xs,
+    borderRadius: 4,
   },
   badgeNormal: {
     backgroundColor: '#064E3B',
