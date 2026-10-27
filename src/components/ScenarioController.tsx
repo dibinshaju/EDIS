@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSensor } from '../context/SensorContext';
+import { useMqtt } from '../context/MqttContext';
 import { ScenarioType } from '../types/sensor';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +68,7 @@ const SCENARIOS: ScenarioOption[] = [
 
 export const ScenarioController: React.FC = () => {
   const { activeScenario, setScenario, resetSimulator, dataSource, setDataSource } = useSensor();
+  const { status: mqttStatus, connect } = useMqtt();
 
   return (
     <View style={styles.container}>
@@ -100,7 +102,12 @@ export const ScenarioController: React.FC = () => {
 
         <TouchableOpacity
           style={[styles.sourceTab, dataSource === 'wokwi' && styles.sourceTabActive]}
-          onPress={() => setDataSource('wokwi')}
+          onPress={() => {
+            setDataSource('wokwi');
+            if (mqttStatus !== 'connected') {
+              connect();
+            }
+          }}
         >
           <Ionicons
             name="hardware-chip-outline"
