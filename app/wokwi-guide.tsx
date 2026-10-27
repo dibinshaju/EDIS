@@ -11,7 +11,12 @@ import { formatTime } from '../src/utils/format';
 export default function WokwiGuideScreen() {
   const router = useRouter();
   const { status: mqttStatus, lastRawPayload, lastMessageTime, connect, disconnect, brokerUrl } = useMqtt();
-  const { setDataSource, dataSource } = useSensor();
+  const { setDataSource, dataSource, inFlow, outFlow, mismatch, statusState } = useSensor();
+
+  const handleConnect = () => {
+    connect();
+    setDataSource('wokwi');
+  };
 
   return (
     <View style={styles.screen}>
@@ -45,9 +50,24 @@ export default function WokwiGuideScreen() {
           <Text style={styles.brokerLabel}>Topic: <Text style={styles.brokerVal}>water/demo/telemetry</Text></Text>
           <Text style={styles.brokerLabel}>Last Packet: <Text style={styles.brokerVal}>{lastMessageTime ? formatTime(lastMessageTime) : 'None received yet'}</Text></Text>
 
+          <View style={{ marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+            <Text style={styles.brokerLabel}>
+              Active Pipeline:{' '}
+              <Text style={[styles.brokerVal, { color: dataSource === 'wokwi' ? COLORS.successText : COLORS.darkCharcoal }]}>
+                {dataSource.toUpperCase()} {dataSource === 'wokwi' ? '(Live MQTT Pipeline)' : '(Internal Simulator)'}
+              </Text>
+            </Text>
+            <Text style={styles.brokerLabel}>
+              Shared Sensor State:{' '}
+              <Text style={styles.brokerVal}>
+                In: {inFlow.toFixed(1)} L/m | Out: {outFlow.toFixed(1)} L/m | Diff: {mismatch > 0 ? '+' : ''}{mismatch.toFixed(1)} ({statusState.toUpperCase()})
+              </Text>
+            </Text>
+          </View>
+
           <View style={styles.actionRow}>
             {mqttStatus !== 'connected' ? (
-              <TouchableOpacity style={styles.btnPrimary} onPress={connect}>
+              <TouchableOpacity style={styles.btnPrimary} onPress={handleConnect}>
                 <Ionicons name="link" size={13} color="#FFFFFF" />
                 <Text style={styles.btnPrimaryText}>Connect Bridge</Text>
               </TouchableOpacity>
@@ -59,10 +79,18 @@ export default function WokwiGuideScreen() {
             )}
 
             <TouchableOpacity
-              style={styles.btnSecondary}
+              style={[
+                styles.btnSecondary,
+                dataSource === 'wokwi' && { backgroundColor: COLORS.darkCharcoal },
+              ]}
               onPress={() => setDataSource(dataSource === 'wokwi' ? 'demo' : 'wokwi')}
             >
-              <Text style={styles.btnSecondaryText}>
+              <Text
+                style={[
+                  styles.btnSecondaryText,
+                  dataSource === 'wokwi' && { color: '#FFFFFF' },
+                ]}
+              >
                 Source: {dataSource.toUpperCase()}
               </Text>
             </TouchableOpacity>
