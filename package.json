@@ -30,7 +30,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "scada": "npx --yes serve scada-controller -l 3000",
+    "scada": "node scada-controller/server.js",
     "build": "expo export --platform web"
   },
   "private": true
