@@ -720,17 +720,6 @@ export default function DashboardScreen() {
                 style={styles.quickNavBtn}
                 onPress={() => {
                   setShowScenarioModal(false);
-                  router.push('/controller');
-                }}
-              >
-                <Ionicons name="game-controller" size={16} color="#0D140D" />
-                <Text style={styles.quickNavText}>Remote</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickNavBtn}
-                onPress={() => {
-                  setShowScenarioModal(false);
                   router.push('/wokwi-guide');
                 }}
               >
