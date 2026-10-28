@@ -1345,9 +1345,9 @@
     <div class="ops-section">
       
       <!-- Left: Manual Setpoints & Valves -->
-      <div class="ctrl-box">
+      <div class="ctrl-box ctrl-box-controls">
         <div class="ctrl-box-title">
-          <span>Manual Flow &amp; Target Levels</span>
+          <span>Manual Flow &amp; Target Setpoints</span>
           <span style="font-size: 11px; color: #38BDF8;">Mode: <span id="currentModeLabel">REMOTE</span></span>
         </div>
 
@@ -1388,15 +1388,16 @@
 
         <div style="display: flex; gap: 6px; margin-top: 10px;">
           <span style="font-size: 11px; color: #94A3B8; align-self: center;">Operating Mode:</span>
-          <button class="btn-preset" id="btnModeLocal" onclick="setOperatingMode('LOCAL')">LOCAL</button>
-          <button class="btn-preset active" id="btnModeRemote" onclick="setOperatingMode('REMOTE')">REMOTE</button>
-          <button class="btn-preset" id="btnModeAuto" onclick="setOperatingMode('AUTO')">AUTO</button>
+          <button class="btn-preset-mode" id="btnModeLocal" onclick="setOperatingMode('LOCAL')">LOCAL</button>
+          <button class="btn-preset-mode active" id="btnModeRemote" onclick="setOperatingMode('REMOTE')">REMOTE</button>
+          <button class="btn-preset-mode" id="btnModeAuto" onclick="setOperatingMode('AUTO')">AUTO</button>
         </div>
 
         <!-- Action Row -->
         <div class="action-row">
           <button class="btn-send-command" onclick="sendScadaCommand()">
-            <span>⚡</span> SEND SCADA COMMAND
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <span>TRANSMIT SETPOINTS TO ESP32</span>
           </button>
           <div id="commandStatusFeedback" class="command-feedback">
             Ready to publish setpoints to Wokwi ESP32
