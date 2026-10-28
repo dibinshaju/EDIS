@@ -1848,11 +1848,11 @@
       if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
       pendingTimeoutTimer = setTimeout(() => {
         if (pendingRequestId === reqId) {
-          setCommandFeedback(`Command Timed Out: No ACK received from ESP32 within 5 seconds.`, 'status-error');
-          addEventLog('ERROR', 'CMD_TIMEOUT', `ReqId ${reqId} timed out awaiting firmware ACK after 5000ms`, 'TIMEOUT');
+          setCommandFeedback(`Command Timed Out: No ACK received from ESP32 within 10s. Check Wokwi Serial Monitor to ensure ESP32 is connected to WiFi.`, 'status-error');
+          addEventLog('ERROR', 'CMD_TIMEOUT', `ReqId ${reqId}: No firmware ACK received within 10s. Verify Wokwi WiFi/MQTT connection`, 'TIMEOUT');
           pendingRequestId = null;
         }
-      }, 5000);
+      }, 10000);
     }
 
     function setCommandFeedback(text, cls) {
