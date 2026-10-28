@@ -53,6 +53,14 @@ export default function LoginScreen() {
     }, 500);
   };
 
+  const safeBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
+
   const handleVerifyOtp = async () => {
     if (otp.length < 6) {
       setErrorMsg('Please enter the 6-digit verification code.');
@@ -66,7 +74,7 @@ export default function LoginScreen() {
       const res = await loginFirebaseOtp(fullPhone, otp);
       setIsLoading(false);
       if (res.success) {
-        router.back();
+        safeBack();
       } else {
         setErrorMsg(res.error || 'Verification failed.');
       }
@@ -78,7 +86,7 @@ export default function LoginScreen() {
       }
       await loginDemo(fullPhone);
       setIsLoading(false);
-      router.back();
+      safeBack();
     }
   };
 
@@ -86,7 +94,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     await loginDemo('+919876543210');
     setIsLoading(false);
-    router.back();
+    safeBack();
   };
 
   return (
@@ -95,7 +103,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.closeBtn} onPress={safeBack}>
           <Ionicons name="close" size={18} color={COLORS.textPrimary} />
         </TouchableOpacity>
 

@@ -19,10 +19,18 @@ export default function WokwiGuideScreen() {
     setDataSource('wokwi');
   };
 
+  const safeBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={safeBack}>
           <Ionicons name="arrow-back" size={18} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
