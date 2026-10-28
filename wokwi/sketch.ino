@@ -196,17 +196,21 @@ void onMessage(char* topic, byte* payload, unsigned int len) {
 }
 
 void connectWiFi() {
-  Serial.print("[WiFi] Connecting to Wokwi-GUEST (Ch 6)...");
+  Serial.print("[WiFi] Connecting to Wokwi-GUEST");
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
+
   int tries = 0;
-  while (WiFi.status() != WL_CONNECTED && tries < 25) {
-    delay(400); Serial.print("."); tries++;
+  while (WiFi.status() != WL_CONNECTED && tries < 60) {
+    delay(200);
+    Serial.print(".");
+    tries++;
   }
+
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println(" Connected! IP: " + WiFi.localIP().toString());
+    Serial.println("\n[WiFi] Connected! IP: " + WiFi.localIP().toString());
   } else {
-    Serial.println(" Timeout (will retry)");
+    Serial.println("\n[WiFi] Awaiting gateway...");
   }
 }
 
@@ -238,19 +242,24 @@ void setup() {
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
-    if (millis() - lastWiFiCheck >= 5000) {
+    if (millis() - lastWiFiCheck >= 20000) {
       lastWiFiCheck = millis();
-      connectWiFi();
+      Serial.println("[WiFi] Re-initiating connection...");
+      WiFi.disconnect();
+      delay(100);
+      WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
+    }
+    delay(100);
+    return;
+  }
+
+  if (!mqtt.connected()) {
+    if (millis() - lastWiFiCheck >= 3000) {
+      lastWiFiCheck = millis();
+      connectMQTT();
     }
   } else {
-    if (!mqtt.connected()) {
-      if (millis() - lastWiFiCheck >= 3000) {
-        lastWiFiCheck = millis();
-        connectMQTT();
-      }
-    } else {
-      mqtt.loop();
-    }
+    mqtt.loop();
   }
 
   if (millis() - lastPublish >= 2000) {
