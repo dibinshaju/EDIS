@@ -196,6 +196,13 @@ void loop() {
   // Periodic Telemetry Publish (reads currentInlet / currentOutlet persistently)
   unsigned long now = millis();
   if (now - lastPublishTime >= PUBLISH_INTERVAL_MS) {
+    // If SCADA mode is switched to "LOCAL", allow pot1 on GPIO 12 to drive inlet
+    if (scadaMode == "LOCAL") {
+      float potVal = readFlowSensor(PIN_POT_1);
+      if (abs(potVal - currentInlet) > 1.0) { // Deadband to prevent ADC jitter
+        currentInlet = potVal;
+      }
+    }
     publishTelemetryNow();
   }
 }
