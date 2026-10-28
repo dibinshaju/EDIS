@@ -53,7 +53,6 @@ String valve2State = "OPEN";
 String scadaMode = "REMOTE"; // "LOCAL", "REMOTE", "AUTO"
 String currentScenario = "normal";
 String lastRequestId = "";
-bool isHardwarePotMode = false;
 bool alarmActive = false;
 
 // Function Prototypes
