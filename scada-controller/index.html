@@ -1515,6 +1515,8 @@
     let pendingExpectedOutlet = null;
     let pendingTimeoutTimer = null;
     let lastTelemetryTimestamp = 0;
+    let currentLogFilter = 'ALL';
+    let currentSystemAlarmState = 'NORMAL';
 
     // Clock
     function updateClock() {
