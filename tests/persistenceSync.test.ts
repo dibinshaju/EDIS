@@ -141,4 +141,37 @@ describe('End-to-End Persistence & Dashboard Synchronization Verification', () =
     assert.equal(currentOutlet, 8.0);
     assert.equal(scenario, 'normal');
   });
+
+  test('E. Exact JSON serialization format with clean numeric floats parses without corruption', () => {
+    // Verifies JSON emitted by doc["inlet"] = inletLpm (no dangling pointers)
+    const jsonFromFirmware = JSON.stringify({
+      deviceId: 'waterguard-wokwi-esp32',
+      source: 'wokwi',
+      sequence: 5,
+      ts: 10,
+      inlet: 8,
+      inletFlow: 8,
+      outlet: 3,
+      outletFlow: 3,
+      isValid: true,
+      isSimulated: true,
+      scenario: 'suspected_leak',
+      notes: 'Inlet: 8.00 L/min, Outlet: 3.00 L/min',
+      tank1: 2.89,
+      tank2: 2.89,
+      valve1: 'OPEN',
+      valve2: 'OPEN',
+      scadaMode: 'REMOTE',
+    });
+
+    const { reading, error } = parseAndNormalizeTelemetry(jsonFromFirmware);
+    assert.equal(error, undefined);
+    assert.ok(reading !== null);
+    assert.equal(reading.inletFlow, 8);
+    assert.equal(reading.outletFlow, 3);
+    assert.equal(reading.flowDifference, 5);
+    assert.equal(reading.sequence, 5);
+    assert.equal(reading.scenario, 'suspected_leak');
+    assert.equal(reading.source, 'wokwi');
+  });
 });
