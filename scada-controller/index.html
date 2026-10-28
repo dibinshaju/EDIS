@@ -1406,57 +1406,90 @@
 
       </div>
 
-      <!-- Right: Quick Simulation Presets & Info -->
-      <div class="ctrl-box">
+      <!-- Right: System Event Log (Prominent Industrial SCADA Log) -->
+      <div class="ctrl-box ctrl-box-log">
         <div class="ctrl-box-title">
-          <span>Quick Simulation Presets</span>
-          <span style="font-size: 11px; color: #94A3B8;">Explicit Action Required</span>
-        </div>
-
-        <p style="font-size: 11px; color: #94A3B8; line-height: 1.4; margin-bottom: 8px;">
-          Click a preset to populate test parameters, then click <strong>SEND SCADA COMMAND</strong> to transmit over MQTT. Non-default values will remain persistent until another command is sent.
-        </p>
-
-        <div class="presets-container">
-          <button class="btn-preset" onclick="loadPreset(8.0, 8.0, 2.89, 2.89, 'Normal Balanced')">Normal (8.0 / 8.0)</button>
-          <button class="btn-preset" onclick="loadPreset(8.0, 3.0, 3.20, 2.10, 'Suspected Leak')">Simulate Leak (-5.0 L/m)</button>
-          <button class="btn-preset" onclick="loadPreset(30.0, 30.0, 4.50, 4.50, 'High Consumption')">High Consumption (30 L/m)</button>
-          <button class="btn-preset" onclick="loadPreset(3.0, 8.0, 2.00, 3.50, 'Reversed Mismatch')">Reversed Anomaly (+5.0 L/m)</button>
-          <button class="btn-preset btn-reset" onclick="triggerResetToNormal()">Reset to Normal Baseline</button>
-        </div>
-
-        <div style="background: #14171A; border: 1px solid #2B323B; border-radius: 3px; padding: 8px; margin-top: 12px;">
-          <div style="font-size: 10px; color: #64748B; font-family: var(--font-mono); margin-bottom: 4px;">MQTT TOPICS CONFIGURATION</div>
-          <div style="font-size: 11px; color: #93C5FD; font-family: var(--font-mono);">
-            Command: <code style="color: #FCD34D;">water/demo/command</code> | ACK: <code style="color: #6EE7B7;">water/demo/ack</code><br>
-            Telemetry: <code style="color: #A7F3D0;">water/demo/telemetry</code> | Broker: <code style="color: #CBD5E1;">broker.emqx.io:8084</code>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="live-indicator-dot"></span>
+            <span>SYSTEM EVENT LOG</span>
+            <span id="logCounterBadge" class="log-count-tag">0 EVENTS</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <button class="log-filter-btn active" data-filter="ALL" onclick="setLogFilter('ALL')">ALL</button>
+            <button class="log-filter-btn" data-filter="CMD" onclick="setLogFilter('CMD')">CMD</button>
+            <button class="log-filter-btn" data-filter="TLM" onclick="setLogFilter('TLM')">TLM</button>
+            <button class="log-filter-btn" data-filter="ALM" onclick="setLogFilter('ALM')">ALM</button>
+            <button class="log-clear-btn" onclick="clearEventLog()" title="Clear Event Log">CLEAR</button>
           </div>
         </div>
 
+        <div class="log-table-wrapper">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th style="width: 78px;">TIMESTAMP</th>
+                <th style="width: 130px;">EVENT TYPE</th>
+                <th>OPERATIONAL DETAILS</th>
+                <th style="width: 105px; text-align: center;">STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="eventLogBody">
+              <!-- Dynamic SCADA event entries -->
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
 
-    <!-- Live Command & Event Log -->
-    <div class="log-panel">
-      <div class="log-header">
-        <span class="log-title">SCADA Command &amp; Telemetry Event Log</span>
-        <button onclick="clearEventLog()" style="background: none; border: none; color: #94A3B8; font-size: 11px; cursor: pointer; text-decoration: underline;">Clear Log</button>
+    <!-- Presets Section: Bottom Wide Panel -->
+    <div class="presets-panel">
+      <div class="presets-header">
+        <div class="presets-header-left">
+          <span class="presets-title">SIMULATION PRESETS</span>
+          <span class="presets-subtitle">EXPLICIT TRANSMISSION REQUIRED TO APPLY</span>
+        </div>
+        <div class="mqtt-meta-pill">
+          <span>BROKER: <code>broker.emqx.io:8084</code></span>
+          <span class="sep">|</span>
+          <span>CMD: <code>water/demo/command</code></span>
+          <span class="sep">|</span>
+          <span>ACK: <code>water/demo/ack</code></span>
+          <span class="sep">|</span>
+          <span>TLM: <code>water/demo/telemetry</code></span>
+        </div>
       </div>
-      <div class="log-table-wrapper">
-        <table class="log-table">
-          <thead>
-            <tr>
-              <th style="width: 80px;">Time</th>
-              <th style="width: 140px;">Event</th>
-              <th>Details</th>
-              <th style="width: 110px;">Status</th>
-            </tr>
-          </thead>
-          <tbody id="eventLogBody">
-            <!-- Dynamic rows inserted here -->
-          </tbody>
-        </table>
+
+      <div class="presets-row">
+        <button class="btn-preset-card" onclick="loadPreset(8.0, 8.0, 2.89, 2.89, 'Normal Balanced')">
+          <div class="preset-name">Normal Balanced</div>
+          <div class="preset-desc">8.0 / 8.0 L/m (Delta 0.0)</div>
+        </button>
+
+        <button class="btn-preset-card preset-leak" onclick="loadPreset(8.0, 3.0, 3.20, 2.10, 'Suspected Leak')">
+          <div class="preset-name" style="color: #F87171;">Simulate Leak</div>
+          <div class="preset-desc">8.0 / 3.0 L/m (-5.0 Deficit)</div>
+        </button>
+
+        <button class="btn-preset-card preset-high" onclick="loadPreset(30.0, 30.0, 4.50, 4.50, 'High Consumption')">
+          <div class="preset-name" style="color: #38BDF8;">High Consumption</div>
+          <div class="preset-desc">30.0 / 30.0 L/m (Heavy Draw)</div>
+        </button>
+
+        <button class="btn-preset-card preset-reversed" onclick="loadPreset(3.0, 8.0, 2.00, 3.50, 'Reversed Anomaly')">
+          <div class="preset-name" style="color: #FBBF24;">Reversed Anomaly</div>
+          <div class="preset-desc">3.0 / 8.0 L/m (+5.0 Inflow)</div>
+        </button>
+
+        <button class="btn-preset-card preset-night" onclick="loadPreset(2.0, 2.0, 2.50, 2.50, 'Night Flow Baseline')">
+          <div class="preset-name" style="color: #A5B4FC;">Night Flow</div>
+          <div class="preset-desc">2.0 / 2.0 L/m (Low Demand)</div>
+        </button>
+
+        <button class="btn-preset-card preset-reset" onclick="triggerResetToNormal()">
+          <div class="preset-name">Reset Baseline</div>
+          <div class="preset-desc">8.0 / 8.0 L/m (Firmware Default)</div>
+        </button>
       </div>
     </div>
 
