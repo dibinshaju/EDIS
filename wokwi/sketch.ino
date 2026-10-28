@@ -181,17 +181,22 @@ void publishAck(String reqId, String status, float inVal, float outVal) {
   Serial.printf("[STAGE 3: WOKWI ACK PUBLISHED] to %s: %s\n", TOPIC_ACK, ackBuf);
 }
 
-void loop() {
-  // Ensure WiFi remains connected
-  if (WiFi.status() != WL_CONNECTED) {
-    setupWiFi();
-  }
+unsigned long lastWiFiRetry = 0;
 
-  // Ensure MQTT client is connected
-  if (!mqttClient.connected()) {
-    reconnectMQTT();
+void loop() {
+  // Ensure WiFi remains connected (retry every 5 seconds if disconnected)
+  if (WiFi.status() != WL_CONNECTED) {
+    if (millis() - lastWiFiRetry >= 5000) {
+      lastWiFiRetry = millis();
+      setupWiFi();
+    }
+  } else {
+    // Only attempt MQTT connection if WiFi is connected
+    if (!mqttClient.connected()) {
+      reconnectMQTT();
+    }
+    mqttClient.loop();
   }
-  mqttClient.loop();
 
   // Periodic Telemetry Publish (reads currentInlet / currentOutlet persistently)
   unsigned long now = millis();
@@ -203,7 +208,15 @@ void loop() {
         currentInlet = potVal;
       }
     }
-    publishTelemetryNow();
+
+    if (mqttClient.connected()) {
+      publishTelemetryNow();
+    } else {
+      lastPublishTime = now;
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("[MQTT] Telemetry deferred: awaiting broker connection...");
+      }
+    }
   }
 }
 
@@ -217,12 +230,14 @@ float readFlowSensor(int pin) {
 // WiFi Setup
 void setupWiFi() {
   Serial.print("[WiFi] Connecting to ");
-  Serial.println(WIFI_SSID);
+  Serial.print(WIFI_SSID);
+  Serial.println(" (Channel 6)...");
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  // Passing channel 6 skips channel scanning and connects instantly in Wokwi
+  WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
 
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
     Serial.print(".");
     attempts++;
@@ -237,6 +252,10 @@ void setupWiFi() {
 
 // MQTT Reconnection
 void reconnectMQTT() {
+  if (WiFi.status() != WL_CONNECTED) {
+    return;
+  }
+
   int retries = 0;
   while (!mqttClient.connected() && retries < 3) {
     String clientId = "ESP32_Wokwi_" + String(random(0xffff), HEX);
