@@ -1753,22 +1753,31 @@
       previewTank(1, 2.89);
       previewTank(2, 2.89);
 
+      // Stage 1: Submitted
+      addEventLog('INFO', 'CMD_SUBMITTED', `Reset baseline command staged (ReqId: ${reqId})`, 'PENDING');
+
       if (!mqttClient || !mqttClient.connected) {
         setCommandFeedback('Error: MQTT Broker Disconnected', 'status-error');
-        addEventLog('RESET', 'Reset failed: MQTT offline', 'FAILED');
+        addEventLog('ERROR', 'CMD_FAILURE', 'Reset failed: MQTT Broker Disconnected', 'FAILED');
         return;
       }
 
       setCommandFeedback(`Transmitting RESET command (ReqId: ${reqId})...`, 'status-pending');
-      addEventLog('RESET_SENT', `Reset baseline command transmitted (ReqId: ${reqId})`, 'PENDING');
 
       mqttClient.publish(TOPIC_COMMAND, JSON.stringify({
         command: 'reset',
         requestId: reqId,
         timestamp: Date.now()
-      }));
-
-      startAckTimeoutTimer(reqId);
+      }), { qos: 0 }, (err) => {
+        if (err) {
+          setCommandFeedback(`Publish Error: ${err.message}`, 'status-error');
+          addEventLog('ERROR', 'CMD_ERROR', `Reset publish error: ${err.message}`, 'FAILED');
+        } else {
+          // Stage 2: Published
+          addEventLog('INFO', 'MQTT_PUBLISHED', `Reset command published to ${TOPIC_COMMAND} (ReqId: ${reqId})`, 'SENT');
+          startAckTimeoutTimer(reqId);
+        }
+      });
     }
 
     // Send SCADA Command over MQTT
@@ -1810,22 +1819,26 @@
         timestamp: Math.floor(Date.now() / 1000)
       };
 
+      // Stage 1: Submitted
+      addEventLog('INFO', 'CMD_SUBMITTED', `Setpoints staged: In=${inlet.toFixed(1)} L/m, Out=${outlet.toFixed(1)} L/m, T1=${t1.toFixed(2)}m, T2=${t2.toFixed(2)}m, Mode=${currentMode} (ReqId: ${reqId})`, 'PENDING');
+
       if (!mqttClient || !mqttClient.connected) {
         setCommandFeedback('Error: MQTT Broker Disconnected. Cannot publish command.', 'status-error');
-        addEventLog('CMD_FAILED', `Failed to send set_scada: MQTT Offline`, 'FAILED');
+        addEventLog('ERROR', 'CMD_FAILURE', 'Failed to publish command: MQTT Offline', 'FAILED');
         return;
       }
 
       setCommandFeedback(`Transmitting setpoints (ReqId: ${reqId})...`, 'status-pending');
-      addEventLog('CMD_SENT', `set_scada (Inlet: ${inlet}, Outlet: ${outlet}, T1: ${t1}m, T2: ${t2}m, Mode: ${currentMode})`, 'PENDING');
-      console.log('[STAGE 1: SCADA CONTROLLER PUBLISHED]', payload);
+      console.log('[STAGE 1: SCADA CONTROLLER SUBMITTED]', payload);
 
       mqttClient.publish(TOPIC_COMMAND, JSON.stringify(payload), { qos: 0 }, (err) => {
         if (err) {
           setCommandFeedback(`Publish Error: ${err.message}`, 'status-error');
-          addEventLog('CMD_ERROR', `Publish error: ${err.message}`, 'FAILED');
+          addEventLog('ERROR', 'CMD_ERROR', `Publish error: ${err.message}`, 'FAILED');
         } else {
-          setCommandFeedback(`Published! Awaiting Wokwi ESP32 confirmation & telemetry...`, 'status-pending');
+          // Stage 2: Published
+          addEventLog('INFO', 'MQTT_PUBLISHED', `Command published to ${TOPIC_COMMAND} (ReqId: ${reqId})`, 'SENT');
+          setCommandFeedback(`Published. Awaiting Wokwi ESP32 confirmation & telemetry...`, 'status-pending');
           startAckTimeoutTimer(reqId);
         }
       });
@@ -1835,8 +1848,8 @@
       if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
       pendingTimeoutTimer = setTimeout(() => {
         if (pendingRequestId === reqId) {
-          setCommandFeedback(`⚠ Command Timed Out: No ACK received from ESP32 within 5 seconds.`, 'status-error');
-          addEventLog('CMD_TIMEOUT', `ReqId ${reqId} timed out awaiting firmware ACK`, 'TIMED OUT');
+          setCommandFeedback(`Command Timed Out: No ACK received from ESP32 within 5 seconds.`, 'status-error');
+          addEventLog('ERROR', 'CMD_TIMEOUT', `ReqId ${reqId} timed out awaiting firmware ACK after 5000ms`, 'TIMEOUT');
           pendingRequestId = null;
         }
       }, 5000);
@@ -1844,39 +1857,111 @@
 
     function setCommandFeedback(text, cls) {
       const el = document.getElementById('commandStatusFeedback');
-      el.className = 'command-feedback ' + cls;
-      el.innerHTML = text;
-    }
-
-    // Event Log
-    function addEventLog(type, details, status) {
-      const tbody = document.getElementById('eventLogBody');
-      const tr = document.createElement('tr');
-      const timeStr = new Date().toLocaleTimeString();
-
-      let badgeClass = 'badge-pending';
-      if (status === 'APPLIED' || status === 'CONFIRMED') badgeClass = 'badge-applied';
-      else if (status === 'TIMED OUT' || status === 'FAILED') badgeClass = 'badge-timeout';
-      else if (status === 'TELEMETRY') badgeClass = 'badge-rx';
-
-      tr.innerHTML = `
-        <td>${timeStr}</td>
-        <td><strong>${type}</strong></td>
-        <td>${details}</td>
-        <td><span class="log-badge ${badgeClass}">${status}</span></td>
-      `;
-
-      tbody.insertBefore(tr, tbody.firstChild);
-
-      // Keep max 50 entries
-      while (tbody.children.length > 50) {
-        tbody.removeChild(tbody.lastChild);
+      if (el) {
+        el.className = 'command-feedback ' + cls;
+        el.innerHTML = text;
       }
     }
 
+    // System Event Log Filter & Counter
+    function setLogFilter(cat) {
+      currentLogFilter = cat;
+      document.querySelectorAll('.log-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-filter') === cat);
+      });
+      applyLogFilter();
+    }
+
+    function applyLogFilter() {
+      const rows = document.querySelectorAll('#eventLogBody tr');
+      rows.forEach(tr => {
+        const cat = tr.getAttribute('data-cat') || 'SYS';
+        if (currentLogFilter === 'ALL' || cat === currentLogFilter) {
+          tr.style.display = '';
+        } else {
+          tr.style.display = 'none';
+        }
+      });
+    }
+
+    function updateLogCounter() {
+      const total = document.querySelectorAll('#eventLogBody tr').length;
+      const el = document.getElementById('logCounterBadge');
+      if (el) el.textContent = `${total} EVENT${total === 1 ? '' : 'S'}`;
+    }
+
+    // Comprehensive Event Log with 7-Stage Lifecycle & Visual Indicators
+    function addEventLog(severity, type, details, status) {
+      if (arguments.length === 3) {
+        status = details;
+        details = type;
+        type = severity;
+        severity = 'INFO';
+      }
+
+      const tbody = document.getElementById('eventLogBody');
+      if (!tbody) return;
+
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+
+      const sev = (severity || 'INFO').toUpperCase();
+      const stat = (status || 'PENDING').toUpperCase();
+
+      // Determine Category for filter (CMD, TLM, ALM, SYS)
+      let category = 'SYS';
+      if (type.startsWith('CMD') || type.startsWith('MQTT_PUB') || type.startsWith('RESET') || type.startsWith('WOKWI_ACK') || type.startsWith('ACK')) {
+        category = 'CMD';
+      } else if (type.startsWith('TELEMETRY') || type.startsWith('VALUES') || type.startsWith('TLM')) {
+        category = 'TLM';
+      } else if (type.includes('LEAK') || type.includes('ANOMALY') || type.includes('ALARM') || type.includes('CONSUMPTION') || type.includes('AUTO_REG')) {
+        category = 'ALM';
+      }
+
+      // Severity badge styling
+      let sevClass = 'sev-info';
+      if (sev === 'SUCCESS') sevClass = 'sev-success';
+      else if (sev === 'WARN' || sev === 'WARNING') sevClass = 'sev-warn';
+      else if (sev === 'ERROR' || sev === 'FATAL') sevClass = 'sev-error';
+
+      // Status badge styling
+      let statusClass = 'status-badge status-pending';
+      if (stat === 'CONFIRMED' || stat === 'SYNCED') statusClass = 'status-badge status-confirmed';
+      else if (stat === 'APPLIED' || stat === 'NORMAL') statusClass = 'status-badge status-applied';
+      else if (stat === 'SENT' || stat === 'PUBLISHED') statusClass = 'status-badge status-sent';
+      else if (stat === 'ACK' || stat === 'ACKNOWLEDGED') statusClass = 'status-badge status-ack';
+      else if (stat === 'FAILED' || stat === 'ERROR' || stat === 'TIMEOUT') statusClass = 'status-badge status-failed';
+      else if (stat === 'ALERT') statusClass = 'status-badge status-alert';
+
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-cat', category);
+
+      tr.innerHTML = `
+        <td style="color: #64748B; font-family: var(--font-mono); font-size: 10px;">${timeStr}</td>
+        <td><span class="sev-badge ${sevClass}">${sev}</span> <span style="font-weight: 700; color: #E2E8F0; margin-left: 4px;">${type}</span></td>
+        <td style="color: #CBD5E1;">${details}</td>
+        <td style="text-align: center;"><span class="${statusClass}">${stat}</span></td>
+      `;
+
+      if (currentLogFilter !== 'ALL' && category !== currentLogFilter) {
+        tr.style.display = 'none';
+      }
+
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      // Keep max 100 entries for performance
+      while (tbody.children.length > 100) {
+        tbody.removeChild(tbody.lastChild);
+      }
+
+      updateLogCounter();
+    }
+
     function clearEventLog() {
-      document.getElementById('eventLogBody').innerHTML = '';
-      addEventLog('SYSTEM', 'Event log cleared by user', 'APPLIED');
+      const tbody = document.getElementById('eventLogBody');
+      if (tbody) tbody.innerHTML = '';
+      updateLogCounter();
+      addEventLog('INFO', 'SYSTEM', 'Event log cleared by operator', 'APPLIED');
     }
 
     // MQTT Client Integration
@@ -1896,7 +1981,8 @@
         console.log('[MQTT] Connected successfully');
         badge.classList.add('mqtt-connected');
         statusText.textContent = 'CONNECTED';
-        addEventLog('MQTT_CONNECT', `Connected to broker (${MQTT_BROKER})`, 'CONFIRMED');
+        // Stage 7: MQTT Lifecycle
+        addEventLog('SUCCESS', 'MQTT_CONNECT', `Connected to broker (${MQTT_BROKER})`, 'CONFIRMED');
 
         mqttClient.subscribe(TOPIC_TELEMETRY, (err) => {
           if (!err) console.log('[MQTT] Subscribed to ' + TOPIC_TELEMETRY);
@@ -1910,15 +1996,21 @@
         console.error('[MQTT] Connection error:', err);
         badge.classList.remove('mqtt-connected');
         statusText.textContent = 'ERROR';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('ERROR', 'MQTT_ERROR', `Connection error: ${err.message || 'Network fault'}`, 'FAILED');
       });
 
       mqttClient.on('offline', () => {
         badge.classList.remove('mqtt-connected');
         statusText.textContent = 'DISCONNECTED';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('WARN', 'MQTT_DISCONNECT', `Broker connection lost`, 'OFFLINE');
       });
 
       mqttClient.on('reconnect', () => {
         statusText.textContent = 'RECONNECTING...';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('INFO', 'MQTT_RECONNECT', `Attempting reconnection to ${MQTT_BROKER}`, 'PENDING');
       });
 
       mqttClient.on('message', (topic, message) => {
@@ -1926,17 +2018,17 @@
         try {
           const data = JSON.parse(raw);
 
-          // 1. Handle Firmware ACK
+          // Stage 3: Handle Firmware WOKWI_ACK
           if (topic === TOPIC_ACK) {
             if (pendingRequestId && (data.requestId === pendingRequestId || data.status === 'applied' || data.status === 'reset_applied')) {
               if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
               pendingRequestId = null;
-              setCommandFeedback(`✔ ESP32 Confirmed! Applied: Inlet ${data.inlet || '-'} L/m, Outlet ${data.outlet || '-'} L/m`, 'status-applied');
-              addEventLog('ACK_CONFIRMED', `Firmware confirmed setpoints applied (ReqId: ${data.requestId || 'ack'})`, 'APPLIED');
+              setCommandFeedback(`ESP32 Confirmed: Applied Inlet ${data.inlet !== undefined ? data.inlet : '-'} L/m, Outlet ${data.outlet !== undefined ? data.outlet : '-'} L/m`, 'status-applied');
+              addEventLog('SUCCESS', 'WOKWI_ACK', `Firmware confirmed setpoints applied: In=${data.inlet !== undefined ? data.inlet : '-'} L/m, Out=${data.outlet !== undefined ? data.outlet : '-'} L/m (ReqId: ${data.requestId || 'ack'})`, 'ACK');
             }
           }
 
-          // 2. Handle Periodic Telemetry
+          // Handle Periodic Telemetry
           if (topic === TOPIC_TELEMETRY) {
             lastTelemetryTimestamp = Date.now();
             console.log('[STAGE 4: SCADA CONTROLLER RECEIVED TELEMETRY]', data);
@@ -1945,16 +2037,40 @@
             const outVal = parseFloat(data.outlet !== undefined ? data.outlet : (data.outletFlow || 0));
             const diff = inVal - outVal;
 
-            // Check if telemetry matches expected setpoint
+            // Stage 4 & 5: Check if incoming telemetry confirms pending command
             if (pendingExpectedInlet !== null && pendingExpectedOutlet !== null) {
               if (Math.abs(inVal - pendingExpectedInlet) <= 0.05 && Math.abs(outVal - pendingExpectedOutlet) <= 0.05) {
                 if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
                 pendingRequestId = null;
-                setCommandFeedback(`✔ Telemetry Synchronized! Wokwi Active: ${inVal.toFixed(2)} / ${outVal.toFixed(2)} L/min`, 'status-applied');
-                addEventLog('TELEMETRY_SYNCED', `Confirmed by incoming telemetry: In=${inVal.toFixed(2)}, Out=${outVal.toFixed(2)} (Seq #${data.sequence || 'n/a'})`, 'CONFIRMED');
+                setCommandFeedback(`Telemetry Synchronized: Wokwi Active ${inVal.toFixed(2)} / ${outVal.toFixed(2)} L/min`, 'status-applied');
+                addEventLog('SUCCESS', 'TELEMETRY_CONFIRMED', `Confirmed by incoming telemetry: In=${inVal.toFixed(2)}, Out=${outVal.toFixed(2)} (Seq #${data.sequence || 'n/a'})`, 'CONFIRMED');
+                addEventLog('INFO', 'VALUES_APPLIED', `Live SCADA setpoints active: In=${inVal.toFixed(2)} L/m, Out=${outVal.toFixed(2)} L/m`, 'APPLIED');
                 pendingExpectedInlet = null;
                 pendingExpectedOutlet = null;
               }
+            }
+
+            // Stage 6: State Transition Events Tracking
+            let newAlarmState = 'NORMAL';
+            if (diff >= 2.0) {
+              newAlarmState = 'LEAK';
+            } else if (diff <= -2.0) {
+              newAlarmState = 'ANOMALY';
+            } else if (inVal >= 25.0) {
+              newAlarmState = 'HIGH_CONSUMPTION';
+            }
+
+            if (newAlarmState !== currentSystemAlarmState) {
+              if (newAlarmState === 'LEAK') {
+                addEventLog('WARN', 'LEAK_DETECTED', `Deficit of ${diff.toFixed(2)} L/m detected (Inlet: ${inVal.toFixed(2)}, Outlet: ${outVal.toFixed(2)})`, 'ALERT');
+              } else if (newAlarmState === 'ANOMALY') {
+                addEventLog('WARN', 'SENSOR_ANOMALY', `Reverse discrepancy of ${Math.abs(diff).toFixed(2)} L/m detected`, 'ALERT');
+              } else if (newAlarmState === 'HIGH_CONSUMPTION') {
+                addEventLog('INFO', 'HIGH_CONSUMPTION', `High demand draw active: ${inVal.toFixed(2)} L/m flow rate`, 'ACTIVE');
+              } else if (currentSystemAlarmState === 'LEAK') {
+                addEventLog('SUCCESS', 'LEAK_RESOLVED', `Flow equilibrium restored: In=${inVal.toFixed(2)} L/m, Out=${outVal.toFixed(2)} L/m (Delta ${diff.toFixed(2)})`, 'NORMAL');
+              }
+              currentSystemAlarmState = newAlarmState;
             }
 
             // Update KPI cards
@@ -2046,7 +2162,7 @@
       updateTankGraphic(1, 2.89);
       updateTankGraphic(2, 2.89);
       setOperatingMode('REMOTE');
-      addEventLog('SYSTEM_BOOT', 'WaterGuard SCADA Station initialized', 'CONFIRMED');
+      addEventLog('SUCCESS', 'SYSTEM_BOOT', 'WaterGuard SCADA Station initialized', 'CONFIRMED');
     });
   </script>
 </body>

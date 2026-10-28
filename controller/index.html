@@ -3,983 +3,2166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WaterGuard-IoT — Remote Flow Controller</title>
+  <title>WATERGUARD — WATER CONTROL SYSTEM | Standalone SCADA Controller</title>
   
-  <!-- Fonts matching WaterGuard-IoT Design Spec -->
+  <!-- Industrial SCADA Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee&family=Gravitas+One&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600&family=Share+Tech+Mono&family=Teko:wght@600;700&display=swap" rel="stylesheet">
   
   <!-- MQTT.js Browser Bundle -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
   <style>
     :root {
-      --canvas-bg: #121316;
-      --card-bg: #FFFFFF;
-      --card-dark: #1C1D22;
-      --card-border: #282A30;
-      --card-border-light: #E2E1DA;
-      --accent-yellow: #F7FF00;
-      --accent-yellow-hover: #E5EE00;
-      --dark-charcoal: #0D0E11;
-      --text-primary: #0D0E11;
-      --text-secondary: #66655E;
-      --text-light: #9CA3AF;
-      --danger: #EF4444;
-      --danger-bg: #FEE2E2;
-      --success: #10B981;
-      --success-bg: #D1FAE5;
-      --warning: #F59E0B;
-      --font-heading: 'Bungee', cursive, sans-serif;
-      --font-body: 'Bebas Neue', sans-serif;
-      --font-number: 'Gravitas One', serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --bg-cabinet: #15181B;
+      --bg-panel: #21262C;
+      --bg-canvas: #ECEEF0;
+      --card-border: #3A424D;
+      --topbar-bg-top: #363D45;
+      --topbar-bg-bottom: #24292F;
+      --accent-cyan: #00E5FF;
+      --accent-blue: #0284C7;
+      --accent-green: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-red: #EF4444;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-scada: 'Chakra Petch', sans-serif;
+      --font-teko: 'Teko', sans-serif;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      user-select: none;
     }
 
     body {
-      background-color: var(--canvas-bg);
-      color: #FFFFFF;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-cabinet);
+      color: #E2E8F0;
+      font-family: var(--font-scada);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-    }
-
-    /* Top Navigation Bar */
-    .navbar {
-      background-color: #18191D;
-      border-bottom: 1px solid var(--card-border);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
+      padding: 10px;
+      overflow-x: hidden;
     }
 
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .badge-pill {
-      background-color: var(--accent-yellow);
-      color: var(--dark-charcoal);
-      font-family: var(--font-body);
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-    }
-
-    .nav-title {
-      font-family: var(--font-heading);
-      font-size: 15px;
-      color: #FFFFFF;
-      letter-spacing: 0.3px;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-nav-primary {
-      background-color: var(--accent-yellow);
-      color: var(--dark-charcoal);
-      font-family: var(--font-body);
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: none;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      transition: background 0.15s;
-    }
-
-    .btn-nav-primary:hover {
-      background-color: var(--accent-yellow-hover);
-    }
-
-    .btn-nav-secondary {
-      background-color: #26282E;
-      color: #FFFFFF;
-      font-family: var(--font-body);
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid var(--card-border);
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      transition: background 0.15s;
-    }
-
-    .btn-nav-secondary:hover {
-      background-color: #32353D;
-    }
-
-    /* Main Container */
-    .container {
-      max-width: 760px;
+    /* Outer SCADA Frame */
+    .scada-container {
       width: 100%;
-      margin: 24px auto;
-      padding: 0 16px;
+      max-width: 1320px;
+      background: #FFFFFF;
+      border: 3px solid #33383F;
+      border-radius: 4px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.4);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      overflow: hidden;
     }
 
-    /* Card Panels */
-    .card {
-      background-color: #FFFFFF;
-      border-radius: 16px;
-      padding: 20px;
-      border: 1px solid var(--card-border-light);
-      color: var(--text-primary);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-dark {
-      background-color: var(--card-dark);
-      border-radius: 14px;
-      padding: 16px;
-      border: 1px solid var(--card-border);
-      color: #FFFFFF;
-    }
-
-    /* Connection Card */
-    .connection-header {
+    /* Top Industrial Status Bar */
+    .topbar {
+      background: linear-gradient(180deg, var(--topbar-bg-top) 0%, var(--topbar-bg-bottom) 100%);
+      border-bottom: 2px solid #14171A;
+      padding: 6px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-body);
-      font-size: 13px;
-      letter-spacing: 0.5px;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: var(--danger);
-      transition: background-color 0.2s;
-    }
-
-    .status-dot.connected {
-      background-color: var(--success);
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
-    }
-
-    .btn-connect {
-      background-color: var(--accent-yellow);
-      color: var(--dark-charcoal);
-      font-family: var(--font-body);
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-disconnect {
-      background-color: #2C1D22;
-      color: var(--danger);
-      font-family: var(--font-body);
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 6px;
-      border: 1px solid #7F1D1D;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-    }
-
-    .connection-meta {
-      font-size: 12px;
-      color: var(--text-light);
-      display: flex;
+      color: #FFFFFF;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 10px;
     }
 
-    .connection-meta code {
-      font-family: var(--font-mono);
-      color: #E5E7EB;
-      background-color: rgba(255, 255, 255, 0.06);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    /* Telemetry Snapshot */
-    .telemetry-grid {
-      display: grid;
-      grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    .topbar-left {
+      display: flex;
       align-items: center;
-      text-align: center;
-      padding: 12px 0;
+      gap: 8px;
     }
 
-    .telemetry-col h4 {
-      font-family: var(--font-body);
-      font-size: 11px;
-      color: var(--text-light);
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .telemetry-col .val {
-      font-family: var(--font-number);
-      font-size: 22px;
+    /* Pulsating Alarm Button */
+    .btn-alarm {
+      background: linear-gradient(180deg, #EF4444 0%, #B91C1C 100%);
       color: #FFFFFF;
+      border: 1px solid #7F1D1D;
+      border-radius: 12px;
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.5);
+      animation: pulse-alarm 1.8s infinite;
+    }
+    @keyframes pulse-alarm {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.88; transform: scale(0.98); }
     }
 
-    .telemetry-col .unit {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--text-light);
+    .btn-nav-box {
+      background: linear-gradient(180deg, #444B54 0%, #2B3037 100%);
+      color: #E2E8F0;
+      border: 1px solid #1A1D21;
+      border-radius: 3px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .btn-nav-box:hover {
+      background: linear-gradient(180deg, #535C66 0%, #353B44 100%);
     }
 
-    .telemetry-divider {
-      background-color: var(--card-border);
-      height: 36px;
-      width: 1px;
+    /* Center Header Brand */
+    .topbar-center {
+      text-align: center;
+    }
+    .main-station-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .main-station-sub {
+      font-size: 11px;
+      color: #94A3B8;
+      letter-spacing: 1.5px;
+      font-weight: 600;
     }
 
-    /* Manual Flow Control Card */
-    .card-title-row {
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Annunciator box */
+    .annunciator {
+      width: 44px;
+      height: 26px;
+      background: #1C2025;
+      border: 1px solid #DC2626;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .annunciator::before, .annunciator::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: rgba(220, 38, 38, 0.4);
+    }
+    .annunciator::before { transform: rotate(26deg); }
+    .annunciator::after { transform: rotate(-26deg); }
+    .annunciator-icon {
+      position: relative;
+      z-index: 2;
+      width: 14px;
+      height: 14px;
+      background: #EF4444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFF;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .mqtt-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      background: #1E232A;
+      border: 1px solid #333D48;
+      color: #94A3B8;
+    }
+    .mqtt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+    }
+    .mqtt-connected .mqtt-dot {
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+    }
+    .mqtt-connected {
+      color: #34D399;
+      border-color: #059669;
+    }
+
+    .clock-block {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.2;
+      color: #CBD5E1;
+    }
+
+    /* Upper Configuration & Limits Row */
+    .upper-config-bar {
+      background: #F8FAFC;
+      border-bottom: 2px solid #CBD5E1;
+      padding: 12px 18px;
+      display: grid;
+      grid-template-columns: 1fr 340px 1fr;
+      align-items: start;
+      gap: 16px;
+      color: #1E293B;
+    }
+
+    .config-panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #334155;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
     }
 
-    .card-title {
-      font-family: var(--font-heading);
-      font-size: 15px;
-      color: var(--text-primary);
-    }
-
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 16px;
-      line-height: 1.4;
-    }
-
-    .inputs-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-      letter-spacing: 0.5px;
-    }
-
-    .input-box {
-      display: flex;
-      align-items: center;
-      background-color: #F8F8F6;
-      border: 1px solid var(--card-border-light);
-      border-radius: 10px;
-      padding: 8px 12px;
-    }
-
-    .input-box input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-family: var(--font-number);
-      font-size: 20px;
-      color: var(--text-primary);
-      outline: none;
+    .config-table {
       width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #94A3B8;
+      background: #FFFFFF;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.06);
     }
-
-    .input-box .unit {
-      font-family: var(--font-body);
+    .config-table td {
+      border: 1px solid #CBD5E1;
+      padding: 4px 8px;
       font-size: 12px;
-      color: var(--text-secondary);
-      margin-left: 6px;
+      font-weight: 700;
+      color: #1E293B;
+    }
+    .config-table .val-cell {
+      width: 85px;
+      background: #F1F5F9;
+      text-align: center;
     }
 
-    .btn-apply {
-      width: 100%;
-      background-color: var(--accent-yellow);
-      color: var(--dark-charcoal);
-      font-family: var(--font-body);
-      font-size: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #E5EE00;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      font-weight: bold;
-      transition: background 0.15s, transform 0.05s;
-    }
-
-    .btn-apply:hover {
-      background-color: var(--accent-yellow-hover);
-    }
-
-    .btn-apply:active {
-      transform: scale(0.99);
-    }
-
-    /* Feedback Banner */
-    .feedback-banner {
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background-color: #F9FAFB;
-      border: 1px solid #E5E7EB;
-    }
-
-    .feedback-banner.success {
-      background-color: #ECFDF5;
-      border-color: #A7F3D0;
-      color: #065F46;
-    }
-
-    .feedback-banner.error {
-      background-color: #FEF2F2;
-      border-color: #FECACA;
-      color: #991B1B;
-    }
-
-    .feedback-banner.pending {
-      background-color: #EEF2FF;
-      border-color: #C7D2FE;
-      color: #4338CA;
-    }
-
-    .feedback-title {
-      font-family: var(--font-body);
-      font-size: 13px;
-      letter-spacing: 0.5px;
-    }
-
-    .feedback-detail {
-      font-size: 11px;
-      margin-top: 2px;
-      color: var(--text-secondary);
-    }
-
-    /* Presets */
-    .presets-title {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--text-secondary);
-      letter-spacing: 0.5px;
-      margin: 16px 0 8px 0;
-    }
-
-    .presets-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
-    }
-
-    .preset-btn {
-      background-color: #F3F4F6;
-      border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      padding: 8px 10px;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .preset-btn:hover {
-      background-color: #E5E7EB;
-      border-color: #D1D5DB;
-    }
-
-    .preset-name {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--text-primary);
-      display: block;
-    }
-
-    .preset-flow {
-      font-family: var(--font-number);
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    /* Evaluation Scenario Vectors */
-    .scenarios-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 600px) {
-      .scenarios-grid {
-        grid-template-columns: 1fr;
-      }
-      .inputs-grid {
-        grid-template-columns: 1fr;
-      }
-      .telemetry-grid {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-      .telemetry-divider {
-        display: none;
-      }
-    }
-
-    .scenario-card {
-      background-color: #F8F8F6;
-      border: 1px solid var(--card-border-light);
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      transition: transform 0.1s, border-color 0.15s;
-    }
-
-    .scenario-card:hover {
-      border-color: #0D0E11;
-      transform: translateY(-1px);
-    }
-
-    .scenario-badge {
-      display: inline-block;
-      font-family: var(--font-body);
-      font-size: 10px;
+    .input-beveled {
+      background: #FFFFFF;
+      border: 1px solid #94A3B8;
+      border-radius: 2px;
       padding: 2px 6px;
-      border-radius: 4px;
-      background-color: #E2DFD8;
-      color: #0D0E11;
-      margin-bottom: 6px;
-    }
-
-    .scenario-name {
-      font-family: var(--font-body);
-      font-size: 14px;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .scenario-desc {
-      font-size: 11px;
-      color: var(--text-secondary);
-      line-height: 1.3;
-    }
-
-    /* Live Activity Log */
-    .log-box {
-      background-color: #0D0E11;
-      border-radius: 8px;
-      padding: 12px;
       font-family: var(--font-mono);
-      font-size: 11px;
-      color: #A3A299;
-      height: 120px;
-      overflow-y: auto;
-      border: 1px solid var(--card-border);
-      line-height: 1.5;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      color: #0F172A;
+      width: 68px;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+    }
+    .input-beveled:focus {
+      border-color: #0284C7;
+      outline: none;
+      box-shadow: 0 0 0 1px #0284C7;
     }
 
-    .log-line {
+    .btn-apply-config {
+      background: linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%);
+      color: #FFFFFF;
+      border: 1px solid #1E40AF;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+    .btn-apply-config:hover {
+      background: linear-gradient(180deg, #2563EB 0%, #1E40AF 100%);
+    }
+
+    /* Central Title Banner */
+    .center-banner {
+      text-align: center;
+      padding: 4px 0;
+    }
+    .brand-csi {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #10B981;
+      line-height: 0.9;
+      font-family: var(--font-scada);
+      text-shadow: 1px 1px 0px #065F46;
+    }
+    .banner-station-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+    }
+    .banner-station-sub {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 600;
+    }
+
+    /* Operating Schedule */
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid #94A3B8;
+      padding: 6px;
+      border-radius: 2px;
+    }
+    .schedule-divider {
+      background: #CBD5E1;
+      width: 1px;
+      height: 100%;
+    }
+    .shift-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0F172A;
+      text-align: center;
       margin-bottom: 2px;
     }
-
-    .log-time {
-      color: #66655E;
+    .shift-col-header {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      font-size: 10px;
+      color: #64748B;
+      margin-bottom: 2px;
     }
-
-    .log-cmd {
-      color: var(--accent-yellow);
-    }
-
-    .log-ack {
-      color: var(--success);
-    }
-
-    .log-telem {
-      color: #60A5FA;
-    }
-
-    /* Disclaimer */
-    .disclaimer {
+    .time-beveled-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      margin: 2px 0;
       font-size: 11px;
-      color: var(--text-light);
+      font-weight: 600;
+    }
+    .time-beveled-box {
+      background: #FFFFFF;
+      border: 1px solid #94A3B8;
+      border-radius: 2px;
+      width: 26px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.12);
+    }
+
+    /* Main P&ID Canvas */
+    .pid-canvas-container {
+      background-color: var(--bg-canvas);
+      padding: 12px 18px;
+      position: relative;
+      border-bottom: 2px solid #CBD5E1;
+      overflow: hidden;
+    }
+
+    svg.pid-svg {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+      display: block;
+    }
+
+    /* Animated Flow Chevrons */
+    @keyframes flowAnim {
+      to {
+        stroke-dashoffset: -40;
+      }
+    }
+    .flow-active {
+      stroke: var(--accent-cyan);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-dasharray: 8 12;
+      animation: flowAnim 1.2s linear infinite;
+    }
+    .flow-stopped {
+      display: none;
+    }
+
+    /* Valve Actuator */
+    .valve-actuator {
+      fill: #FBC02D;
+      stroke: #C49000;
+      stroke-width: 1.5;
+      cursor: pointer;
+      transition: fill 0.2s;
+      filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+    }
+    .valve-actuator:hover {
+      fill: #FDD835;
+    }
+    .actuator-closed {
+      fill: #EF4444 !important;
+      stroke: #B91C1C !important;
+    }
+
+    /* Mode Lamps */
+    .lamp-btn {
+      cursor: pointer;
+      transition: fill 0.2s, filter 0.2s;
+    }
+    .lamp-text {
+      font-family: var(--font-scada);
+      font-size: 11px;
+      font-weight: 700;
+      fill: #0F172A;
+      cursor: pointer;
+    }
+
+    /* Tank Water Levels */
+    .water-fill-rect {
+      transition: height 0.6s ease, y 0.6s ease;
+    }
+
+    /* Digital display on P&ID */
+    .scada-badge-box {
+      fill: #FFFFFF;
+      stroke: #475569;
+      stroke-width: 1.5;
+      rx: 3;
+      filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.2));
+    }
+    .scada-badge-text {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      fill: #0F172A;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .scada-badge-sub {
+      font-family: var(--font-scada);
+      font-size: 10px;
+      font-weight: 700;
+      fill: #64748B;
+      text-anchor: middle;
+    }
+
+    /* Pipe Flow Value Badge */
+    .flow-rate-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      fill: #0284C7;
+      text-anchor: middle;
+      filter: drop-shadow(0 1px 1px #FFF);
+    }
+
+    /* Live Sensor Readings Bar */
+    .telemetry-kpi-bar {
+      background: #181C20;
+      border-bottom: 2px solid #2A3038;
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .kpi-card {
+      background: #20252C;
+      border: 1px solid #363E48;
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .kpi-card.alert-state {
+      border-color: #EF4444;
+      background: #2B181A;
+    }
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #94A3B8;
+      margin-bottom: 2px;
+    }
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .kpi-number {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .kpi-unit {
+      font-size: 11px;
+      color: #64748B;
+      font-family: var(--font-mono);
+    }
+    .kpi-badge {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #334155;
+      color: #CBD5E1;
+    }
+
+    /* Lower Operations Console (Manual Controls on Left, System Event Log on Right) */
+    .ops-section {
+      background: #1C2127;
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 44% 56%;
+      gap: 12px;
+      border-bottom: 2px solid #282F38;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .ops-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ctrl-box {
+      background: #21262E;
+      border: 1px solid #363E48;
+      border-radius: 4px;
+      padding: 12px 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .ctrl-box-log {
+      display: flex;
+      flex-direction: column;
+      background: #181D23;
+      border-color: #313945;
+    }
+    .ctrl-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #94A3B8;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2B333E;
+      padding-bottom: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .input-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #CBD5E1;
+      width: 120px;
+    }
+    .input-field-dark {
+      background: #121518;
+      border: 1px solid #4B5563;
+      border-radius: 3px;
+      padding: 4px 8px;
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      width: 90px;
+      text-align: right;
+    }
+    .input-field-dark:focus {
+      border-color: #38BDF8;
+      outline: none;
+    }
+
+    .btn-valve-toggle {
+      flex: 1;
+      background: #10B981;
+      color: #064E3B;
+      border: 1px solid #059669;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 3px;
+      cursor: pointer;
       text-align: center;
-      line-height: 1.4;
-      padding: 12px;
+      transition: all 0.15s;
+      font-family: var(--font-scada);
+      letter-spacing: 0.3px;
+    }
+    .btn-valve-toggle.closed {
+      background: #DC2626;
+      color: #FFFFFF;
+      border-color: #B91C1C;
+    }
+
+    .btn-preset-mode {
+      background: #2A313C;
+      border: 1px solid #3E4754;
+      color: #CBD5E1;
+      border-radius: 3px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.12s;
+    }
+    .btn-preset-mode:hover {
+      background: #374150;
+      color: #FFFFFF;
+    }
+    .btn-preset-mode.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #38BDF8;
+    }
+
+    /* Send Command Button */
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #2B333E;
+    }
+    .btn-send-command {
+      background: #0284C7;
+      color: #FFFFFF;
+      border: 1px solid #38BDF8;
+      border-radius: 3px;
+      padding: 7px 16px;
+      font-family: var(--font-scada);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+    .btn-send-command:hover {
+      background: #0369A1;
+    }
+    .btn-send-command:active {
+      background: #075985;
+    }
+
+    .command-feedback {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94A3B8;
+      flex: 1;
+    }
+    .status-pending { color: #F59E0B; }
+    .status-applied { color: #10B981; font-weight: 700; }
+    .status-error   { color: #EF4444; font-weight: 700; }
+
+    /* System Event Log Panel & Table */
+    .live-indicator-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+      display: inline-block;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+    }
+    .log-count-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748B;
+      background: #1E252D;
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid #2D3742;
+    }
+    .log-filter-btn {
+      background: #252D37;
+      border: 1px solid #39424E;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.12s;
+    }
+    .log-filter-btn:hover {
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+    .log-filter-btn.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #38BDF8;
+    }
+    .log-clear-btn {
+      background: transparent;
+      border: 1px solid #475569;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+    .log-clear-btn:hover {
+      background: #333D48;
+      color: #F1F5F9;
+    }
+    .log-table-wrapper {
+      height: 275px;
+      overflow-y: auto;
+      border: 1px solid #28303A;
+      border-radius: 3px;
+      background: #121519;
+    }
+    .log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #CBD5E1;
+    }
+    .log-table th {
+      position: sticky;
+      top: 0;
+      background: #1F252E;
+      color: #94A3B8;
+      font-size: 10px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 6px 8px;
+      border-bottom: 1px solid #333E4B;
+      z-index: 2;
+      text-align: left;
+    }
+    .log-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #1A2027;
+      vertical-align: middle;
+    }
+    .log-table tr:hover td {
+      background: #181E26;
+    }
+
+    /* Severity Badges */
+    .sev-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .sev-info    { background: #1E293B; color: #94A3B8; border: 1px solid #334155; }
+    .sev-success { background: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
+    .sev-warn    { background: #451A03; color: #FCD34D; border: 1px solid #78350F; }
+    .sev-error   { background: #450A0A; color: #FCA5A5; border: 1px solid #991B1B; }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .status-badge.status-pending   { background: #3B280A; color: #FCD34D; border: 1px solid #78350F; }
+    .status-badge.status-sent      { background: #0C3654; color: #7DD3FC; border: 1px solid #0369A1; }
+    .status-badge.status-ack       { background: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
+    .status-badge.status-confirmed { background: #064E3B; color: #A7F3D0; border: 1px solid #10B981; }
+    .status-badge.status-applied   { background: #064E3B; color: #6EE7B7; }
+    .status-badge.status-failed    { background: #450A0A; color: #FCA5A5; border: 1px solid #7F1D1D; }
+    .status-badge.status-alert     { background: #7F1D1D; color: #FFFFFF; font-weight: 800; }
+    .status-badge.status-normal    { background: #064E3B; color: #A7F3D0; }
+    .status-badge.status-online    { background: #064E3B; color: #6EE7B7; }
+    .status-badge.status-offline   { background: #450A0A; color: #FCA5A5; }
+
+    /* Bottom Presets Panel */
+    .presets-panel {
+      background: #14171A;
+      padding: 12px 16px 14px;
+    }
+    .presets-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .presets-header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .presets-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #CBD5E1;
+    }
+    .presets-subtitle {
+      font-size: 10px;
+      color: #64748B;
+      font-weight: 500;
+    }
+    .mqtt-meta-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94A3B8;
+      background: #1B2026;
+      border: 1px solid #2B333D;
+      border-radius: 3px;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mqtt-meta-pill code {
+      color: #38BDF8;
+    }
+    .mqtt-meta-pill .sep {
+      color: #475569;
+    }
+    .presets-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 1100px) {
+      .presets-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .presets-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .btn-preset-card {
+      background: #1E242C;
+      border: 1px solid #333C47;
+      border-radius: 3px;
+      padding: 8px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .btn-preset-card:hover {
+      background: #272E38;
+      border-color: #4B5563;
+    }
+    .preset-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #F1F5F9;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .preset-desc {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94A3B8;
+    }
+    .btn-preset-card.preset-leak:hover {
+      border-color: #EF4444;
+    }
+    .btn-preset-card.preset-high:hover {
+      border-color: #38BDF8;
+    }
+    .btn-preset-card.preset-reversed:hover {
+      border-color: #F59E0B;
+    }
+    .btn-preset-card.preset-night:hover {
+      border-color: #818CF8;
+    }
+    .btn-preset-card.preset-reset {
+      background: #241D17;
+      border-color: #4D331B;
+    }
+    .btn-preset-card.preset-reset:hover {
+      background: #36281D;
+      border-color: #B45309;
+    }
+    .btn-preset-card.preset-reset .preset-name {
+      color: #FDE68A;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar -->
-  <header class="navbar">
-    <div class="nav-brand">
-      <span class="badge-pill">STANDALONE CONSOLE</span>
-      <h1 class="nav-title">WaterGuard Remote Controller</h1>
+  <!-- Main Cabinet Frame -->
+  <div class="scada-container">
+    
+    <!-- Top Industrial Status Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn-alarm" id="alarmBtn" onclick="toggleAlarmAck()" title="Click to Acknowledge Alarms">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span id="alarmText">UNACKED ALARMS (3)</span>
+        </button>
+        <button class="btn-nav-box" title="Back" onclick="history.back()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          <span>BACK</span>
+        </button>
+        <button class="btn-nav-box" title="Toggle Fullscreen" onclick="toggleFullscreen()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+        <div class="operator-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>OPERATOR: ACTIVE</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="main-station-title">WATERGUARD — WATER CONTROL SYSTEM</div>
+        <div class="main-station-sub">INLET VALVE CONTROL STATION • DUO-TANK STORAGE P&amp;ID</div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="annunciator" title="System Fault Annunciator">
+          <span id="annunciatorText" style="font-size: 10px; font-weight: 800; font-family: var(--font-mono); color: #10B981; letter-spacing: 0.5px;">SYS OK</span>
+        </div>
+
+        <div id="mqttBadge" class="mqtt-pill">
+          <span class="mqtt-dot"></span>
+          <span id="mqttStatus">CONNECTING...</span>
+        </div>
+
+        <div class="clock-block">
+          <div id="liveClock">09:11:55 AM</div>
+          <div id="liveDate">2026-10-28</div>
+        </div>
+      </div>
     </div>
-    <div class="nav-actions">
-      <button class="btn-nav-primary" onclick="window.open('/', '_blank')">
-        Open Dashboard ↗
-      </button>
-      <button class="btn-nav-secondary" onclick="window.open('https://wokwi.com', '_blank')">
-        Wokwi Simulator ↗
-      </button>
+
+    <!-- Upper Configuration Bar (Tank Limits & Schedule) -->
+    <div class="upper-config-bar">
+      
+      <!-- Left: Tank Limit Configuration -->
+      <div>
+        <div class="config-panel-title">
+          <span>Tank Configuration</span>
+          <button class="btn-apply-config" onclick="applyTankConfig()">Apply Limits</button>
+        </div>
+        <table class="config-table">
+          <tr>
+            <td>Tank 1 Full Level (m)</td>
+            <td class="val-cell">
+              <input type="number" id="tank1FullInput" class="input-beveled" value="5.10" min="0.5" max="6.0" step="0.1">
+            </td>
+            <td>Tank 1 Low Level (m)</td>
+            <td class="val-cell">
+              <input type="number" id="tank1LowInput" class="input-beveled" value="4.50" min="0.1" max="5.5" step="0.1">
+            </td>
+          </tr>
+          <tr>
+            <td>Tank 2 Full Level (m)</td>
+            <td class="val-cell">
+              <input type="number" id="tank2FullInput" class="input-beveled" value="5.10" min="0.5" max="6.0" step="0.1">
+            </td>
+            <td>Tank 2 Low Level (m)</td>
+            <td class="val-cell">
+              <input type="number" id="tank2LowInput" class="input-beveled" value="4.50" min="0.1" max="5.5" step="0.1">
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Center Brand Badge -->
+      <div class="center-banner">
+        <div class="brand-csi">CSI<span style="font-size: 26px; letter-spacing: 0;">-II</span></div>
+        <div class="banner-station-name">INLET VALVE STATION</div>
+        <div class="banner-station-sub">Dual-Tank Primary Reservoir Intake</div>
+      </div>
+
+      <!-- Right: Operating Schedule -->
+      <div>
+        <div class="config-panel-title">
+          <span>Operating Schedule</span>
+          <label style="font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" id="schedActive" checked onchange="toggleScheduleActive()">
+            Active
+          </label>
+        </div>
+        <div class="schedule-grid">
+          
+          <!-- Shift 1 -->
+          <div>
+            <div class="shift-header">Shift 1</div>
+            <div class="shift-col-header"><span>Hour</span><span>Min</span></div>
+            <div class="time-beveled-row">
+              <span style="font-size: 10px; color: #475569;">Start:</span>
+              <div class="time-beveled-box">11</div>
+              <span>:</span>
+              <div class="time-beveled-box">00</div>
+            </div>
+            <div class="time-beveled-row">
+              <span style="font-size: 10px; color: #475569;">End :</span>
+              <div class="time-beveled-box">15</div>
+              <span>:</span>
+              <div class="time-beveled-box">00</div>
+            </div>
+          </div>
+
+          <div class="schedule-divider"></div>
+
+          <!-- Shift 2 -->
+          <div>
+            <div class="shift-header">Shift 2</div>
+            <div class="shift-col-header"><span>Hour</span><span>Min</span></div>
+            <div class="time-beveled-row">
+              <span style="font-size: 10px; color: #475569;">Start:</span>
+              <div class="time-beveled-box">00</div>
+              <span>:</span>
+              <div class="time-beveled-box">00</div>
+            </div>
+            <div class="time-beveled-row">
+              <span style="font-size: 10px; color: #475569;">End :</span>
+              <div class="time-beveled-box">02</div>
+              <span>:</span>
+              <div class="time-beveled-box">00</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-  </header>
 
-  <main class="container">
+    <!-- P&ID Schematic Canvas -->
+    <div class="pid-canvas-container">
+      <svg class="pid-svg" viewBox="0 0 1000 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Pipe Gradients -->
+          <linearGradient id="pipeH" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8E949B"/>
+            <stop offset="35%" stop-color="#E8EBEF"/>
+            <stop offset="70%" stop-color="#8E949B"/>
+            <stop offset="100%" stop-color="#555B62"/>
+          </linearGradient>
 
-    <!-- Connection & Broker Strip -->
-    <section class="card-dark">
-      <div class="connection-header">
-        <div class="connection-status">
-          <span id="status-dot" class="status-dot"></span>
-          <span id="status-text">DISCONNECTED</span>
+          <linearGradient id="pipeV" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#8E949B"/>
+            <stop offset="35%" stop-color="#E8EBEF"/>
+            <stop offset="70%" stop-color="#8E949B"/>
+            <stop offset="100%" stop-color="#555B62"/>
+          </linearGradient>
+
+          <!-- Tank Shell Metallic Gradient -->
+          <linearGradient id="tankMetal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7B828A"/>
+            <stop offset="25%" stop-color="#BDC3C9"/>
+            <stop offset="50%" stop-color="#8F969E"/>
+            <stop offset="100%" stop-color="#555C64"/>
+          </linearGradient>
+
+          <!-- Water Liquid Gradient -->
+          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#29B6F6"/>
+            <stop offset="40%" stop-color="#0288D1"/>
+            <stop offset="100%" stop-color="#01579B"/>
+          </linearGradient>
+
+          <!-- Flanges -->
+          <g id="flangeH">
+            <rect x="-4" y="-12" width="8" height="24" fill="#6B7280" stroke="#374151" stroke-width="1"/>
+            <circle cx="0" cy="-7" r="1.5" fill="#1F2937"/>
+            <circle cx="0" cy="7" r="1.5" fill="#1F2937"/>
+          </g>
+          <g id="flangeV">
+            <rect x="-12" y="-4" width="24" height="8" fill="#6B7280" stroke="#374151" stroke-width="1"/>
+            <circle cx="-7" cy="0" r="1.5" fill="#1F2937"/>
+            <circle cx="7" cy="0" r="1.5" fill="#1F2937"/>
+          </g>
+        </defs>
+
+        <!-- ================= PIPING NETWORK ================= -->
+        <!-- Main Inlet Pipe -->
+        <rect x="20" y="215" width="130" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+        <path id="flowMainIn" class="flow-active" d="M 25 222 L 145 222"/>
+        <text id="lblInletFlow" class="flow-rate-label" x="80" y="206">Inlet: 8.00 L/min</text>
+
+        <!-- Vertical Manifold Pipe -->
+        <rect x="140" y="85" width="14" height="274" fill="url(#pipeV)" stroke="#4B5563" stroke-width="1"/>
+        <use href="#flangeV" x="147" y="85"/>
+        <use href="#flangeV" x="147" y="359"/>
+
+        <!-- Branch 2 (Top Pipe to Tank 2) -->
+        <rect x="154" y="100" width="460" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+        <path id="flowBranch2" class="flow-active" d="M 147 222 L 147 107 L 610 107"/>
+        <text id="lblBranch2Flow" class="flow-rate-label" x="480" y="93">Branch 2: 4.00 L/min</text>
+
+        <!-- Branch 1 (Bottom Pipe to Tank 1) -->
+        <rect x="154" y="330" width="460" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+        <path id="flowBranch1" class="flow-active" d="M 147 222 L 147 337 L 610 337"/>
+        <text id="lblBranch1Flow" class="flow-rate-label" x="480" y="323">Branch 1: 4.00 L/min</text>
+
+        <!-- Outflow Pipe Tank 2 (Right) -->
+        <rect x="790" y="100" width="190" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+        <path id="flowOut2" class="flow-active" d="M 795 107 L 975 107"/>
+        <text id="lblOutletFlow" class="flow-rate-label" x="880" y="93">Outlet: 8.00 L/min</text>
+
+        <!-- Outflow Pipe Tank 1 (Right) -->
+        <rect x="790" y="330" width="190" height="14" fill="url(#pipeH)" stroke="#4B5563" stroke-width="1"/>
+        <path id="flowOut1" class="flow-active" d="M 795 337 L 975 337"/>
+
+        <!-- Equalization Bypass Pipe between Tanks -->
+        <path d="M 610 160 H 570 Q 550 160 550 180 V 270 Q 550 290 570 290 H 610" 
+              fill="none" stroke="url(#pipeH)" stroke-width="14" stroke-linecap="square"/>
+        <path d="M 610 160 H 570 Q 550 160 550 180 V 270 Q 550 290 570 290 H 610" 
+              fill="none" stroke="#4B5563" stroke-width="1"/>
+
+        <!-- Connecting / Equalization Valve Graphic -->
+        <g id="equalizationValveGroup" transform="translate(540, 225)" style="cursor: pointer;" onclick="toggleConnectingValve()" title="Click to Toggle Connecting Valve">
+          <polygon points="-8,-12 8,12 8,-12 -8,12" fill="#71717A" stroke="#374151" stroke-width="1.5"/>
+          <line x1="0" y1="0" x2="-14" y2="0" stroke="#374151" stroke-width="3"/>
+          <circle id="handwheelCircle" cx="-18" cy="0" r="10" fill="none" stroke="#10B981" stroke-width="3"/>
+          <line x1="-18" y1="-10" x2="-18" y2="10" stroke="#374151" stroke-width="2"/>
+          <line x1="-28" y1="0" x2="-8" y2="0" stroke="#374151" stroke-width="2"/>
+          <text x="-18" y="24" font-family="var(--font-scada)" font-size="9" font-weight="700" fill="#475569" text-anchor="middle">Equalization</text>
+        </g>
+
+        <!-- ================= INLET VALVE 2 (TOP MOTORIZED) ================= -->
+        <g id="valve2Group" transform="translate(280, 107)">
+          <polygon points="-14,-10 14,10 14,-10 -14,10" fill="#EAB308" stroke="#CA8A04" stroke-width="1.5"/>
+          <rect x="-6" y="-22" width="12" height="12" fill="#CA8A04"/>
+          <!-- Actuator Housing -->
+          <rect id="actuator2Body" class="valve-actuator" x="-22" y="-62" width="44" height="40" rx="3" onclick="toggleValve(2)" title="Click to Toggle Inlet Valve 2"/>
+          <rect x="-18" y="-58" width="36" height="6" fill="#FDE047" opacity="0.6"/>
+          <circle id="valve2Led" cx="0" cy="-42" r="5" fill="#10B981"/>
+          <text x="0" y="26" font-family="var(--font-scada)" font-size="13" font-weight="700" fill="#0F172A" text-anchor="middle">Inlet Valve 2</text>
+        </g>
+
+        <!-- Mode Selectors for Valve 2 -->
+        <g transform="translate(365, 52)">
+          <circle id="v2_local_lamp" class="lamp-btn" cx="0" cy="0" r="9" fill="#D1D5DB" stroke="#475569" stroke-width="1.5" onclick="setOperatingMode('LOCAL')"/>
+          <text class="lamp-text" x="16" y="4" onclick="setOperatingMode('LOCAL')">LOCAL</text>
+
+          <circle id="v2_remote_lamp" class="lamp-btn" cx="0" cy="24" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setOperatingMode('REMOTE')"/>
+          <text class="lamp-text" x="16" y="28" onclick="setOperatingMode('REMOTE')">REMOTE</text>
+
+          <circle id="v2_auto_lamp" class="lamp-btn" cx="0" cy="48" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setOperatingMode('AUTO')"/>
+          <text class="lamp-text" x="16" y="52" onclick="setOperatingMode('AUTO')">AUTO</text>
+        </g>
+
+        <!-- ================= INLET VALVE 1 (BOTTOM MOTORIZED) ================= -->
+        <g id="valve1Group" transform="translate(280, 337)">
+          <polygon points="-14,-10 14,10 14,-10 -14,10" fill="#EAB308" stroke="#CA8A04" stroke-width="1.5"/>
+          <rect x="-6" y="-22" width="12" height="12" fill="#CA8A04"/>
+          <!-- Actuator Housing -->
+          <rect id="actuator1Body" class="valve-actuator" x="-22" y="-62" width="44" height="40" rx="3" onclick="toggleValve(1)" title="Click to Toggle Inlet Valve 1"/>
+          <rect x="-18" y="-58" width="36" height="6" fill="#FDE047" opacity="0.6"/>
+          <circle id="valve1Led" cx="0" cy="-42" r="5" fill="#10B981"/>
+          <text x="0" y="26" font-family="var(--font-scada)" font-size="13" font-weight="700" fill="#0F172A" text-anchor="middle">Inlet Valve 1</text>
+        </g>
+
+        <!-- Mode Selectors for Valve 1 -->
+        <g transform="translate(365, 282)">
+          <circle id="v1_local_lamp" class="lamp-btn" cx="0" cy="0" r="9" fill="#D1D5DB" stroke="#475569" stroke-width="1.5" onclick="setOperatingMode('LOCAL')"/>
+          <text class="lamp-text" x="16" y="4" onclick="setOperatingMode('LOCAL')">LOCAL</text>
+
+          <circle id="v1_remote_lamp" class="lamp-btn" cx="0" cy="24" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setOperatingMode('REMOTE')"/>
+          <text class="lamp-text" x="16" y="28" onclick="setOperatingMode('REMOTE')">REMOTE</text>
+
+          <circle id="v1_auto_lamp" class="lamp-btn" cx="0" cy="48" r="9" fill="#00E676" stroke="#00A854" stroke-width="1.5" onclick="setOperatingMode('AUTO')"/>
+          <text class="lamp-text" x="16" y="52" onclick="setOperatingMode('AUTO')">AUTO</text>
+        </g>
+
+        <!-- ================= WATER TANK 2 (TOP CYLINDER) ================= -->
+        <g id="tank2Group" transform="translate(610, 40)">
+          <clipPath id="tank2Clip">
+            <rect x="0" y="15" width="180" height="95"/>
+            <ellipse cx="90" cy="110" rx="90" ry="15"/>
+          </clipPath>
+
+          <!-- Metallic Shell -->
+          <rect x="0" y="15" width="180" height="95" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+          <ellipse cx="90" cy="110" rx="90" ry="15" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+
+          <!-- Dynamic Water Fill Layer -->
+          <g clip-path="url(#tank2Clip)">
+            <rect id="tank2WaterRect" class="water-fill-rect" x="0" y="45" width="180" height="75" fill="url(#waterGrad)"/>
+            <ellipse id="tank2WaterTop" cx="90" cy="45" rx="90" ry="12" fill="#4FC3F7" opacity="0.8"/>
+          </g>
+
+          <!-- Metallic Top Cap -->
+          <ellipse cx="90" cy="15" rx="90" ry="15" fill="#9EA4AB" stroke="#374151" stroke-width="1.5"/>
+          <ellipse cx="90" cy="15" rx="80" ry="12" fill="#BDC3C9" opacity="0.7"/>
+
+          <!-- High/Low Guideline Markers -->
+          <line x1="0" y1="29" x2="180" y2="29" stroke="#EF4444" stroke-dasharray="3 3" opacity="0.6"/>
+          <line x1="0" y1="39" x2="180" y2="39" stroke="#F59E0B" stroke-dasharray="3 3" opacity="0.6"/>
+
+          <!-- Digital Readout Display -->
+          <g transform="translate(90, 68)">
+            <rect class="scada-badge-box" x="-46" y="-18" width="92" height="36"/>
+            <text id="tank2Display" class="scada-badge-text" x="0" y="-3">2.89 m</text>
+            <text id="tank2SubDisplay" class="scada-badge-sub" x="0" y="10">TANK 2 (48.2%)</text>
+          </g>
+        </g>
+
+        <!-- ================= WATER TANK 1 (BOTTOM CYLINDER) ================= -->
+        <g id="tank1Group" transform="translate(610, 270)">
+          <clipPath id="tank1Clip">
+            <rect x="0" y="15" width="180" height="95"/>
+            <ellipse cx="90" cy="110" rx="90" ry="15"/>
+          </clipPath>
+
+          <rect x="0" y="15" width="180" height="95" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+          <ellipse cx="90" cy="110" rx="90" ry="15" fill="url(#tankMetal)" stroke="#374151" stroke-width="1.5"/>
+
+          <g clip-path="url(#tank1Clip)">
+            <rect id="tank1WaterRect" class="water-fill-rect" x="0" y="45" width="180" height="75" fill="url(#waterGrad)"/>
+            <ellipse id="tank1WaterTop" cx="90" cy="45" rx="90" ry="12" fill="#4FC3F7" opacity="0.8"/>
+          </g>
+
+          <ellipse cx="90" cy="15" rx="90" ry="15" fill="#9EA4AB" stroke="#374151" stroke-width="1.5"/>
+          <ellipse cx="90" cy="15" rx="80" ry="12" fill="#BDC3C9" opacity="0.7"/>
+
+          <!-- High/Low Guideline Markers -->
+          <line x1="0" y1="29" x2="180" y2="29" stroke="#EF4444" stroke-dasharray="3 3" opacity="0.6"/>
+          <line x1="0" y1="39" x2="180" y2="39" stroke="#F59E0B" stroke-dasharray="3 3" opacity="0.6"/>
+
+          <!-- Digital Readout Display -->
+          <g transform="translate(90, 68)">
+            <rect class="scada-badge-box" x="-46" y="-18" width="92" height="36"/>
+            <text id="tank1Display" class="scada-badge-text" x="0" y="-3">2.89 m</text>
+            <text id="tank1SubDisplay" class="scada-badge-sub" x="0" y="10">TANK 1 (48.2%)</text>
+          </g>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Live Sensor Readings Panel (6 Telemetry KPIs) -->
+    <div class="telemetry-kpi-bar">
+      
+      <div class="kpi-card">
+        <div class="kpi-title">Inlet Flow Rate</div>
+        <div class="kpi-value-row">
+          <span id="kpiInlet" class="kpi-number">8.00</span>
+          <span class="kpi-unit">L/min</span>
         </div>
-        <button id="btn-toggle-connect" class="btn-connect" onclick="toggleConnection()">Connect Bridge</button>
+        <span class="kpi-badge">Sensor 1</span>
       </div>
-      <div class="connection-meta">
-        <span>Broker: <code id="broker-url">wss://broker.emqx.io:8084/mqtt</code></span>
-        <span>Command Topic: <code>water/demo/command</code></span>
-        <span>ACK Topic: <code>water/demo/ack</code></span>
-      </div>
-    </section>
 
-    <!-- Synchronized Live Telemetry Readout -->
-    <section class="card-dark">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-family: var(--font-body); font-size: 11px; color: var(--text-light); letter-spacing: 0.5px;">LIVE PIPELINE TELEMETRY</span>
-        <span id="scenario-badge" class="badge-pill" style="background-color: #064E3B; color: #FFFFFF; font-size: 10px;">STEADY</span>
+      <div class="kpi-card">
+        <div class="kpi-title">Outlet Flow Rate</div>
+        <div class="kpi-value-row">
+          <span id="kpiOutlet" class="kpi-number">8.00</span>
+          <span class="kpi-unit">L/min</span>
+        </div>
+        <span class="kpi-badge">Sensor 2</span>
       </div>
-      <div class="telemetry-grid">
-        <div class="telemetry-col">
-          <h4>INLET S1</h4>
-          <div class="val"><span id="telemetry-inlet">12.5</span> <span class="unit">L/m</span></div>
-        </div>
-        <div class="telemetry-divider"></div>
-        <div class="telemetry-col">
-          <h4>OUTLET S2</h4>
-          <div class="val"><span id="telemetry-outlet">12.3</span> <span class="unit">L/m</span></div>
-        </div>
-        <div class="telemetry-divider"></div>
-        <div class="telemetry-col">
-          <h4>DEFICIT (S1-S2)</h4>
-          <div class="val" id="telemetry-diff-wrap"><span id="telemetry-diff">+0.2</span> <span class="unit">L/m</span></div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Manual Flow Control -->
-    <section class="card">
-      <div class="card-title-row">
-        <h2 class="card-title">Manual Flow Injection</h2>
-        <span class="badge-pill">MQTT PROTOCOL</span>
+      <div id="cardMismatch" class="kpi-card">
+        <div class="kpi-title">Flow Balance / Deficit</div>
+        <div class="kpi-value-row">
+          <span id="kpiMismatch" class="kpi-number" style="color: #10B981;">0.00</span>
+          <span class="kpi-unit">L/min</span>
+        </div>
+        <span id="badgeMismatch" class="kpi-badge">BALANCED</span>
       </div>
-      <p class="card-subtitle">
-        Enter customized inlet and outlet flow rates (0.0 to 100.0 L/min) to control the virtual ESP32 simulator remotely.
-      </p>
 
-      <div class="inputs-grid">
-        <div class="input-group">
-          <label>INLET FLOW (S1)</label>
-          <div class="input-box">
-            <input type="number" id="input-inlet" step="0.1" min="0" max="100" value="8.0" />
-            <span class="unit">L/min</span>
+      <div class="kpi-card">
+        <div class="kpi-title">Tank 1 Level</div>
+        <div class="kpi-value-row">
+          <span id="kpiTank1" class="kpi-number">2.89</span>
+          <span class="kpi-unit">metres</span>
+        </div>
+        <span class="kpi-badge">Volume: ~14.45 m³</span>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Tank 2 Level</div>
+        <div class="kpi-value-row">
+          <span id="kpiTank2" class="kpi-number">2.89</span>
+          <span class="kpi-unit">metres</span>
+        </div>
+        <span class="kpi-badge">Volume: ~14.45 m³</span>
+      </div>
+
+      <div id="cardSystemStatus" class="kpi-card">
+        <div class="kpi-title">System Status</div>
+        <div class="kpi-value-row">
+          <span id="kpiStatusText" class="kpi-number" style="font-size: 15px; color: #34D399;">NORMAL BALANCED</span>
+        </div>
+        <span id="badgeStaleness" class="kpi-badge">LIVE</span>
+      </div>
+
+    </div>
+
+    <!-- Lower Operations Console -->
+    <div class="ops-section">
+      
+      <!-- Left: Manual Setpoints & Valves -->
+      <div class="ctrl-box ctrl-box-controls">
+        <div class="ctrl-box-title">
+          <span>Manual Flow &amp; Target Setpoints</span>
+          <span style="font-size: 11px; color: #38BDF8;">Mode: <span id="currentModeLabel">REMOTE</span></span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <div class="input-row">
+              <span class="input-label">Inlet Flow Rate:</span>
+              <input type="number" id="inletInput" class="input-field-dark" value="8.0" min="0" max="100" step="0.5">
+              <span class="kpi-unit">L/min</span>
+            </div>
+            <div class="input-row">
+              <span class="input-label">Outlet Flow Rate:</span>
+              <input type="number" id="outletInput" class="input-field-dark" value="8.0" min="0" max="100" step="0.5">
+              <span class="kpi-unit">L/min</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="input-row">
+              <span class="input-label">Tank 1 Target:</span>
+              <input type="number" id="tank1TargetInput" class="input-field-dark" value="2.89" min="0" max="6" step="0.1" oninput="previewTank(1, this.value)">
+              <span class="kpi-unit">m</span>
+            </div>
+            <div class="input-row">
+              <span class="input-label">Tank 2 Target:</span>
+              <input type="number" id="tank2TargetInput" class="input-field-dark" value="2.89" min="0" max="6" step="0.1" oninput="previewTank(2, this.value)">
+              <span class="kpi-unit">m</span>
+            </div>
           </div>
         </div>
-        <div class="input-group">
-          <label>OUTLET FLOW (S2)</label>
-          <div class="input-box">
-            <input type="number" id="input-outlet" step="0.1" min="0" max="100" value="8.0" />
-            <span class="unit">L/min</span>
+
+        <!-- Valve Overrides & Mode -->
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button id="valve1Btn" class="btn-valve-toggle" onclick="toggleValve(1)">Inlet Valve 1: OPEN</button>
+          <button id="valve2Btn" class="btn-valve-toggle" onclick="toggleValve(2)">Inlet Valve 2: OPEN</button>
+          <button id="connValveBtn" class="btn-valve-toggle" onclick="toggleConnectingValve()">Connecting Valve: OPEN</button>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+          <span style="font-size: 11px; color: #94A3B8; align-self: center;">Operating Mode:</span>
+          <button class="btn-preset-mode" id="btnModeLocal" onclick="setOperatingMode('LOCAL')">LOCAL</button>
+          <button class="btn-preset-mode active" id="btnModeRemote" onclick="setOperatingMode('REMOTE')">REMOTE</button>
+          <button class="btn-preset-mode" id="btnModeAuto" onclick="setOperatingMode('AUTO')">AUTO</button>
+        </div>
+
+        <!-- Action Row -->
+        <div class="action-row">
+          <button class="btn-send-command" onclick="sendScadaCommand()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <span>TRANSMIT SETPOINTS TO ESP32</span>
+          </button>
+          <div id="commandStatusFeedback" class="command-feedback">
+            Ready to publish setpoints to Wokwi ESP32
           </div>
         </div>
+
       </div>
 
-      <button id="btn-apply" class="btn-apply" onclick="applyManualFlow()">
-        Apply Flow Values
-      </button>
+      <!-- Right: System Event Log (Prominent Industrial SCADA Log) -->
+      <div class="ctrl-box ctrl-box-log">
+        <div class="ctrl-box-title">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="live-indicator-dot"></span>
+            <span>SYSTEM EVENT LOG</span>
+            <span id="logCounterBadge" class="log-count-tag">0 EVENTS</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <button class="log-filter-btn active" data-filter="ALL" onclick="setLogFilter('ALL')">ALL</button>
+            <button class="log-filter-btn" data-filter="CMD" onclick="setLogFilter('CMD')">CMD</button>
+            <button class="log-filter-btn" data-filter="TLM" onclick="setLogFilter('TLM')">TLM</button>
+            <button class="log-filter-btn" data-filter="ALM" onclick="setLogFilter('ALM')">ALM</button>
+            <button class="log-clear-btn" onclick="clearEventLog()" title="Clear Event Log">CLEAR</button>
+          </div>
+        </div>
 
-      <!-- Feedback Banner -->
-      <div id="feedback-box" class="feedback-banner">
-        <div>
-          <div id="feedback-title" class="feedback-title">Ready</div>
-          <div id="feedback-detail" class="feedback-detail">Enter values or select a preset below to transmit to ESP32.</div>
+        <div class="log-table-wrapper">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th style="width: 78px;">TIMESTAMP</th>
+                <th style="width: 130px;">EVENT TYPE</th>
+                <th>OPERATIONAL DETAILS</th>
+                <th style="width: 105px; text-align: center;">STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="eventLogBody">
+              <!-- Dynamic SCADA event entries -->
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Quick Flow Presets -->
-      <div class="presets-title">QUICK FLOW PRESETS</div>
-      <div class="presets-grid">
-        <button class="preset-btn" onclick="setAndApply(8.0, 8.0, 'Normal')">
-          <span class="preset-name">Normal</span>
-          <span class="preset-flow">8.0 / 8.0 L/m</span>
-        </button>
-        <button class="preset-btn" onclick="setAndApply(8.0, 3.0, 'Simulate Leak')">
-          <span class="preset-name">Simulate Leak</span>
-          <span class="preset-flow" style="color: var(--danger);">8.0 / 3.0 L/m</span>
-        </button>
-        <button class="preset-btn" onclick="setAndApply(30.0, 30.0, 'High Consumption')">
-          <span class="preset-name">High Flow</span>
-          <span class="preset-flow" style="color: var(--warning);">30.0 / 30.0 L/m</span>
-        </button>
-        <button class="preset-btn" onclick="setAndApply(3.0, 8.0, 'Reversed Anomaly')">
-          <span class="preset-name">Reversed Mismatch</span>
-          <span class="preset-flow" style="color: #0D9488;">3.0 / 8.0 L/m</span>
-        </button>
-        <button class="preset-btn" onclick="setAndApply(8.0, 8.0, 'Reset Baseline')">
-          <span class="preset-name">Reset Baseline</span>
-          <span class="preset-flow">8.0 / 8.0 L/m</span>
-        </button>
-      </div>
-    </section>
+    </div>
 
-    <!-- Evaluation Scenario Suite -->
-    <section class="card">
-      <div class="card-title-row">
-        <h2 class="card-title">Academic Scenario Suite</h2>
-        <span class="badge-pill">EXPO EVALUATION</span>
-      </div>
-      <p class="card-subtitle">
-        Transmit deterministic stress patterns to evaluate the stateful Leak Detection Engine:
-      </p>
-
-      <div class="scenarios-grid">
-        <div class="scenario-card" onclick="sendScenarioCommand('normal', 'Balanced Baseline')">
-          <span class="scenario-badge">NORMAL</span>
-          <h3 class="scenario-name">1. Balanced Baseline Flow</h3>
-          <p class="scenario-desc">Inlet 12.5 L/m & Outlet 12.3 L/m match closely. Steady municipal draw.</p>
+    <!-- Presets Section: Bottom Wide Panel -->
+    <div class="presets-panel">
+      <div class="presets-header">
+        <div class="presets-header-left">
+          <span class="presets-title">SIMULATION PRESETS</span>
+          <span class="presets-subtitle">EXPLICIT TRANSMISSION REQUIRED TO APPLY</span>
         </div>
-
-        <div class="scenario-card" onclick="sendScenarioCommand('suspected_leak', 'Injected Pipe Leak')">
-          <span class="scenario-badge" style="background-color: var(--danger-bg); color: var(--danger);">CRITICAL</span>
-          <h3 class="scenario-name" style="color: var(--danger);">2. Suspected Pipe Leak</h3>
-          <p class="scenario-desc">Inlet 16.5 L/m exceeds Outlet 10.8 L/m (+5.7 L/m deficit). Triggers alarm after 5s.</p>
-        </div>
-
-        <div class="scenario-card" onclick="sendScenarioCommand('abnormal_consumption', 'High Consumption Draw')">
-          <span class="scenario-badge" style="background-color: #FEF3C7; color: #92400E;">HIGH FLOW</span>
-          <h3 class="scenario-name">3. Abnormal High Consumption</h3>
-          <p class="scenario-desc">Symmetric high draw at 31.0 L/m exceeding safe threshold of 25.0 L/m.</p>
-        </div>
-
-        <div class="scenario-card" onclick="sendScenarioCommand('sensor_anomaly', 'Reversed Flow Diagnostic')">
-          <span class="scenario-badge" style="background-color: #CCFBF1; color: #0F766E;">DIAGNOSTIC</span>
-          <h3 class="scenario-name">4. Reversed Flow Anomaly</h3>
-          <p class="scenario-desc">Outlet 15.2 L/m > Inlet 9.0 L/m. Evaluates calibration without false alarm.</p>
+        <div class="mqtt-meta-pill">
+          <span>BROKER: <code>broker.emqx.io:8084</code></span>
+          <span class="sep">|</span>
+          <span>CMD: <code>water/demo/command</code></span>
+          <span class="sep">|</span>
+          <span>ACK: <code>water/demo/ack</code></span>
+          <span class="sep">|</span>
+          <span>TLM: <code>water/demo/telemetry</code></span>
         </div>
       </div>
-    </section>
 
-    <!-- Live MQTT Packet Activity Log -->
-    <section class="card-dark">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-family: var(--font-body); font-size: 11px; color: var(--text-light); letter-spacing: 0.5px;">LIVE PROTOCOL ACTIVITY LOG</span>
-        <button onclick="clearLogs()" style="background: none; border: none; color: #66655E; font-size: 11px; cursor: pointer;">Clear</button>
+      <div class="presets-row">
+        <button class="btn-preset-card" onclick="loadPreset(8.0, 8.0, 2.89, 2.89, 'Normal Balanced')">
+          <div class="preset-name">Normal Balanced</div>
+          <div class="preset-desc">8.0 / 8.0 L/m (Delta 0.0)</div>
+        </button>
+
+        <button class="btn-preset-card preset-leak" onclick="loadPreset(8.0, 3.0, 3.20, 2.10, 'Suspected Leak')">
+          <div class="preset-name" style="color: #F87171;">Simulate Leak</div>
+          <div class="preset-desc">8.0 / 3.0 L/m (-5.0 Deficit)</div>
+        </button>
+
+        <button class="btn-preset-card preset-high" onclick="loadPreset(30.0, 30.0, 4.50, 4.50, 'High Consumption')">
+          <div class="preset-name" style="color: #38BDF8;">High Consumption</div>
+          <div class="preset-desc">30.0 / 30.0 L/m (Heavy Draw)</div>
+        </button>
+
+        <button class="btn-preset-card preset-reversed" onclick="loadPreset(3.0, 8.0, 2.00, 3.50, 'Reversed Anomaly')">
+          <div class="preset-name" style="color: #FBBF24;">Reversed Anomaly</div>
+          <div class="preset-desc">3.0 / 8.0 L/m (+5.0 Inflow)</div>
+        </button>
+
+        <button class="btn-preset-card preset-night" onclick="loadPreset(2.0, 2.0, 2.50, 2.50, 'Night Flow Baseline')">
+          <div class="preset-name" style="color: #A5B4FC;">Night Flow</div>
+          <div class="preset-desc">2.0 / 2.0 L/m (Low Demand)</div>
+        </button>
+
+        <button class="btn-preset-card preset-reset" onclick="triggerResetToNormal()">
+          <div class="preset-name">Reset Baseline</div>
+          <div class="preset-desc">8.0 / 8.0 L/m (Firmware Default)</div>
+        </button>
       </div>
-      <div id="log-box" class="log-box">
-        <div class="log-line"><span class="log-time">[Init]</span> WaterGuard Remote Console initialized. Connecting to EMQX broker...</div>
-      </div>
-    </section>
+    </div>
 
-    <!-- Academic Disclaimer -->
-    <footer class="disclaimer">
-      WaterGuard-IoT Academic Expo Prototype • Virtual ESP32 Simulator & Remote Flow Control Console • Communication: EMQX MQTT over Secure WebSockets (WSS 8084).
-    </footer>
+  </div>
 
-  </main>
-
+  <!-- JavaScript Logic -->
   <script>
-    const BROKER_URL = 'wss://broker.emqx.io:8084/mqtt';
-    const TOPIC_COMMAND   = 'water/demo/command';
+    // Configuration
+    const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
     const TOPIC_TELEMETRY = 'water/demo/telemetry';
+    const TOPIC_COMMAND   = 'water/demo/command';
     const TOPIC_ACK       = 'water/demo/ack';
 
-    let client = null;
-    let pendingReqId = null;
-    let ackTimeout = null;
+    // State
+    let mqttClient = null;
+    let valve1Open = true;
+    let valve2Open = true;
+    let connValveOpen = true;
+    let currentMode = 'REMOTE'; // 'LOCAL', 'REMOTE', 'AUTO'
+    let unackedCount = 3;
+    let pendingRequestId = null;
+    let pendingExpectedInlet = null;
+    let pendingExpectedOutlet = null;
+    let pendingTimeoutTimer = null;
+    let lastTelemetryTimestamp = 0;
+    let currentLogFilter = 'ALL';
+    let currentSystemAlarmState = 'NORMAL';
 
-    function addLog(msg, type = '') {
-      const logBox = document.getElementById('log-box');
-      const time = new Date().toLocaleTimeString();
-      const line = document.createElement('div');
-      line.className = 'log-line';
-      let typeClass = '';
-      if (type === 'cmd') typeClass = 'log-cmd';
-      if (type === 'ack') typeClass = 'log-ack';
-      if (type === 'telem') typeClass = 'log-telem';
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('liveClock').textContent = now.toLocaleTimeString('en-US', { hour12: true });
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      document.getElementById('liveDate').textContent = `${year}-${month}-${day}`;
 
-      line.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">${msg}</span>`;
-      logBox.appendChild(line);
-      logBox.scrollTop = logBox.scrollHeight;
+      // Check telemetry staleness (> 5 seconds)
+      if (lastTelemetryTimestamp > 0) {
+        const elapsed = (Date.now() - lastTelemetryTimestamp) / 1000;
+        const badge = document.getElementById('badgeStaleness');
+        if (elapsed > 5) {
+          badge.textContent = `STALE (${elapsed.toFixed(0)}s)`;
+          badge.style.background = '#7F1D1D';
+          badge.style.color = '#FCA5A5';
+        } else {
+          badge.textContent = 'LIVE';
+          badge.style.background = '#064E3B';
+          badge.style.color = '#6EE7B7';
+        }
+      }
     }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    function clearLogs() {
-      document.getElementById('log-box').innerHTML = '';
-    }
-
-    function updateStatus(status) {
-      const dot = document.getElementById('status-dot');
-      const text = document.getElementById('status-text');
-      const btn = document.getElementById('btn-toggle-connect');
-
-      if (status === 'connected') {
-        dot.className = 'status-dot connected';
-        text.innerText = 'ESP32 MQTT LINKED';
-        btn.className = 'btn-disconnect';
-        btn.innerText = 'Disconnect';
-      } else if (status === 'connecting') {
-        dot.className = 'status-dot';
-        text.innerText = 'CONNECTING...';
-        btn.className = 'btn-connect';
-        btn.innerText = 'Connecting...';
+    // Alarm Button
+    function toggleAlarmAck() {
+      if (unackedCount > 0) {
+        unackedCount = 0;
+        document.getElementById('alarmText').textContent = 'ALARMS ACKNOWLEDGED';
+        document.getElementById('alarmBtn').style.animation = 'none';
+        document.getElementById('alarmBtn').style.background = '#475569';
+        addEventLog('ALARM_ACK', 'User acknowledged all active alarm annunciators', 'APPLIED');
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(TOPIC_COMMAND, JSON.stringify({ command: 'ack_alarm', timestamp: Date.now() }));
+        }
       } else {
-        dot.className = 'status-dot';
-        text.innerText = 'DISCONNECTED';
-        btn.className = 'btn-connect';
-        btn.innerText = 'Connect Bridge';
+        unackedCount = 3;
+        document.getElementById('alarmText').textContent = 'UNACKED ALARMS (3)';
+        document.getElementById('alarmBtn').style.animation = 'pulse-alarm 1.8s infinite';
+        document.getElementById('alarmBtn').style.background = 'linear-gradient(180deg, #EF4444 0%, #B91C1C 100%)';
+        addEventLog('ALARM_TRIGGER', 'Diagnostic simulation alarm state activated', 'PENDING');
       }
     }
 
-    function setFeedback(type, title, detail) {
-      const box = document.getElementById('feedback-box');
-      const titleEl = document.getElementById('feedback-title');
-      const detailEl = document.getElementById('feedback-detail');
-
-      box.className = `feedback-banner ${type}`;
-      titleEl.innerText = title;
-      detailEl.innerText = detail || '';
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
     }
 
-    function connectBroker() {
-      if (client && client.connected) return;
+    // Operating Modes
+    function setOperatingMode(mode) {
+      currentMode = mode;
+      document.getElementById('currentModeLabel').textContent = mode;
+      
+      const isLocal = mode === 'LOCAL';
+      const isRemote = mode === 'REMOTE';
+      const isAuto = mode === 'AUTO';
 
-      updateStatus('connecting');
-      addLog(`Connecting to ${BROKER_URL}...`);
+      // Lamp updates
+      document.getElementById('v2_local_lamp').setAttribute('fill', isLocal ? '#F59E0B' : '#D1D5DB');
+      document.getElementById('v2_remote_lamp').setAttribute('fill', isRemote ? '#00E676' : '#D1D5DB');
+      document.getElementById('v2_auto_lamp').setAttribute('fill', isAuto ? '#00E676' : '#D1D5DB');
 
-      const clientId = `waterguard_ctrl_${Math.random().toString(16).substring(2, 8)}`;
-      client = mqtt.connect(BROKER_URL, {
-        clientId: clientId,
-        clean: true,
-        connectTimeout: 5000,
-        reconnectPeriod: 3000,
-      });
+      document.getElementById('v1_local_lamp').setAttribute('fill', isLocal ? '#F59E0B' : '#D1D5DB');
+      document.getElementById('v1_remote_lamp').setAttribute('fill', isRemote ? '#00E676' : '#D1D5DB');
+      document.getElementById('v1_auto_lamp').setAttribute('fill', isAuto ? '#00E676' : '#D1D5DB');
 
-      client.on('connect', () => {
-        updateStatus('connected');
-        addLog(`Connected successfully! Client ID: ${clientId}`, 'ack');
-        
-        client.subscribe(TOPIC_TELEMETRY, { qos: 0 }, (err) => {
-          if (!err) addLog(`Subscribed to telemetry topic: ${TOPIC_TELEMETRY}`);
-        });
+      document.getElementById('btnModeLocal').classList.toggle('active', isLocal);
+      document.getElementById('btnModeRemote').classList.toggle('active', isRemote);
+      document.getElementById('btnModeAuto').classList.toggle('active', isAuto);
 
-        client.subscribe(TOPIC_ACK, { qos: 0 }, (err) => {
-          if (!err) addLog(`Subscribed to ACK topic: ${TOPIC_ACK}`);
-        });
-      });
+      addEventLog('MODE_CHANGE', `Operating mode switched to ${mode}`, 'APPLIED');
 
-      client.on('message', (topic, payload) => {
-        const raw = payload.toString();
+      if (isAuto) {
+        evaluateAutoMode();
+      }
+    }
 
-        if (topic === TOPIC_TELEMETRY) {
-          try {
-            const data = JSON.parse(raw);
-            const inVal = parseFloat(data.inlet ?? data.inletFlow ?? 0);
-            const outVal = parseFloat(data.outlet ?? data.outletFlow ?? 0);
-            const diff = inVal - outVal;
+    // Automated Closed-Loop Mode (AUTO)
+    function evaluateAutoMode() {
+      if (currentMode !== 'AUTO') return;
+      const t1 = parseFloat(document.getElementById('kpiTank1').textContent) || 2.89;
+      const t2 = parseFloat(document.getElementById('kpiTank2').textContent) || 2.89;
+      const t1Full = parseFloat(document.getElementById('tank1FullInput').value) || 5.10;
+      const t1Low = parseFloat(document.getElementById('tank1LowInput').value) || 4.50;
 
-            document.getElementById('telemetry-inlet').innerText = inVal.toFixed(1);
-            document.getElementById('telemetry-outlet').innerText = outVal.toFixed(1);
-            
-            const diffEl = document.getElementById('telemetry-diff');
-            diffEl.innerText = (diff >= 0 ? '+' : '') + diff.toFixed(1);
-            
-            if (diff > 1.5) {
-              diffEl.style.color = 'var(--danger)';
-              document.getElementById('scenario-badge').innerText = 'CRITICAL LEAK';
-              document.getElementById('scenario-badge').style.backgroundColor = '#7F1D1D';
-            } else if (diff < -1.5) {
-              diffEl.style.color = '#0D9488';
-              document.getElementById('scenario-badge').innerText = 'REVERSED ANOMALY';
-              document.getElementById('scenario-badge').style.backgroundColor = '#0F766E';
-            } else if (inVal >= 25.0) {
-              diffEl.style.color = 'var(--warning)';
-              document.getElementById('scenario-badge').innerText = 'HIGH DEMAND';
-              document.getElementById('scenario-badge').style.backgroundColor = '#78350F';
-            } else {
-              diffEl.style.color = '#FFFFFF';
-              document.getElementById('scenario-badge').innerText = 'NORMAL BALANCED';
-              document.getElementById('scenario-badge').style.backgroundColor = '#064E3B';
-            }
+      // Closed loop: if level exceeds full limit, close valve; if below low limit, open valve
+      if (t1 >= t1Full && valve1Open) {
+        valve1Open = false;
+        updateValveVisuals(1, false);
+        addEventLog('AUTO_REGULATION', `Tank 1 level ${t1.toFixed(2)}m >= Full (${t1Full}m): Inlet Valve 1 CLOSED`, 'APPLIED');
+      } else if (t1 <= t1Low && !valve1Open) {
+        valve1Open = true;
+        updateValveVisuals(1, true);
+        addEventLog('AUTO_REGULATION', `Tank 1 level ${t1.toFixed(2)}m <= Low (${t1Low}m): Inlet Valve 1 OPENED`, 'APPLIED');
+      }
+    }
 
-            // Check if matching telemetry arrived for pending request
-            if (pendingReqId && (data.requestId === pendingReqId || (Math.abs(inVal - parseFloat(document.getElementById('input-inlet').value)) < 0.2))) {
-              if (ackTimeout) clearTimeout(ackTimeout);
-              setFeedback('success', 'Telemetry Confirmed & Active!', `ESP32 is actively streaming In: ${inVal.toFixed(1)} L/m, Out: ${outVal.toFixed(1)} L/m`);
-              pendingReqId = null;
-            }
+    // Valve Toggles
+    function toggleValve(num) {
+      if (num === 1) {
+        valve1Open = !valve1Open;
+        updateValveVisuals(1, valve1Open);
+        addEventLog('VALVE_MANUAL', `Inlet Valve 1 toggled to ${valve1Open ? 'OPEN' : 'CLOSED'}`, 'APPLIED');
+      } else if (num === 2) {
+        valve2Open = !valve2Open;
+        updateValveVisuals(2, valve2Open);
+        addEventLog('VALVE_MANUAL', `Inlet Valve 2 toggled to ${valve2Open ? 'OPEN' : 'CLOSED'}`, 'APPLIED');
+      }
+    }
 
-            addLog(`[Telemetry] In=${inVal.toFixed(1)} L/m, Out=${outVal.toFixed(1)} L/m (${data.deviceId || 'ESP32'})`, 'telem');
-          } catch (e) {
-            console.error('Error parsing telemetry JSON', e);
-          }
-        } else if (topic === TOPIC_ACK) {
-          try {
-            const ack = JSON.parse(raw);
-            if (ack.requestId === pendingReqId || pendingReqId !== null) {
-              if (ackTimeout) clearTimeout(ackTimeout);
-              if (ack.status === 'applied') {
-                setFeedback('success', 'Confirmed & Applied by ESP32!', `Applied values: Inlet ${parseFloat(ack.inlet).toFixed(1)} L/m, Outlet ${parseFloat(ack.outlet).toFixed(1)} L/m`);
-              } else {
-                setFeedback('error', `Rejected: ${ack.status}`, 'Flow rate out of bounds [0.0 - 100.0 L/min]');
-              }
-              pendingReqId = null;
-            }
-            addLog(`[ACK] ESP32 confirmed ${ack.command} (${ack.status}) req=${ack.requestId || 'n/a'}`, 'ack');
-          } catch (e) {
-            console.error('Error parsing ACK JSON', e);
-          }
+    function toggleConnectingValve() {
+      connValveOpen = !connValveOpen;
+      const circle = document.getElementById('handwheelCircle');
+      const btn = document.getElementById('connValveBtn');
+      if (connValveOpen) {
+        circle.setAttribute('stroke', '#10B981');
+        btn.textContent = 'Connecting Valve: OPEN';
+        btn.classList.remove('closed');
+        addEventLog('VALVE_MANUAL', 'Equalization Connecting Valve OPENED', 'APPLIED');
+      } else {
+        circle.setAttribute('stroke', '#EF4444');
+        btn.textContent = 'Connecting Valve: CLOSED';
+        btn.classList.add('closed');
+        addEventLog('VALVE_MANUAL', 'Equalization Connecting Valve CLOSED', 'APPLIED');
+      }
+    }
+
+    function updateValveVisuals(num, isOpen) {
+      const actuator = document.getElementById('actuator' + num + 'Body');
+      const led = document.getElementById('valve' + num + 'Led');
+      const btn = document.getElementById('valve' + num + 'Btn');
+      const flow = document.getElementById('flowBranch' + num);
+
+      if (isOpen) {
+        actuator.classList.remove('actuator-closed');
+        led.setAttribute('fill', '#10B981');
+        btn.textContent = 'Inlet Valve ' + num + ': OPEN';
+        btn.classList.remove('closed');
+        flow.classList.remove('flow-stopped');
+      } else {
+        actuator.classList.add('actuator-closed');
+        led.setAttribute('fill', '#EF4444');
+        btn.textContent = 'Inlet Valve ' + num + ': CLOSED';
+        btn.classList.add('closed');
+        flow.classList.add('flow-stopped');
+      }
+    }
+
+    // Tank Graphic Rendering (0m = y:110, h:0; 6m = y:15, h:95)
+    function updateTankGraphic(num, levelMeters) {
+      const clamped = Math.max(0, Math.min(6.0, levelMeters));
+      const fillPercent = clamped / 6.0;
+      const totalH = 95;
+      const waterH = totalH * fillPercent;
+      const waterY = 110 - waterH;
+
+      document.getElementById('tank' + num + 'WaterRect').setAttribute('y', waterY);
+      document.getElementById('tank' + num + 'WaterRect').setAttribute('height', waterH + 15);
+      document.getElementById('tank' + num + 'WaterTop').setAttribute('cy', waterY);
+      document.getElementById('tank' + num + 'Display').textContent = clamped.toFixed(2) + ' m';
+      document.getElementById('tank' + num + 'SubDisplay').textContent = `TANK ${num} (${(fillPercent * 100).toFixed(1)}%)`;
+
+      // Update KPI
+      document.getElementById('kpiTank' + num).textContent = clamped.toFixed(2);
+    }
+
+    function previewTank(num, val) {
+      const parsed = parseFloat(val);
+      if (!isNaN(parsed)) {
+        updateTankGraphic(num, parsed);
+      }
+    }
+
+    // Tank Limit Configuration
+    function applyTankConfig() {
+      const t1Full = parseFloat(document.getElementById('tank1FullInput').value);
+      const t1Low = parseFloat(document.getElementById('tank1LowInput').value);
+      const t2Full = parseFloat(document.getElementById('tank2FullInput').value);
+      const t2Low = parseFloat(document.getElementById('tank2LowInput').value);
+
+      if (isNaN(t1Full) || isNaN(t1Low) || t1Low >= t1Full) {
+        alert('Validation Error: Tank 1 Low Level must be strictly less than Full Level.');
+        return;
+      }
+      if (isNaN(t2Full) || isNaN(t2Low) || t2Low >= t2Full) {
+        alert('Validation Error: Tank 2 Low Level must be strictly less than Full Level.');
+        return;
+      }
+
+      addEventLog('CONFIG_APPLY', `Limits Saved: T1 Full=${t1Full}m, Low=${t1Low}m | T2 Full=${t2Full}m, Low=${t2Low}m`, 'APPLIED');
+      alert('Tank configuration applied successfully.');
+    }
+
+    function toggleScheduleActive() {
+      const active = document.getElementById('schedActive').checked;
+      addEventLog('SCHEDULE', `Operating Schedule ${active ? 'ENABLED' : 'DISABLED'}`, 'APPLIED');
+    }
+
+    // Preset Loader (Does NOT auto-send; explicit action required)
+    function loadPreset(inlet, outlet, t1, t2, name) {
+      document.getElementById('inletInput').value = inlet.toFixed(1);
+      document.getElementById('outletInput').value = outlet.toFixed(1);
+      document.getElementById('tank1TargetInput').value = t1.toFixed(2);
+      document.getElementById('tank2TargetInput').value = t2.toFixed(2);
+      previewTank(1, t1);
+      previewTank(2, t2);
+
+      document.getElementById('commandStatusFeedback').innerHTML = 
+        `<span style="color: #38BDF8;">Preset loaded: <strong>${name}</strong> (${inlet}/${outlet} L/min). Click SEND SCADA COMMAND to transmit.</span>`;
+      addEventLog('PRESET_LOAD', `Preset selected: ${name} (${inlet}/${outlet} L/min)`, 'PENDING');
+    }
+
+    // Trigger Reset to Normal
+    function triggerResetToNormal() {
+      if (!confirm('Reset simulation parameters to default baseline (8.0/8.0 L/min, Normal Hardware Tracking)?')) {
+        return;
+      }
+
+      const reqId = 'scada_reset_' + Date.now().toString(36);
+      pendingRequestId = reqId;
+
+      document.getElementById('inletInput').value = '8.0';
+      document.getElementById('outletInput').value = '8.0';
+      document.getElementById('tank1TargetInput').value = '2.89';
+      document.getElementById('tank2TargetInput').value = '2.89';
+      previewTank(1, 2.89);
+      previewTank(2, 2.89);
+
+      // Stage 1: Submitted
+      addEventLog('INFO', 'CMD_SUBMITTED', `Reset baseline command staged (ReqId: ${reqId})`, 'PENDING');
+
+      if (!mqttClient || !mqttClient.connected) {
+        setCommandFeedback('Error: MQTT Broker Disconnected', 'status-error');
+        addEventLog('ERROR', 'CMD_FAILURE', 'Reset failed: MQTT Broker Disconnected', 'FAILED');
+        return;
+      }
+
+      setCommandFeedback(`Transmitting RESET command (ReqId: ${reqId})...`, 'status-pending');
+
+      mqttClient.publish(TOPIC_COMMAND, JSON.stringify({
+        command: 'reset',
+        requestId: reqId,
+        timestamp: Date.now()
+      }), { qos: 0 }, (err) => {
+        if (err) {
+          setCommandFeedback(`Publish Error: ${err.message}`, 'status-error');
+          addEventLog('ERROR', 'CMD_ERROR', `Reset publish error: ${err.message}`, 'FAILED');
+        } else {
+          // Stage 2: Published
+          addEventLog('INFO', 'MQTT_PUBLISHED', `Reset command published to ${TOPIC_COMMAND} (ReqId: ${reqId})`, 'SENT');
+          startAckTimeoutTimer(reqId);
         }
       });
-
-      client.on('error', (err) => {
-        addLog(`MQTT Error: ${err.message}`, 'error');
-        updateStatus('error');
-      });
-
-      client.on('close', () => {
-        addLog('MQTT connection closed.');
-        updateStatus('disconnected');
-      });
     }
 
-    function disconnectBroker() {
-      if (client) {
-        client.end(true);
-        client = null;
-        updateStatus('disconnected');
-        addLog('Disconnected from MQTT broker.');
+    // Send SCADA Command over MQTT
+    function sendScadaCommand() {
+      const inlet = parseFloat(document.getElementById('inletInput').value);
+      const outlet = parseFloat(document.getElementById('outletInput').value);
+      const t1 = parseFloat(document.getElementById('tank1TargetInput').value);
+      const t2 = parseFloat(document.getElementById('tank2TargetInput').value);
+
+      // Validation
+      if (isNaN(inlet) || inlet < 0 || inlet > 100) {
+        alert('Validation Error: Inlet flow rate must be between 0.0 and 100.0 L/min');
+        return;
       }
-    }
-
-    function toggleConnection() {
-      if (client && client.connected) {
-        disconnectBroker();
-      } else {
-        connectBroker();
+      if (isNaN(outlet) || outlet < 0 || outlet > 100) {
+        alert('Validation Error: Outlet flow rate must be between 0.0 and 100.0 L/min');
+        return;
       }
-    }
-
-    function applyManualFlow(customInlet, customOutlet) {
-      const inVal = customInlet !== undefined ? customInlet : parseFloat(document.getElementById('input-inlet').value);
-      const outVal = customOutlet !== undefined ? customOutlet : parseFloat(document.getElementById('input-outlet').value);
-
-      if (isNaN(inVal) || isNaN(outVal) || inVal < 0 || inVal > 100 || outVal < 0 || outVal > 100) {
-        setFeedback('error', 'Validation Error', 'Values must be valid numbers between 0.0 and 100.0 L/min');
+      if (isNaN(t1) || t1 < 0 || t1 > 6.0 || isNaN(t2) || t2 < 0 || t2 > 6.0) {
+        alert('Validation Error: Tank target levels must be between 0.0 and 6.0 metres');
         return;
       }
 
-      if (!client || !client.connected) {
-        setFeedback('error', 'MQTT Disconnected', 'Connect to MQTT bridge first before sending commands.');
-        return;
-      }
+      const reqId = 'scada_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+      pendingRequestId = reqId;
+      pendingExpectedInlet = inlet;
+      pendingExpectedOutlet = outlet;
 
-      const reqId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-      const cmd = {
-        command: 'set_flow',
-        inlet: inVal,
-        outlet: outVal,
+      const payload = {
+        command: 'set_scada',
+        inlet: inlet,
+        outlet: outlet,
+        tank1: t1,
+        tank2: t2,
+        valve1: valve1Open ? 'OPEN' : 'CLOSED',
+        valve2: valve2Open ? 'OPEN' : 'CLOSED',
+        mode: currentMode,
         requestId: reqId,
         timestamp: Math.floor(Date.now() / 1000)
       };
 
-      const payload = JSON.stringify(cmd);
-      console.log('[STAGE 1: CONTROLLER PUBLISHED]', cmd);
-      client.publish(TOPIC_COMMAND, payload, { qos: 0 });
-      addLog(`[Command Sent] set_flow: In=${inVal.toFixed(1)}, Out=${outVal.toFixed(1)} (req=${reqId.slice(-6)})`, 'cmd');
+      // Stage 1: Submitted
+      addEventLog('INFO', 'CMD_SUBMITTED', `Setpoints staged: In=${inlet.toFixed(1)} L/m, Out=${outlet.toFixed(1)} L/m, T1=${t1.toFixed(2)}m, T2=${t2.toFixed(2)}m, Mode=${currentMode} (ReqId: ${reqId})`, 'PENDING');
 
-      pendingReqId = reqId;
-      setFeedback('pending', 'Transmitting to ESP32...', `Tracking req: ${reqId.slice(-6)} — Awaiting ACK`);
+      if (!mqttClient || !mqttClient.connected) {
+        setCommandFeedback('Error: MQTT Broker Disconnected. Cannot publish command.', 'status-error');
+        addEventLog('ERROR', 'CMD_FAILURE', 'Failed to publish command: MQTT Offline', 'FAILED');
+        return;
+      }
 
-      if (ackTimeout) clearTimeout(ackTimeout);
-      ackTimeout = setTimeout(() => {
-        if (pendingReqId === reqId) {
-          setFeedback('pending', 'Awaiting ESP32 Confirmation', 'Command published. Ensure Wokwi simulation is running.');
-          pendingReqId = null;
+      setCommandFeedback(`Transmitting setpoints (ReqId: ${reqId})...`, 'status-pending');
+      console.log('[STAGE 1: SCADA CONTROLLER SUBMITTED]', payload);
+
+      mqttClient.publish(TOPIC_COMMAND, JSON.stringify(payload), { qos: 0 }, (err) => {
+        if (err) {
+          setCommandFeedback(`Publish Error: ${err.message}`, 'status-error');
+          addEventLog('ERROR', 'CMD_ERROR', `Publish error: ${err.message}`, 'FAILED');
+        } else {
+          // Stage 2: Published
+          addEventLog('INFO', 'MQTT_PUBLISHED', `Command published to ${TOPIC_COMMAND} (ReqId: ${reqId})`, 'SENT');
+          setCommandFeedback(`Published. Awaiting Wokwi ESP32 confirmation & telemetry...`, 'status-pending');
+          startAckTimeoutTimer(reqId);
+        }
+      });
+    }
+
+    function startAckTimeoutTimer(reqId) {
+      if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
+      pendingTimeoutTimer = setTimeout(() => {
+        if (pendingRequestId === reqId) {
+          setCommandFeedback(`Command Timed Out: No ACK received from ESP32 within 5 seconds.`, 'status-error');
+          addEventLog('ERROR', 'CMD_TIMEOUT', `ReqId ${reqId} timed out awaiting firmware ACK after 5000ms`, 'TIMEOUT');
+          pendingRequestId = null;
         }
       }, 5000);
     }
 
-    function setAndApply(inlet, outlet, label) {
-      document.getElementById('input-inlet').value = inlet.toFixed(1);
-      document.getElementById('input-outlet').value = outlet.toFixed(1);
-      applyManualFlow(inlet, outlet);
+    function setCommandFeedback(text, cls) {
+      const el = document.getElementById('commandStatusFeedback');
+      if (el) {
+        el.className = 'command-feedback ' + cls;
+        el.innerHTML = text;
+      }
     }
 
-    function sendScenarioCommand(scenario, label) {
-      if (!client || !client.connected) {
-        setFeedback('error', 'MQTT Disconnected', 'Connect to MQTT bridge first before sending commands.');
-        return;
+    // System Event Log Filter & Counter
+    function setLogFilter(cat) {
+      currentLogFilter = cat;
+      document.querySelectorAll('.log-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-filter') === cat);
+      });
+      applyLogFilter();
+    }
+
+    function applyLogFilter() {
+      const rows = document.querySelectorAll('#eventLogBody tr');
+      rows.forEach(tr => {
+        const cat = tr.getAttribute('data-cat') || 'SYS';
+        if (currentLogFilter === 'ALL' || cat === currentLogFilter) {
+          tr.style.display = '';
+        } else {
+          tr.style.display = 'none';
+        }
+      });
+    }
+
+    function updateLogCounter() {
+      const total = document.querySelectorAll('#eventLogBody tr').length;
+      const el = document.getElementById('logCounterBadge');
+      if (el) el.textContent = `${total} EVENT${total === 1 ? '' : 'S'}`;
+    }
+
+    // Comprehensive Event Log with 7-Stage Lifecycle & Visual Indicators
+    function addEventLog(severity, type, details, status) {
+      if (arguments.length === 3) {
+        status = details;
+        details = type;
+        type = severity;
+        severity = 'INFO';
       }
 
-      const cmd = {
-        command: 'set_scenario',
-        scenario: scenario,
-        timestamp: Math.floor(Date.now() / 1000)
-      };
+      const tbody = document.getElementById('eventLogBody');
+      if (!tbody) return;
 
-      const payload = JSON.stringify(cmd);
-      client.publish(TOPIC_COMMAND, payload, { qos: 0 });
-      addLog(`[Scenario Sent] ${scenario} (${label})`, 'cmd');
-      setFeedback('success', `Scenario Applied: ${label}`, `ESP32 switched active vector to ${scenario}.`);
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+
+      const sev = (severity || 'INFO').toUpperCase();
+      const stat = (status || 'PENDING').toUpperCase();
+
+      // Determine Category for filter (CMD, TLM, ALM, SYS)
+      let category = 'SYS';
+      if (type.startsWith('CMD') || type.startsWith('MQTT_PUB') || type.startsWith('RESET') || type.startsWith('WOKWI_ACK') || type.startsWith('ACK')) {
+        category = 'CMD';
+      } else if (type.startsWith('TELEMETRY') || type.startsWith('VALUES') || type.startsWith('TLM')) {
+        category = 'TLM';
+      } else if (type.includes('LEAK') || type.includes('ANOMALY') || type.includes('ALARM') || type.includes('CONSUMPTION') || type.includes('AUTO_REG')) {
+        category = 'ALM';
+      }
+
+      // Severity badge styling
+      let sevClass = 'sev-info';
+      if (sev === 'SUCCESS') sevClass = 'sev-success';
+      else if (sev === 'WARN' || sev === 'WARNING') sevClass = 'sev-warn';
+      else if (sev === 'ERROR' || sev === 'FATAL') sevClass = 'sev-error';
+
+      // Status badge styling
+      let statusClass = 'status-badge status-pending';
+      if (stat === 'CONFIRMED' || stat === 'SYNCED') statusClass = 'status-badge status-confirmed';
+      else if (stat === 'APPLIED' || stat === 'NORMAL') statusClass = 'status-badge status-applied';
+      else if (stat === 'SENT' || stat === 'PUBLISHED') statusClass = 'status-badge status-sent';
+      else if (stat === 'ACK' || stat === 'ACKNOWLEDGED') statusClass = 'status-badge status-ack';
+      else if (stat === 'FAILED' || stat === 'ERROR' || stat === 'TIMEOUT') statusClass = 'status-badge status-failed';
+      else if (stat === 'ALERT') statusClass = 'status-badge status-alert';
+
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-cat', category);
+
+      tr.innerHTML = `
+        <td style="color: #64748B; font-family: var(--font-mono); font-size: 10px;">${timeStr}</td>
+        <td><span class="sev-badge ${sevClass}">${sev}</span> <span style="font-weight: 700; color: #E2E8F0; margin-left: 4px;">${type}</span></td>
+        <td style="color: #CBD5E1;">${details}</td>
+        <td style="text-align: center;"><span class="${statusClass}">${stat}</span></td>
+      `;
+
+      if (currentLogFilter !== 'ALL' && category !== currentLogFilter) {
+        tr.style.display = 'none';
+      }
+
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      // Keep max 100 entries for performance
+      while (tbody.children.length > 100) {
+        tbody.removeChild(tbody.lastChild);
+      }
+
+      updateLogCounter();
     }
 
-    // Auto-connect upon page load
-    window.addEventListener('load', () => {
-      connectBroker();
+    function clearEventLog() {
+      const tbody = document.getElementById('eventLogBody');
+      if (tbody) tbody.innerHTML = '';
+      updateLogCounter();
+      addEventLog('INFO', 'SYSTEM', 'Event log cleared by operator', 'APPLIED');
+    }
+
+    // MQTT Client Integration
+    function initMqtt() {
+      const badge = document.getElementById('mqttBadge');
+      const statusText = document.getElementById('mqttStatus');
+
+      console.log('[MQTT] Connecting to ' + MQTT_BROKER);
+      mqttClient = mqtt.connect(MQTT_BROKER, {
+        clientId: 'scada_operator_' + Math.random().toString(16).substring(2, 8),
+        clean: true,
+        connectTimeout: 5000,
+        reconnectPeriod: 2500
+      });
+
+      mqttClient.on('connect', () => {
+        console.log('[MQTT] Connected successfully');
+        badge.classList.add('mqtt-connected');
+        statusText.textContent = 'CONNECTED';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('SUCCESS', 'MQTT_CONNECT', `Connected to broker (${MQTT_BROKER})`, 'CONFIRMED');
+
+        mqttClient.subscribe(TOPIC_TELEMETRY, (err) => {
+          if (!err) console.log('[MQTT] Subscribed to ' + TOPIC_TELEMETRY);
+        });
+        mqttClient.subscribe(TOPIC_ACK, (err) => {
+          if (!err) console.log('[MQTT] Subscribed to ' + TOPIC_ACK);
+        });
+      });
+
+      mqttClient.on('error', (err) => {
+        console.error('[MQTT] Connection error:', err);
+        badge.classList.remove('mqtt-connected');
+        statusText.textContent = 'ERROR';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('ERROR', 'MQTT_ERROR', `Connection error: ${err.message || 'Network fault'}`, 'FAILED');
+      });
+
+      mqttClient.on('offline', () => {
+        badge.classList.remove('mqtt-connected');
+        statusText.textContent = 'DISCONNECTED';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('WARN', 'MQTT_DISCONNECT', `Broker connection lost`, 'OFFLINE');
+      });
+
+      mqttClient.on('reconnect', () => {
+        statusText.textContent = 'RECONNECTING...';
+        // Stage 7: MQTT Lifecycle
+        addEventLog('INFO', 'MQTT_RECONNECT', `Attempting reconnection to ${MQTT_BROKER}`, 'PENDING');
+      });
+
+      mqttClient.on('message', (topic, message) => {
+        const raw = message.toString();
+        try {
+          const data = JSON.parse(raw);
+
+          // Stage 3: Handle Firmware WOKWI_ACK
+          if (topic === TOPIC_ACK) {
+            if (pendingRequestId && (data.requestId === pendingRequestId || data.status === 'applied' || data.status === 'reset_applied')) {
+              if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
+              pendingRequestId = null;
+              setCommandFeedback(`ESP32 Confirmed: Applied Inlet ${data.inlet !== undefined ? data.inlet : '-'} L/m, Outlet ${data.outlet !== undefined ? data.outlet : '-'} L/m`, 'status-applied');
+              addEventLog('SUCCESS', 'WOKWI_ACK', `Firmware confirmed setpoints applied: In=${data.inlet !== undefined ? data.inlet : '-'} L/m, Out=${data.outlet !== undefined ? data.outlet : '-'} L/m (ReqId: ${data.requestId || 'ack'})`, 'ACK');
+            }
+          }
+
+          // Handle Periodic Telemetry
+          if (topic === TOPIC_TELEMETRY) {
+            lastTelemetryTimestamp = Date.now();
+            console.log('[STAGE 4: SCADA CONTROLLER RECEIVED TELEMETRY]', data);
+
+            const inVal = parseFloat(data.inlet !== undefined ? data.inlet : (data.inletFlow || 0));
+            const outVal = parseFloat(data.outlet !== undefined ? data.outlet : (data.outletFlow || 0));
+            const diff = inVal - outVal;
+
+            // Stage 4 & 5: Check if incoming telemetry confirms pending command
+            if (pendingExpectedInlet !== null && pendingExpectedOutlet !== null) {
+              if (Math.abs(inVal - pendingExpectedInlet) <= 0.05 && Math.abs(outVal - pendingExpectedOutlet) <= 0.05) {
+                if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
+                pendingRequestId = null;
+                setCommandFeedback(`Telemetry Synchronized: Wokwi Active ${inVal.toFixed(2)} / ${outVal.toFixed(2)} L/min`, 'status-applied');
+                addEventLog('SUCCESS', 'TELEMETRY_CONFIRMED', `Confirmed by incoming telemetry: In=${inVal.toFixed(2)}, Out=${outVal.toFixed(2)} (Seq #${data.sequence || 'n/a'})`, 'CONFIRMED');
+                addEventLog('INFO', 'VALUES_APPLIED', `Live SCADA setpoints active: In=${inVal.toFixed(2)} L/m, Out=${outVal.toFixed(2)} L/m`, 'APPLIED');
+                pendingExpectedInlet = null;
+                pendingExpectedOutlet = null;
+              }
+            }
+
+            // Stage 6: State Transition Events Tracking
+            let newAlarmState = 'NORMAL';
+            if (diff >= 2.0) {
+              newAlarmState = 'LEAK';
+            } else if (diff <= -2.0) {
+              newAlarmState = 'ANOMALY';
+            } else if (inVal >= 25.0) {
+              newAlarmState = 'HIGH_CONSUMPTION';
+            }
+
+            if (newAlarmState !== currentSystemAlarmState) {
+              if (newAlarmState === 'LEAK') {
+                addEventLog('WARN', 'LEAK_DETECTED', `Deficit of ${diff.toFixed(2)} L/m detected (Inlet: ${inVal.toFixed(2)}, Outlet: ${outVal.toFixed(2)})`, 'ALERT');
+              } else if (newAlarmState === 'ANOMALY') {
+                addEventLog('WARN', 'SENSOR_ANOMALY', `Reverse discrepancy of ${Math.abs(diff).toFixed(2)} L/m detected`, 'ALERT');
+              } else if (newAlarmState === 'HIGH_CONSUMPTION') {
+                addEventLog('INFO', 'HIGH_CONSUMPTION', `High demand draw active: ${inVal.toFixed(2)} L/m flow rate`, 'ACTIVE');
+              } else if (currentSystemAlarmState === 'LEAK') {
+                addEventLog('SUCCESS', 'LEAK_RESOLVED', `Flow equilibrium restored: In=${inVal.toFixed(2)} L/m, Out=${outVal.toFixed(2)} L/m (Delta ${diff.toFixed(2)})`, 'NORMAL');
+              }
+              currentSystemAlarmState = newAlarmState;
+            }
+
+            // Update KPI cards
+            document.getElementById('kpiInlet').textContent = inVal.toFixed(2);
+            document.getElementById('kpiOutlet').textContent = outVal.toFixed(2);
+            
+            const diffEl = document.getElementById('kpiMismatch');
+            diffEl.textContent = (diff > 0 ? '+' : '') + diff.toFixed(2);
+            
+            const badgeMismatch = document.getElementById('badgeMismatch');
+            const cardMismatch = document.getElementById('cardMismatch');
+            const statusTextEl = document.getElementById('kpiStatusText');
+
+            if (diff >= 2.0) {
+              diffEl.style.color = '#EF4444';
+              badgeMismatch.textContent = 'LEAK DEFICIT';
+              badgeMismatch.style.background = '#7F1D1D';
+              cardMismatch.classList.add('alert-state');
+              statusTextEl.textContent = 'SUSPECTED LEAK';
+              statusTextEl.style.color = '#EF4444';
+            } else if (diff <= -2.0) {
+              diffEl.style.color = '#F59E0B';
+              badgeMismatch.textContent = 'SENSOR ANOMALY';
+              badgeMismatch.style.background = '#78350F';
+              cardMismatch.classList.remove('alert-state');
+              statusTextEl.textContent = 'REVERSED ANOMALY';
+              statusTextEl.style.color = '#F59E0B';
+            } else if (inVal >= 25.0) {
+              diffEl.style.color = '#38BDF8';
+              badgeMismatch.textContent = 'HIGH DRAW';
+              badgeMismatch.style.background = '#0369A1';
+              cardMismatch.classList.remove('alert-state');
+              statusTextEl.textContent = 'HIGH CONSUMPTION';
+              statusTextEl.style.color = '#38BDF8';
+            } else {
+              diffEl.style.color = '#10B981';
+              badgeMismatch.textContent = 'BALANCED';
+              badgeMismatch.style.background = '#064E3B';
+              cardMismatch.classList.remove('alert-state');
+              statusTextEl.textContent = 'NORMAL BALANCED';
+              statusTextEl.style.color = '#34D399';
+            }
+
+            // Pipe labels
+            document.getElementById('lblInletFlow').textContent = `Inlet: ${inVal.toFixed(2)} L/min`;
+            document.getElementById('lblBranch2Flow').textContent = `Branch 2: ${(inVal / 2).toFixed(2)} L/min`;
+            document.getElementById('lblBranch1Flow').textContent = `Branch 1: ${(inVal / 2).toFixed(2)} L/min`;
+            document.getElementById('lblOutletFlow').textContent = `Outlet: ${outVal.toFixed(2)} L/min`;
+
+            // Tank levels
+            if (data.tank1 !== undefined) {
+              const t1 = parseFloat(data.tank1);
+              if (!isNaN(t1)) updateTankGraphic(1, t1);
+            }
+            if (data.tank2 !== undefined) {
+              const t2 = parseFloat(data.tank2);
+              if (!isNaN(t2)) updateTankGraphic(2, t2);
+            }
+
+            // Valves
+            if (data.valve1) {
+              valve1Open = (data.valve1 === 'OPEN');
+              updateValveVisuals(1, valve1Open);
+            }
+            if (data.valve2) {
+              valve2Open = (data.valve2 === 'OPEN');
+              updateValveVisuals(2, valve2Open);
+            }
+
+            // Mode
+            if (data.scadaMode && data.scadaMode !== currentMode) {
+              setOperatingMode(data.scadaMode);
+            }
+
+            // If in auto mode, evaluate closed-loop rules
+            if (currentMode === 'AUTO') {
+              evaluateAutoMode();
+            }
+          }
+        } catch (e) {
+          console.warn('[MQTT] Telemetry parse error:', e);
+        }
+      });
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      initMqtt();
+      updateTankGraphic(1, 2.89);
+      updateTankGraphic(2, 2.89);
+      setOperatingMode('REMOTE');
+      addEventLog('SUCCESS', 'SYSTEM_BOOT', 'WaterGuard SCADA Station initialized', 'CONFIRMED');
     });
   </script>
 </body>
