@@ -535,33 +535,47 @@
       color: #CBD5E1;
     }
 
-    /* Lower Operations Console */
+    /* Lower Operations Console (Manual Controls on Left, System Event Log on Right) */
     .ops-section {
       background: #1C2127;
-      padding: 14px 18px;
+      padding: 12px 16px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 44% 56%;
+      gap: 12px;
+      border-bottom: 2px solid #282F38;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .ops-section {
+        grid-template-columns: 1fr;
+      }
     }
 
     .ctrl-box {
-      background: #222830;
-      border: 1px solid #374151;
+      background: #21262E;
+      border: 1px solid #363E48;
       border-radius: 4px;
       padding: 12px 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .ctrl-box-log {
+      display: flex;
+      flex-direction: column;
+      background: #181D23;
+      border-color: #313945;
     }
     .ctrl-box-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       color: #94A3B8;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #2F3742;
-      padding-bottom: 4px;
+      border-bottom: 1px solid #2B333E;
+      padding-bottom: 6px;
     }
 
     .input-row {
@@ -599,54 +613,41 @@
       color: #064E3B;
       border: 1px solid #059669;
       font-weight: 700;
-      font-size: 12px;
-      padding: 6px 10px;
+      font-size: 11px;
+      padding: 6px 8px;
       border-radius: 3px;
       cursor: pointer;
       text-align: center;
       transition: all 0.15s;
+      font-family: var(--font-scada);
+      letter-spacing: 0.3px;
     }
     .btn-valve-toggle.closed {
-      background: #EF4444;
+      background: #DC2626;
       color: #FFFFFF;
-      border-color: #DC2626;
+      border-color: #B91C1C;
     }
 
-    /* Preset Buttons */
-    .presets-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .btn-preset {
-      background: #2E353F;
-      border: 1px solid #444E5B;
+    .btn-preset-mode {
+      background: #2A313C;
+      border: 1px solid #3E4754;
       color: #CBD5E1;
       border-radius: 3px;
-      padding: 5px 10px;
+      padding: 4px 10px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s;
+      font-family: var(--font-mono);
+      transition: all 0.12s;
     }
-    .btn-preset:hover {
-      background: #3B4450;
+    .btn-preset-mode:hover {
+      background: #374150;
       color: #FFFFFF;
-      border-color: #64748B;
     }
-    .btn-preset.active {
+    .btn-preset-mode.active {
       background: #0284C7;
       color: #FFFFFF;
       border-color: #38BDF8;
-    }
-    .btn-reset {
-      background: #78350F;
-      color: #FDE68A;
-      border-color: #B45309;
-    }
-    .btn-reset:hover {
-      background: #92400E;
     }
 
     /* Send Command Button */
@@ -654,64 +655,104 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid #2F3742;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #2B333E;
     }
     .btn-send-command {
-      background: linear-gradient(180deg, #0284C7 0%, #0369A1 100%);
+      background: #0284C7;
       color: #FFFFFF;
       border: 1px solid #38BDF8;
-      border-radius: 4px;
-      padding: 8px 20px;
+      border-radius: 3px;
+      padding: 7px 16px;
       font-family: var(--font-scada);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.5px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: background 0.15s;
     }
     .btn-send-command:hover {
-      background: linear-gradient(180deg, #0369A1 0%, #075985 100%);
+      background: #0369A1;
+    }
+    .btn-send-command:active {
+      background: #075985;
     }
 
     .command-feedback {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
       color: #94A3B8;
       flex: 1;
     }
     .status-pending { color: #F59E0B; }
     .status-applied { color: #10B981; font-weight: 700; }
-    .status-error { color: #EF4444; font-weight: 700; }
+    .status-error   { color: #EF4444; font-weight: 700; }
 
-    /* Command & Event Log Table */
-    .log-panel {
-      background: #14171A;
-      border-top: 2px solid #2A3038;
-      padding: 10px 18px;
+    /* System Event Log Panel & Table */
+    .live-indicator-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+      display: inline-block;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
     }
-    .log-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .log-title {
-      font-size: 12px;
+    .log-count-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
       color: #64748B;
+      background: #1E252D;
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid #2D3742;
+    }
+    .log-filter-btn {
+      background: #252D37;
+      border: 1px solid #39424E;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.12s;
+    }
+    .log-filter-btn:hover {
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+    .log-filter-btn.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #38BDF8;
+    }
+    .log-clear-btn {
+      background: transparent;
+      border: 1px solid #475569;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+    .log-clear-btn:hover {
+      background: #333D48;
+      color: #F1F5F9;
     }
     .log-table-wrapper {
-      max-height: 140px;
+      height: 275px;
       overflow-y: auto;
-      border: 1px solid #2A3038;
+      border: 1px solid #28303A;
       border-radius: 3px;
+      background: #121519;
     }
     .log-table {
       width: 100%;
@@ -721,27 +762,179 @@
       color: #CBD5E1;
     }
     .log-table th {
-      background: #1E2328;
-      padding: 4px 8px;
-      text-align: left;
-      border-bottom: 1px solid #333D48;
+      position: sticky;
+      top: 0;
+      background: #1F252E;
       color: #94A3B8;
+      font-size: 10px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 6px 8px;
+      border-bottom: 1px solid #333E4B;
+      z-index: 2;
+      text-align: left;
     }
     .log-table td {
-      padding: 4px 8px;
-      border-bottom: 1px solid #1C2126;
+      padding: 5px 8px;
+      border-bottom: 1px solid #1A2027;
+      vertical-align: middle;
     }
-    .log-badge {
+    .log-table tr:hover td {
+      background: #181E26;
+    }
+
+    /* Severity Badges */
+    .sev-badge {
       display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       padding: 1px 6px;
       border-radius: 2px;
-      font-size: 10px;
-      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
     }
-    .badge-applied { background: #064E3B; color: #6EE7B7; }
-    .badge-pending { background: #78350F; color: #FCD34D; }
-    .badge-timeout { background: #7F1D1D; color: #FCA5A5; }
-    .badge-rx { background: #1E3A8A; color: #93C5FD; }
+    .sev-info    { background: #1E293B; color: #94A3B8; border: 1px solid #334155; }
+    .sev-success { background: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
+    .sev-warn    { background: #451A03; color: #FCD34D; border: 1px solid #78350F; }
+    .sev-error   { background: #450A0A; color: #FCA5A5; border: 1px solid #991B1B; }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .status-badge.status-pending   { background: #3B280A; color: #FCD34D; border: 1px solid #78350F; }
+    .status-badge.status-sent      { background: #0C3654; color: #7DD3FC; border: 1px solid #0369A1; }
+    .status-badge.status-ack       { background: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
+    .status-badge.status-confirmed { background: #064E3B; color: #A7F3D0; border: 1px solid #10B981; }
+    .status-badge.status-applied   { background: #064E3B; color: #6EE7B7; }
+    .status-badge.status-failed    { background: #450A0A; color: #FCA5A5; border: 1px solid #7F1D1D; }
+    .status-badge.status-alert     { background: #7F1D1D; color: #FFFFFF; font-weight: 800; }
+    .status-badge.status-normal    { background: #064E3B; color: #A7F3D0; }
+    .status-badge.status-online    { background: #064E3B; color: #6EE7B7; }
+    .status-badge.status-offline   { background: #450A0A; color: #FCA5A5; }
+
+    /* Bottom Presets Panel */
+    .presets-panel {
+      background: #14171A;
+      padding: 12px 16px 14px;
+    }
+    .presets-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .presets-header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .presets-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #CBD5E1;
+    }
+    .presets-subtitle {
+      font-size: 10px;
+      color: #64748B;
+      font-weight: 500;
+    }
+    .mqtt-meta-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94A3B8;
+      background: #1B2026;
+      border: 1px solid #2B333D;
+      border-radius: 3px;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mqtt-meta-pill code {
+      color: #38BDF8;
+    }
+    .mqtt-meta-pill .sep {
+      color: #475569;
+    }
+    .presets-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 1100px) {
+      .presets-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .presets-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .btn-preset-card {
+      background: #1E242C;
+      border: 1px solid #333C47;
+      border-radius: 3px;
+      padding: 8px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .btn-preset-card:hover {
+      background: #272E38;
+      border-color: #4B5563;
+    }
+    .preset-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #F1F5F9;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .preset-desc {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94A3B8;
+    }
+    .btn-preset-card.preset-leak:hover {
+      border-color: #EF4444;
+    }
+    .btn-preset-card.preset-high:hover {
+      border-color: #38BDF8;
+    }
+    .btn-preset-card.preset-reversed:hover {
+      border-color: #F59E0B;
+    }
+    .btn-preset-card.preset-night:hover {
+      border-color: #818CF8;
+    }
+    .btn-preset-card.preset-reset {
+      background: #241D17;
+      border-color: #4D331B;
+    }
+    .btn-preset-card.preset-reset:hover {
+      background: #36281D;
+      border-color: #B45309;
+    }
+    .btn-preset-card.preset-reset .preset-name {
+      color: #FDE68A;
+    }
   </style>
 </head>
 <body>
@@ -753,12 +946,20 @@
     <div class="topbar">
       <div class="topbar-left">
         <button class="btn-alarm" id="alarmBtn" onclick="toggleAlarmAck()" title="Click to Acknowledge Alarms">
-          <span>🔔</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
           <span id="alarmText">UNACKED ALARMS (3)</span>
         </button>
-        <button class="btn-nav-box" title="Back" onclick="history.back()">←</button>
-        <button class="btn-nav-box" title="Toggle Fullscreen" onclick="toggleFullscreen()">🗖</button>
-        <button class="btn-nav-box" title="Operator Status">👤 Operator Logged On</button>
+        <button class="btn-nav-box" title="Back" onclick="history.back()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          <span>BACK</span>
+        </button>
+        <button class="btn-nav-box" title="Toggle Fullscreen" onclick="toggleFullscreen()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+        <div class="operator-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>OPERATOR: ACTIVE</span>
+        </div>
       </div>
 
       <div class="topbar-center">
@@ -768,7 +969,7 @@
 
       <div class="topbar-right">
         <div class="annunciator" title="System Fault Annunciator">
-          <div class="annunciator-icon">✕</div>
+          <span id="annunciatorText" style="font-size: 10px; font-weight: 800; font-family: var(--font-mono); color: #10B981; letter-spacing: 0.5px;">SYS OK</span>
         </div>
 
         <div id="mqttBadge" class="mqtt-pill">
