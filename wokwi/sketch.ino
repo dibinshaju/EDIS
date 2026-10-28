@@ -15,10 +15,10 @@
 #include <ArduinoJson.h>
 
 // ----------------- Pin Definitions -----------------
-#define PIN_POT_INLET   34  // Analog Input: Simulated Flow Sensor 1
-#define PIN_POT_OUTLET  35  // Analog Input: Simulated Flow Sensor 2
-#define PIN_LED_ALERT   2   // Red Alert LED
-#define PIN_BUZZER      25  // Hardware Alert Buzzer
+// Matches wokwi/diagram.json: pot1 signal is connected to ESP32 GPIO 12
+#define PIN_POT_1       12  // Hardware Potentiometer (Wokwi pot1:SIG -> esp:12)
+#define PIN_LED_ALERT   2   // On-board Alert LED (GPIO 2 on ESP32 DevKit-C v4)
+#define PIN_BUZZER      25  // Alert Buzzer (optional expansion)
 
 // ----------------- WiFi Configuration --------------
 // Wokwi virtual WiFi network requires no password
@@ -70,8 +70,7 @@ void setup() {
   Serial.println("  Smart Water Monitor - Virtual ESP32 Node Initializing ");
   Serial.println("========================================================");
 
-  pinMode(PIN_POT_INLET, INPUT);
-  pinMode(PIN_POT_OUTLET, INPUT);
+  pinMode(PIN_POT_1, INPUT);
   pinMode(PIN_LED_ALERT, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
 
