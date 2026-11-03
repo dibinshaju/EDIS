@@ -24,6 +24,9 @@ import {
   getAlarmSettings,
   saveAlarmSettings,
   DEFAULT_ALARM_SETTINGS,
+  sendAdminInvitation,
+  listAdminInvitations,
+  revokeAdminInvitation,
 } from '../../src/services/firebase';
 import {
   playAlarmWav,
@@ -80,6 +83,7 @@ export default function AdminScreen() {
 
   // User Management state (Admin only)
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>(INITIAL_DEMO_USERS);
+  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
   const [inviteEmailInput, setInviteEmailInput] = useState<string>('');
   const [isInviting, setIsInviting] = useState<boolean>(false);
   const [inviteFeedback, setInviteFeedback] = useState<string | null>(null);
@@ -104,6 +108,9 @@ export default function AdminScreen() {
       const usersList = await getManagedUsers(user.uid);
       if (usersList.length > 0) setManagedUsers(usersList);
 
+      const invs = await listAdminInvitations();
+      if (invs && invs.length > 0) setPendingInvitations(invs);
+
       const settings = await getAlarmSettings(user.uid);
       setAlarmSettings(settings);
       setSoundType(settings.soundName || 'buzzer_alarm');
@@ -121,29 +128,53 @@ export default function AdminScreen() {
     setIsInviting(true);
     setInviteFeedback(null);
     try {
-      const newInv = await createInvitation(
-        user?.uid || 'admin-01',
-        user?.email || 'admin@waterguard.iot',
-        inviteEmailInput.trim()
+      const res = await sendAdminInvitation(
+        inviteEmailInput.trim(),
+        user?.displayName || 'Plant Administrator'
       );
 
-      const newUser: ManagedUser = {
-        id: `usr_${Date.now()}`,
-        email: newInv.email,
-        displayName: newInv.email.split('@')[0],
-        role: 'USER',
-        adminId: user?.uid || 'admin-01',
-        status: 'ACTIVE',
-        createdAt: Date.now(),
-      };
+      if (res && res.success) {
+        setInviteFeedback(
+          `Invitation sent! Email dispatched to ${inviteEmailInput.trim()}.${res.inviteUrl ? ` Link: ${res.inviteUrl}` : ''}`
+        );
+        setInviteEmailInput('');
+        const invs = await listAdminInvitations();
+        setPendingInvitations(invs);
+      } else {
+        // Fallback for offline mode
+        const newInv = await createInvitation(
+          user?.uid || 'admin-01',
+          user?.email || 'admin@waterguard.iot',
+          inviteEmailInput.trim()
+        );
 
-      setManagedUsers((prev) => [newUser, ...prev]);
-      setInviteEmailInput('');
-      setInviteFeedback(`Invitation successfully sent to ${newInv.email}`);
+        const newUser: ManagedUser = {
+          id: `usr_${Date.now()}`,
+          email: newInv.email,
+          displayName: newInv.email.split('@')[0],
+          role: 'USER',
+          adminId: user?.uid || 'admin-01',
+          status: 'ACTIVE',
+          createdAt: Date.now(),
+        };
+
+        setManagedUsers((prev) => [newUser, ...prev]);
+        setInviteEmailInput('');
+        setInviteFeedback(`Invitation registered for ${newInv.email}`);
+      }
     } catch (err: any) {
       setInviteFeedback(err.message || 'Failed to send invitation.');
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (inviteId: string) => {
+    try {
+      await revokeAdminInvitation(inviteId);
+      setPendingInvitations((prev) => prev.filter((i) => i.id !== inviteId));
+    } catch (err) {
+      console.warn('Error revoking invitation:', err);
     }
   };
 
