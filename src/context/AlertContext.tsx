@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { AlertEvent, AlertCategory } from '../types/alert';
 import { AlertDeduplicator } from '../utils/alertDedup';
 import { buzzerService } from '../utils/sound';
+import { continuousAlarmEngine } from '../services/continuousAlarm';
 import { useSensor } from './SensorContext';
 import { useAuth } from './AuthContext';
 import { useMqtt } from './MqttContext';
