@@ -632,16 +632,16 @@ export default function AdminScreen() {
             <View
               style={[
                 styles.mqttStatusChip,
-                mqttStatus === 'CONNECTED' ? styles.mqttConnected : styles.mqttDisconnected,
+                mqttStatus === 'connected' ? styles.mqttConnected : styles.mqttDisconnected,
               ]}
             >
               <View
                 style={[
                   styles.statusDot,
-                  { backgroundColor: mqttStatus === 'CONNECTED' ? '#16A34A' : '#DC2626' },
+                  { backgroundColor: mqttStatus === 'connected' ? '#16A34A' : '#DC2626' },
                 ]}
               />
-              <Text style={styles.mqttStatusText}>{mqttStatus}</Text>
+              <Text style={styles.mqttStatusText}>{mqttStatus.toUpperCase()}</Text>
             </View>
           </View>
 
