@@ -34,6 +34,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "scada": "node scada-controller/server.js",
+    "backend": "node backend-service/index.js",
     "build": "expo export --platform web"
   },
   "private": true
