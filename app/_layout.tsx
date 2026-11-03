@@ -66,6 +66,13 @@ export default function RootLayout() {
                       headerShown: false,
                     }}
                   />
+                  <Stack.Screen
+                    name="invite"
+                    options={{
+                      presentation: 'card',
+                      headerShown: false,
+                    }}
+                  />
                 </Stack>
               </IPhoneFrame>
             </AlertProvider>
