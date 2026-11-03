@@ -2,20 +2,32 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, RADIUS, SPACING } from '../../src/constants/theme';
 import { useAlerts } from '../../src/context/AlertContext';
+import { useAuth } from '../../src/context/AuthContext';
 import { AlertCard } from '../../src/components/AlertCard';
-import { AlertStatus } from '../../src/types/alert';
+import { AlertEvent, AlertStatus } from '../../src/types/alert';
+import { ForwardAlarmModal } from '../../src/components/ForwardAlarmModal';
+import { NotificationHistoryModal } from '../../src/components/NotificationHistoryModal';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AlertsScreen() {
   const { alerts, activeCount, acknowledgeAlert, resolveAlert, clearAllAlerts, triggerDemoAlert } =
     useAlerts();
+  const { isAdmin } = useAuth();
 
   const [filter, setFilter] = useState<'ALL' | AlertStatus>('ALL');
+  const [forwardModalVisible, setForwardModalVisible] = useState<boolean>(false);
+  const [selectedAlertForForward, setSelectedAlertForForward] = useState<AlertEvent | null>(null);
+  const [historyModalVisible, setHistoryModalVisible] = useState<boolean>(false);
 
   const filteredAlerts = alerts.filter((a) => {
     if (filter === 'ALL') return true;
     return a.status === filter;
   });
+
+  const handleOpenForward = (alert: AlertEvent) => {
+    setSelectedAlertForForward(alert);
+    setForwardModalVisible(true);
+  };
 
   return (
     <View style={styles.screen}>
@@ -46,13 +58,23 @@ export default function AlertsScreen() {
             <Text style={styles.countLabel}>Active</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.triggerTestBtn}
-            onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}
-          >
-            <Ionicons name="flash-outline" size={13} color="#FFFFFF" />
-            <Text style={styles.triggerTestBtnText}>Simulate Alert</Text>
-          </TouchableOpacity>
+          <View style={styles.rightActionsRow}>
+            <TouchableOpacity
+              style={styles.historyBtn}
+              onPress={() => setHistoryModalVisible(true)}
+            >
+              <Ionicons name="time-outline" size={13} color="#0F172A" />
+              <Text style={styles.historyBtnText}>Audit History</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.triggerTestBtn}
+              onPress={() => triggerDemoAlert('SUSPECTED_LEAK')}
+            >
+              <Ionicons name="flash-outline" size={13} color="#FFFFFF" />
+              <Text style={styles.triggerTestBtnText}>Simulate</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Filter Pill Tabs */}
@@ -92,6 +114,8 @@ export default function AlertsScreen() {
               alert={alert}
               onAcknowledge={acknowledgeAlert}
               onResolve={resolveAlert}
+              onForward={handleOpenForward}
+              isAdmin={isAdmin}
             />
           ))
         )}
@@ -102,6 +126,19 @@ export default function AlertsScreen() {
             <Text style={styles.clearAllText}>Clear All Alerts</Text>
           </TouchableOpacity>
         )}
+
+        {/* Forward Alarm Modal */}
+        <ForwardAlarmModal
+          visible={forwardModalVisible}
+          onClose={() => setForwardModalVisible(false)}
+          alert={selectedAlertForForward}
+        />
+
+        {/* Notification History Modal */}
+        <NotificationHistoryModal
+          visible={historyModalVisible}
+          onClose={() => setHistoryModalVisible(false)}
+        />
       </ScrollView>
     </View>
   );
