@@ -9,12 +9,16 @@ interface AlertCardProps {
   alert: AlertEvent;
   onAcknowledge?: (id: string) => void;
   onResolve?: (id: string) => void;
+  onForward?: (alert: AlertEvent) => void;
+  isAdmin?: boolean;
 }
 
 export const AlertCard: React.FC<AlertCardProps> = ({
   alert,
   onAcknowledge,
   onResolve,
+  onForward,
+  isAdmin,
 }) => {
   const isCritical = alert.severity === 'CRITICAL';
   const isRecovered = alert.category === 'RECOVERED';
@@ -88,6 +92,16 @@ export const AlertCard: React.FC<AlertCardProps> = ({
         </View>
 
         <View style={styles.actions}>
+          {isAdmin && onForward && alert.status !== 'RESOLVED' && (
+            <TouchableOpacity
+              style={styles.forwardBtn}
+              onPress={() => onForward(alert)}
+            >
+              <Ionicons name="radio" size={11} color="#FFFFFF" />
+              <Text style={styles.forwardBtnText}>Forward</Text>
+            </TouchableOpacity>
+          )}
+
           {alert.status === 'ACTIVE' && onAcknowledge && (
             <TouchableOpacity
               style={styles.ackBtn}
