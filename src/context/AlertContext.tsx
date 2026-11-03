@@ -67,7 +67,13 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           // Play buzzer and start continuous alarm on brand new active critical alert
           if (isNew && event.severity === 'CRITICAL' && isBuzzerEnabled) {
             buzzerService.playAlarm();
-            continuousAlarmEngine.startAlarm(event.id, event.title, event.explanation);
+            continuousAlarmEngine.startAlarm({
+              alertId: event.id,
+              title: event.title,
+              loss: event.flowDifference,
+              inlet: event.inletFlow,
+              outlet: event.outletFlow,
+            });
           }
         }
       }
@@ -186,7 +192,13 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (isBuzzerEnabled) {
       buzzerService.playAlarm();
       if (demoEvent.severity === 'CRITICAL') {
-        continuousAlarmEngine.startAlarm(demoEvent.id, demoEvent.title, demoEvent.explanation);
+        continuousAlarmEngine.startAlarm({
+          alertId: demoEvent.id,
+          title: demoEvent.title,
+          loss: demoEvent.flowDifference,
+          inlet: demoEvent.inletFlow,
+          outlet: demoEvent.outletFlow,
+        });
       }
     }
   }, [isBuzzerEnabled]);
