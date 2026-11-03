@@ -7,6 +7,7 @@ import { MqttProvider } from '../src/context/MqttContext';
 import { SensorProvider } from '../src/context/SensorContext';
 import { AlertProvider } from '../src/context/AlertContext';
 import { IPhoneFrame } from '../src/components/IPhoneFrame';
+import { ActiveAlarmBanner } from '../src/components/ActiveAlarmBanner';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
@@ -50,6 +51,7 @@ export default function RootLayout() {
             <AlertProvider>
               <IPhoneFrame>
                 <StatusBar style="dark" />
+                <ActiveAlarmBanner />
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                   <Stack.Screen
