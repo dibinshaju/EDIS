@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (!recipientMatches.empty) {
         const batch = adminDb.batch();
-        recipientMatches.docs.forEach((doc) => {
+        recipientMatches.docs.forEach((doc: any) => {
           batch.update(doc.ref, {
             status: 'ACKNOWLEDGED',
             acknowledgedAt: now,

@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(50)
       .get();
 
-    const invitations = snap.docs.map((d) => {
+    const invitations = snap.docs.map((d: any) => {
       const data = d.data();
       return {
         id: d.id,

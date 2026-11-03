@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!existing.empty) {
         // Revoke older pending invites for this email
         const batch = adminDb.batch();
-        existing.docs.forEach((d) => {
+        existing.docs.forEach((d: any) => {
           batch.update(d.ref, { status: 'REVOKED', revokedAt: now });
         });
         await batch.commit();
