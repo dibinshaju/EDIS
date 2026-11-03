@@ -64,9 +64,10 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (event.status === 'ACTIVE') {
           setActiveAlert(event);
 
-          // Play buzzer on brand new active alert
+          // Play buzzer and start continuous alarm on brand new active critical alert
           if (isNew && event.severity === 'CRITICAL' && isBuzzerEnabled) {
             buzzerService.playAlarm();
+            continuousAlarmEngine.startAlarm(event.id, event.title, event.explanation);
           }
         }
       }
