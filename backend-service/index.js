@@ -96,7 +96,7 @@ client.on('message', (topic, message) => {
 
 function triggerEmergencyAlarm(incident) {
   console.log('\n----------------------------------------------------');
-  console.log(`🚨 [EMERGENCY LEAKAGE DETECTED] ${new Date().toISOString()}`);
+  console.log(` [EMERGENCY LEAKAGE DETECTED] ${new Date().toISOString()}`);
   console.log(`- Inlet Flow: ${incident.inletFlow.toFixed(1)} L/min`);
   console.log(`- Outlet Flow: ${incident.outletFlow.toFixed(1)} L/min`);
   console.log(`- Volume Loss: +${incident.flowDifference.toFixed(1)} L/min`);
