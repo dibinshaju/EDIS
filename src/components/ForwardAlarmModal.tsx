@@ -14,7 +14,7 @@ import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { AlertEvent } from '../types/alert';
 import { ManagedUser } from '../types/auth';
 import { useAuth } from '../context/AuthContext';
-import { getManagedUsers, recordAlarmForward } from '../services/firebase';
+import { getManagedUsers, recordAlarmForward, forwardAlarmToUsers } from '../services/firebase';
 import { triggerLocalBuzzerNotification } from '../services/notifications';
 
 interface ForwardAlarmModalProps {
@@ -122,6 +122,14 @@ export const ForwardAlarmModal: React.FC<ForwardAlarmModalProps> = ({
     try {
       const selectedUsers = users.filter((u) => selectedIds.has(u.id));
       await recordAlarmForward(alert.id, user, selectedUsers, customNote);
+
+      // Call Vercel serverless forwarding backend to send push notifications with continuous buzzer channel
+      await forwardAlarmToUsers(
+        alert.id,
+        alert.title,
+        customNote || alert.explanation,
+        Array.from(selectedIds)
+      );
 
       // Trigger local notification chime for administrator
       await triggerLocalBuzzerNotification(

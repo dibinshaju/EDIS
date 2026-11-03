@@ -286,17 +286,119 @@ export async function recordAlarmForward(
 }
 
 /**
- * Acknowledge an alarm notification by a user
+ * Get authorization header token
  */
-export async function acknowledgeAlarmNotification(
-  forwardId: string,
-  userId: string
-): Promise<void> {
-  if (isLiveFirebaseConfigured) {
-    const recId = `${forwardId}_${userId}`;
-    await updateDoc(doc(db, 'notificationRecipients', recId), {
-      status: 'ACKNOWLEDGED',
-      acknowledgedAt: Date.now(),
+export async function getAuthHeader(): Promise<string> {
+  try {
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      return `Bearer ${token}`;
+    }
+  } catch (err) {
+    console.warn('[getAuthHeader] Token retrieval error:', err);
+  }
+  return 'Bearer demo-admin-01';
+}
+
+/**
+ * Send admin invitation via Vercel backend and Resend
+ */
+export async function sendAdminInvitation(
+  email: string,
+  adminName?: string
+): Promise<{ success: boolean; inviteId?: string; inviteUrl?: string; emailDispatched?: boolean; error?: string }> {
+  try {
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/invitations/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({ email, adminName }),
     });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to dispatch invitation');
+    }
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message };
   }
 }
+
+/**
+ * List pending/accepted invitations for the current admin
+ */
+export async function listAdminInvitations(): Promise<any[]> {
+  try {
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/invitations/list', {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+      },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.invitations || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Revoke an invitation
+ */
+export async function revokeAdminInvitation(inviteId: string): Promise<boolean> {
+  try {
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/invitations/revoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({ inviteId }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Forward alarm to selected users via Vercel serverless backend
+ */
+export async function forwardAlarmToUsers(
+  alertId: string,
+  alertTitle: string,
+  alertMessage: string,
+  recipientUserIds: string[]
+): Promise<{ success: boolean; forwardId?: string; recipientCount?: number; error?: string }> {
+  try {
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/alarms/forward', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({
+        alertId,
+        alertTitle,
+        alertMessage,
+        recipientUserIds,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to forward alarm');
+    }
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
