@@ -97,6 +97,19 @@ export async function triggerLocalBuzzerNotification(
   body: string,
   data: Record<string, any> = {}
 ): Promise<void> {
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body });
+      } catch {
+        // Ignored in browser context
+      }
+    } else {
+      console.log(`[Notification Banner] ${title}: ${body}`);
+    }
+    return;
+  }
+
   try {
     await setupNotificationChannels();
 
