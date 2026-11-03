@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if caller is an admin
+    function isExistingAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role in ['ADMIN', 'admin'];
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if request.auth != null && (request.auth.uid == adminId || isExistingAdmin());
+      allow create, update, delete: if isExistingAdmin();
+    }
+
+    // Managed Users Collection
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isExistingAdmin());
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == userId || isExistingAdmin());
+    }
+
+    // Invitations Collection
+    match /invitations/{inviteId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if isExistingAdmin();
+    }
+
+    // Alarm Settings Collection
+    match /alarmSettings/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if isExistingAdmin() && request.auth.uid == adminId;
+    }
+
+    // Alerts Collection
+    match /alerts/{alertId} {
+      allow read: if request.auth != null;
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acknowledgedAt', 'acknowledgedBy']);
+      allow create, delete: if isExistingAdmin();
+    }
+
+    // Notification Forwards Collection
+    match /notificationForwards/{forwardId} {
+      allow read: if request.auth != null;
+      allow create: if isExistingAdmin();
+      allow update, delete: if isExistingAdmin();
+    }
+
+    // Notification Recipients Tracking Collection
+    match /notificationRecipients/{recId} {
+      allow read: if request.auth != null;
+      allow create: if isExistingAdmin();
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acknowledgedAt', 'stoppedAt', 'updatedAt']);
+      allow delete: if isExistingAdmin();
+    }
+
+    // Device Alarm States (Per-device continuous alarm state)
+    match /deviceAlarmStates/{stateId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        (request.auth.uid == request.resource.data.userId || isExistingAdmin());
+    }
+
+    // Telemetry Archive Collection
+    match /telemetry/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isExistingAdmin();
+    }
+  }
+}
