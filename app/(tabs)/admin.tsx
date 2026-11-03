@@ -441,6 +441,38 @@ export default function AdminScreen() {
                 </View>
               );
             })}
+
+            {/* Pending Invitations */}
+            {pendingInvitations.length > 0 && (
+              <View style={{ marginTop: SPACING.md }}>
+                <Text style={styles.subListHeader}>Pending Invitations ({pendingInvitations.length})</Text>
+                {pendingInvitations.map((inv) => (
+                  <View key={inv.id} style={styles.managedUserRow}>
+                    <View style={styles.userInfoCol}>
+                      <Text style={styles.userNameText}>{inv.email}</Text>
+                      <Text style={styles.userEmailText}>
+                        Expires: {new Date(inv.expiresAt).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View style={styles.userActionsCol}>
+                      <View style={[styles.badge, { backgroundColor: '#FEF3C7', marginRight: 8 }]}>
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#B45309' }}>
+                          {inv.status}
+                        </Text>
+                      </View>
+                      {inv.status === 'PENDING' && (
+                        <TouchableOpacity
+                          style={[styles.deleteUserBtn, { backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 4 }]}
+                          onPress={() => handleRevokeInvitation(inv.id)}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: '#DC2626' }}>Revoke</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         )}
 

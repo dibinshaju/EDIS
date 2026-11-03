@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../constants/theme';
 import { NotificationForward, NotificationRecipient } from '../types/auth';
 import { useAuth } from '../context/AuthContext';
-import { db, isLiveFirebaseConfigured } from '../services/firebase';
+import { db, isLiveFirebaseConfigured, getAuthHeader } from '../services/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 interface NotificationHistoryModalProps {
@@ -92,12 +92,39 @@ export const NotificationHistoryModal: React.FC<NotificationHistoryModalProps> =
   }, [visible, alertId]);
 
   const loadHistory = async () => {
+    setLoading(true);
+    try {
+      // 1. Try serverless backend endpoint
+      const authHeader = await getAuthHeader();
+      const res = await fetch(
+        `/api/alarms/history${alertId ? `?alertId=${encodeURIComponent(alertId)}` : ''}`,
+        { headers: { Authorization: authHeader } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.forwards && data.forwards.length > 0) {
+          const items = data.forwards.map((forward: NotificationForward) => {
+            const forwardId = forward.forwardId;
+            const recs = (data.recipients || []).filter(
+              (r: NotificationRecipient) => r.forwardId === forwardId
+            );
+            return { forward, recipients: recs };
+          });
+          setHistory(items);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
     if (!isLiveFirebaseConfigured) {
       setHistory(DEMO_HISTORY);
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
       const q = alertId
         ? query(collection(db, 'notificationForwards'), where('alertId', '==', alertId))
