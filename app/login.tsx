@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,50 +8,34 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS, RADIUS, SPACING } from '../src/constants/theme';
 import { useAuth } from '../src/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import { maskPhoneNumber } from '../src/utils/format';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { loginDemo, loginFirebaseOtp } = useAuth();
+  const {
+    loginWithEmail,
+    registerWithEmail,
+    resetPassword,
+    loginDemoAdmin,
+    loginDemoUser,
+    isLoading,
+  } = useAuth();
 
-  const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE');
-  const [phone, setPhone] = useState<string>('9876543210');
-  const [countryCode, setCountryCode] = useState<string>('+91');
-  const [otp, setOtp] = useState<string>('');
-  const [countdown, setCountdown] = useState<number>(30);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [isRealFirebaseMode, setIsRealFirebaseMode] = useState<boolean>(false);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (step === 'OTP' && countdown > 0) {
-      timer = setInterval(() => setCountdown((c) => c - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [step, countdown]);
-
-  const fullPhone = `${countryCode}${phone}`;
-
-  const handleRequestOtp = async () => {
-    if (phone.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-    setErrorMsg(null);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep('OTP');
-      setCountdown(30);
-    }, 500);
-  };
+  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [email, setEmail] = useState<string>('admin@waterguard.iot');
+  const [password, setPassword] = useState<string>('Admin123!');
+  const [displayName, setDisplayName] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'USER'>('USER');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const safeBack = () => {
     if (router.canGoBack()) {
@@ -61,39 +45,75 @@ export default function LoginScreen() {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp.length < 6) {
-      setErrorMsg('Please enter the 6-digit verification code.');
+  const handleSubmit = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrorMessage('Please enter a valid email address.');
       return;
     }
 
-    setIsLoading(true);
-    setErrorMsg(null);
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters.');
+      return;
+    }
 
-    if (isRealFirebaseMode) {
-      const res = await loginFirebaseOtp(fullPhone, otp);
-      setIsLoading(false);
+    setSubmitting(true);
+
+    if (mode === 'LOGIN') {
+      const res = await loginWithEmail(cleanEmail, password);
+      setSubmitting(false);
       if (res.success) {
         safeBack();
       } else {
-        setErrorMsg(res.error || 'Verification failed.');
+        setErrorMessage(res.error || 'Authentication failed.');
       }
     } else {
-      if (otp !== '123456') {
-        setIsLoading(false);
-        setErrorMsg('Invalid evaluation passcode. Enter 123456 for the demo, or use Instant Demo Login.');
-        return;
+      const res = await registerWithEmail(
+        cleanEmail,
+        password,
+        displayName.trim() || cleanEmail.split('@')[0],
+        selectedRole
+      );
+      setSubmitting(false);
+      if (res.success) {
+        safeBack();
+      } else {
+        setErrorMessage(res.error || 'Registration failed.');
       }
-      await loginDemo(fullPhone);
-      setIsLoading(false);
-      safeBack();
     }
   };
 
-  const handleOneClickDemo = async () => {
-    setIsLoading(true);
-    await loginDemo('+919876543210');
-    setIsLoading(false);
+  const handleForgotPassword = async () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrorMessage('Enter your email above, then tap "Forgot Password".');
+      return;
+    }
+    setSubmitting(true);
+    const res = await resetPassword(cleanEmail);
+    setSubmitting(false);
+    if (res.success) {
+      setSuccessMessage('Password reset link sent to your email.');
+      setErrorMessage(null);
+    } else {
+      setErrorMessage(res.error || 'Could not send reset email.');
+    }
+  };
+
+  const handleDemoAdmin = async () => {
+    setSubmitting(true);
+    await loginDemoAdmin();
+    setSubmitting(false);
+    safeBack();
+  };
+
+  const handleDemoUser = async () => {
+    setSubmitting(true);
+    await loginDemoUser();
+    setSubmitting(false);
     safeBack();
   };
 
@@ -102,145 +122,213 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.closeBtn} onPress={safeBack}>
-          <Ionicons name="close" size={18} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-
-        {/* Clean Logo Circle */}
-        <View style={styles.logoBox}>
-          <Ionicons name="shield-checkmark" size={28} color={COLORS.darkCharcoal} />
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        {/* Header Bar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backButton} onPress={safeBack}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.topBarTitle}>Portal Sign In</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        <Text style={styles.title}>Smart Water Monitor</Text>
-        <Text style={styles.subtitle}>Administrator Authentication</Text>
-
-        <View style={styles.demoBanner}>
-          <Text style={styles.demoBannerText}>
-            {isRealFirebaseMode
-              ? 'PRODUCTION MODE: Live Firebase Phone Auth'
-              : 'EXPO DEMO MODE: Academic Evaluation Session'}
-          </Text>
+        {/* Brand Banner */}
+        <View style={styles.brandContainer}>
+          <View style={styles.brandIconWrap}>
+            <Ionicons name="shield-checkmark" size={32} color="#0284C7" />
+          </View>
+          <Text style={styles.brandTitle}>WaterGuard-IoT</Text>
+          <Text style={styles.brandSubtitle}>Industrial Leakage & Telemetry Control</Text>
         </View>
 
-        {errorMsg && (
-          <View style={styles.errorBox}>
-            <Ionicons name="alert-circle-outline" size={14} color={COLORS.danger} />
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          </View>
-        )}
-
-        {step === 'PHONE' ? (
-          <View style={styles.form}>
-            <Text style={styles.label}>Administrator Mobile Number</Text>
-            <View style={styles.phoneInputRow}>
-              <View style={styles.countryCodeBox}>
-                <Text style={styles.countryCodeText}>{countryCode}</Text>
-              </View>
-              <TextInput
-                style={styles.phoneInput}
-                value={phone}
-                onChangeText={(t) => {
-                  setPhone(t.replace(/[^0-9]/g, ''));
-                  setErrorMsg(null);
-                }}
-                keyboardType="phone-pad"
-                placeholder="9876543210"
-                maxLength={10}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={handleRequestOtp}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.primaryBtnText}>Continue to OTP Verification</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.oneClickBtn}
-              onPress={handleOneClickDemo}
-              disabled={isLoading}
-            >
-              <Ionicons name="flash-outline" size={14} color={COLORS.darkCharcoal} />
-              <Text style={styles.oneClickBtnText}>Instant Demo Admin Login</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <Text style={styles.label}>Enter 6-Digit OTP</Text>
-            <Text style={styles.otpSentTo}>
-              Target: <Text style={styles.bold}>{maskPhoneNumber(fullPhone)}</Text>
+        {/* Auth Mode Toggle */}
+        <View style={styles.tabToggle}>
+          <TouchableOpacity
+            style={[styles.tabButton, mode === 'LOGIN' && styles.tabButtonActive]}
+            onPress={() => {
+              setMode('LOGIN');
+              setErrorMessage(null);
+            }}
+          >
+            <Text style={[styles.tabButtonText, mode === 'LOGIN' && styles.tabButtonTextActive]}>
+              Sign In
             </Text>
+          </TouchableOpacity>
 
-            {!isRealFirebaseMode && (
-              <View style={styles.demoOtpHalf}>
-                <Text style={styles.demoOtpHalfText}>
-                  Expo Demo Passcode: Enter <Text style={styles.bold}>123456</Text>
-                </Text>
-              </View>
-            )}
+          <TouchableOpacity
+            style={[styles.tabButton, mode === 'REGISTER' && styles.tabButtonActive]}
+            onPress={() => {
+              setMode('REGISTER');
+              setErrorMessage(null);
+            }}
+          >
+            <Text style={[styles.tabButtonText, mode === 'REGISTER' && styles.tabButtonTextActive]}>
+              Create Account
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-            <TextInput
-              style={styles.otpInput}
-              value={otp}
-              onChangeText={(t) => {
-                setOtp(t.replace(/[^0-9]/g, ''));
-                setErrorMsg(null);
-              }}
-              keyboardType="number-pad"
-              placeholder="••••••"
-              maxLength={6}
-              autoFocus
-            />
-
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={handleVerifyOtp}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.primaryBtnText}>Authorize Administrator</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.resendRow}>
-              {countdown > 0 ? (
-                <Text style={styles.resendTimer}>Resend in 0:{countdown < 10 ? `0${countdown}` : countdown}</Text>
-              ) : (
-                <TouchableOpacity onPress={() => setCountdown(30)}>
-                  <Text style={styles.resendLink}>Resend Code</Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity onPress={() => setStep('PHONE')}>
-                <Text style={styles.changePhoneLink}>Change Number</Text>
-              </TouchableOpacity>
-            </View>
+        {/* Feedback Messages */}
+        {errorMessage && (
+          <View style={styles.errorBox}>
+            <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
+            <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.modeToggle}
-          onPress={() => {
-            setIsRealFirebaseMode(!isRealFirebaseMode);
-            setErrorMsg(null);
-          }}
-        >
-          <Text style={styles.modeToggleText}>
-            {isRealFirebaseMode
-              ? 'Switch to Offline Expo Demo Mode'
-              : 'Switch to Firebase Auth Mode'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {successMessage && (
+          <View style={styles.successBox}>
+            <Ionicons name="checkmark-circle-outline" size={16} color="#16A34A" />
+            <Text style={styles.successText}>{successMessage}</Text>
+          </View>
+        )}
+
+        {/* Form Inputs */}
+        <View style={styles.formCard}>
+          {mode === 'REGISTER' && (
+            <>
+              <Text style={styles.inputLabel}>Full Name / Operator ID</Text>
+              <View style={styles.inputWrap}>
+                <Ionicons name="person-outline" size={18} color="#64748B" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. John Doe"
+                  placeholderTextColor="#94A3B8"
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  autoCapitalize="words"
+                />
+              </View>
+
+              <Text style={styles.inputLabel}>Account Role</Text>
+              <View style={styles.rolePickerRow}>
+                <TouchableOpacity
+                  style={[styles.roleChip, selectedRole === 'USER' && styles.roleChipActive]}
+                  onPress={() => setSelectedRole('USER')}
+                >
+                  <Ionicons
+                    name="person"
+                    size={16}
+                    color={selectedRole === 'USER' ? '#FFFFFF' : '#64748B'}
+                  />
+                  <Text
+                    style={[
+                      styles.roleChipText,
+                      selectedRole === 'USER' && styles.roleChipTextActive,
+                    ]}
+                  >
+                    User (Operator)
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.roleChip, selectedRole === 'ADMIN' && styles.roleChipActive]}
+                  onPress={() => setSelectedRole('ADMIN')}
+                >
+                  <Ionicons
+                    name="shield"
+                    size={16}
+                    color={selectedRole === 'ADMIN' ? '#FFFFFF' : '#64748B'}
+                  />
+                  <Text
+                    style={[
+                      styles.roleChipText,
+                      selectedRole === 'ADMIN' && styles.roleChipTextActive,
+                    ]}
+                  >
+                    Administrator
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          <Text style={styles.inputLabel}>Email Address</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="mail-outline" size={18} color="#64748B" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="operator@plant.com"
+              placeholderTextColor="#94A3B8"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+
+          <Text style={styles.inputLabel}>Password</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="lock-closed-outline" size={18} color="#64748B" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="#94A3B8"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              style={styles.eyeIconBtn}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={18}
+                color="#64748B"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {mode === 'LOGIN' && (
+            <TouchableOpacity style={styles.forgotBtn} onPress={handleForgotPassword}>
+              <Text style={styles.forgotBtnText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.submitButtonText}>
+                {mode === 'LOGIN' ? 'Sign In to Portal' : 'Register Account'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Demo Instant Login Access for Evaluation */}
+        <View style={styles.demoSection}>
+          <View style={styles.demoDividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>ONE-TAP DEMO ACCESS</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.demoButtonsRow}>
+            <TouchableOpacity style={styles.demoAdminBtn} onPress={handleDemoAdmin}>
+              <Ionicons name="shield-checkmark" size={18} color="#0369A1" />
+              <View>
+                <Text style={styles.demoBtnTitle}>Instant Admin Demo</Text>
+                <Text style={styles.demoBtnSub}>Full management & alarm forward</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.demoUserBtn} onPress={handleDemoUser}>
+              <Ionicons name="person" size={18} color="#15803D" />
+              <View>
+                <Text style={styles.demoBtnTitle}>Instant User Demo</Text>
+                <Text style={styles.demoBtnSub}>Standard operator interface</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -248,198 +336,273 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(30, 33, 37, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  scrollContent: {
     padding: SPACING.md,
+    paddingBottom: 40,
   },
-  card: {
-    width: '100%',
-    maxWidth: 350,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
+  topBar: {
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-    position: 'relative',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
   },
-  closeBtn: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    padding: 6,
-  },
-  logoBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.cardSubtle,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  title: {
-    fontSize: 17,
-    fontWeight: '800',
+  topBarTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.textPrimary,
   },
-  subtitle: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-    marginBottom: 10,
+  brandContainer: {
+    alignItems: 'center',
+    marginVertical: 18,
   },
-  demoBanner: {
-    backgroundColor: COLORS.cardSubtle,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+  brandIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
   },
-  demoBannerText: {
-    fontSize: 9,
+  brandTitle: {
+    fontSize: 24,
     fontWeight: '800',
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+  },
+  brandSubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  tabToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tabButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  tabButtonTextActive: {
+    color: '#0F172A',
+    fontWeight: '700',
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.dangerBg,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.sm,
-    width: '100%',
-    marginBottom: 10,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: RADIUS.md,
+    padding: 12,
+    marginBottom: 14,
+    gap: 8,
   },
   errorText: {
-    fontSize: 11,
-    color: COLORS.dangerText,
-    flex: 1,
-  },
-  form: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 6,
-  },
-  phoneInputRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  countryCodeBox: {
-    backgroundColor: COLORS.cardSubtle,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  countryCodeText: {
     fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  phoneInput: {
+    color: '#DC2626',
     flex: 1,
-    backgroundColor: COLORS.cardSubtle,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    letterSpacing: 1,
   },
-  primaryBtn: {
-    backgroundColor: COLORS.darkCharcoal,
-    paddingVertical: 12,
-    borderRadius: 18,
+  successBox: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    borderRadius: RADIUS.md,
+    padding: 12,
+    marginBottom: 14,
+    gap: 8,
   },
-  primaryBtnText: {
-    color: '#FFFFFF',
+  successText: {
+    fontSize: 13,
+    color: '#16A34A',
+    flex: 1,
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  inputLabel: {
     fontSize: 12,
     fontWeight: '700',
+    color: '#475569',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
-  oneClickBtn: {
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    height: 48,
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  eyeIconBtn: {
+    padding: 6,
+  },
+  rolePickerRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  roleChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.cardSubtle,
     paddingVertical: 10,
-    borderRadius: 18,
-  },
-  oneClickBtnText: {
-    color: COLORS.textPrimary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  otpSentTo: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    marginBottom: 6,
-  },
-  demoOtpHalf: {
-    backgroundColor: COLORS.cardSubtle,
-    padding: 6,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  demoOtpHalfText: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-  },
-  otpInput: {
-    backgroundColor: COLORS.cardSubtle,
     borderRadius: RADIUS.md,
-    paddingVertical: 12,
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    textAlign: 'center',
-    letterSpacing: 8,
-    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
   },
-  resendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  roleChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  roleChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  roleChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 16,
+  },
+  forgotBtnText: {
+    fontSize: 13,
+    color: '#0284C7',
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: '#0284C7',
+    borderRadius: RADIUS.md,
+    height: 48,
     alignItems: 'center',
-    marginTop: 4,
+    justifyContent: 'center',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  resendTimer: {
-    fontSize: 10,
-    color: COLORS.textMuted,
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
-  resendLink: {
+  submitButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  demoSection: {
+    marginTop: 24,
+  },
+  demoDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 14,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  dividerText: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#94A3B8',
+    marginHorizontal: 10,
+    letterSpacing: 0.8,
   },
-  changePhoneLink: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+  demoButtonsRow: {
+    gap: 10,
   },
-  modeToggle: {
-    marginTop: 14,
-    paddingVertical: 4,
+  demoAdminBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: RADIUS.md,
+    padding: 14,
   },
-  modeToggleText: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    textDecorationLine: 'underline',
+  demoUserBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderRadius: RADIUS.md,
+    padding: 14,
   },
-  bold: {
-    fontWeight: '800',
-    color: COLORS.textPrimary,
+  demoBtnTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  demoBtnSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
 });
