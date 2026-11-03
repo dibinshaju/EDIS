@@ -99,6 +99,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const acknowledgeAlert = useCallback((alertId: string) => {
     // Silence audio immediately
     buzzerService.stop();
+    continuousAlarmEngine.stopAlarm();
 
     if (mqttStatus === 'connected') {
       publishCommand({
@@ -123,6 +124,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const resolveAlert = useCallback((alertId: string) => {
     buzzerService.stop();
+    continuousAlarmEngine.stopAlarm();
 
     if (mqttStatus === 'connected') {
       publishCommand({
@@ -139,6 +141,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const clearAllAlerts = useCallback(() => {
     buzzerService.stop();
+    continuousAlarmEngine.stopAlarm();
     dedupRef.current.clear();
     setAlerts([]);
     setActiveAlert(null);
@@ -182,6 +185,9 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (isBuzzerEnabled) {
       buzzerService.playAlarm();
+      if (demoEvent.severity === 'CRITICAL') {
+        continuousAlarmEngine.startAlarm(demoEvent.id, demoEvent.title, demoEvent.explanation);
+      }
     }
   }, [isBuzzerEnabled]);
 
