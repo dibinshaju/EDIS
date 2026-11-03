@@ -97,6 +97,19 @@ export async function triggerLocalBuzzerNotification(
   body: string,
   data: Record<string, any> = {}
 ): Promise<void> {
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body, icon: '/favicon.png' });
+      } catch (e) {
+        console.log(`[Web Notification] ${title}: ${body}`);
+      }
+    } else {
+      console.log(`[Web Notification Banner] ${title}: ${body}`);
+    }
+    return;
+  }
+
   try {
     await setupNotificationChannels();
 
