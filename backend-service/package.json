@@ -1,0 +1,9 @@
+{
+  "name": "waterguard-mqtt-backend",
+  "version": "1.0.0",
+  "description": "Background 24/7 MQTT Telemetry Subscriber & Automated Leak Detection Service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
